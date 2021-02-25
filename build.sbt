@@ -6,16 +6,18 @@
 
 organization in ThisBuild := "ca.ferlab"
 
-scalaVersion in ThisBuild := "2.12.11"
+scalaVersion in ThisBuild := "2.12.13"
 
 scalacOptions ++= Seq("-deprecation")
 scalacOptions += "-Ypartial-unification"
 
-val sparkVersion = "3.0.1"
+val sparkVersion = "3.0.2"
 val deltaCoreVersion = "0.8.0"
 val testNgVersion = "6.14.3"
-val typesafeVersion = "1.2.1"
-val catsVersion = "2.0.0"
+val typesafeVersion = "1.4.1"
+val catsVersion = "2.2.0"
+val scalatestVersion = "3.2.0"
+val glowVersion = "0.6.0"
 
 val providedLibrairies = Seq(
   "org.apache.spark" %% "spark-core" % sparkVersion,
@@ -34,7 +36,7 @@ lazy val `datalake-core` = (project in file("datalake-core"))
   .settings(libraryDependencies += "io.delta"         %% "delta-core" % deltaCoreVersion)
   .settings(libraryDependencies += "com.typesafe"     %  "config"     % typesafeVersion)
   .settings(libraryDependencies += "org.typelevel"    %% "cats-core"  % catsVersion)
-  .settings(libraryDependencies += "org.scalatest"    %% "scalatest"  % "3.2.0" % Test)
-  .settings(libraryDependencies += "io.projectglow"   %% "glow-spark3"% "0.6.0")
+  .settings(libraryDependencies += "org.scalatest"    %% "scalatest"  % scalatestVersion % Test)
+  .settings(libraryDependencies += "io.projectglow"   %% "glow-spark3"% glowVersion)
   .settings(version := "0.0.1")
   .settings(coverageMinimum := 90)
