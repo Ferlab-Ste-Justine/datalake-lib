@@ -1,0 +1,47 @@
+{
+  "format-version" : 1,
+  "table-uuid" : "44bf2fea-c0a8-4cea-b48a-4d09b5575a05",
+  "location" : "~/tmp/iceberg_tab01",
+  "last-updated-ms" : 1614729468014,
+  "last-column-id" : 2,
+  "schema" : {
+    "type" : "struct",
+    "fields" : [ {
+      "id" : 1,
+      "name" : "id",
+      "required" : true,
+      "type" : "long"
+    }, {
+      "id" : 2,
+      "name" : "level",
+      "required" : true,
+      "type" : "string"
+    } ]
+  },
+  "partition-spec" : [ {
+    "name" : "level",
+    "transform" : "identity",
+    "source-id" : 2,
+    "field-id" : 1000
+  } ],
+  "default-spec-id" : 0,
+  "partition-specs" : [ {
+    "spec-id" : 0,
+    "fields" : [ {
+      "name" : "level",
+      "transform" : "identity",
+      "source-id" : 2,
+      "field-id" : 1000
+    } ]
+  } ],
+  "default-sort-order-id" : 0,
+  "sort-orders" : [ {
+    "order-id" : 0,
+    "fields" : [ ]
+  } ],
+  "properties" : { },
+  "current-snapshot-id" : -1,
+  "snapshots" : [ ],
+  "snapshot-log" : [ ],
+  "metadata-log" : [ ]
+}

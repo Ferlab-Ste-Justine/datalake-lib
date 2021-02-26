@@ -1,11 +1,10 @@
 package bio.ferlab.datalake.core
 
+import bio.ferlab.datalake.core.models.TestInput
 import org.apache.spark.sql.SparkSession
 import org.scalatest.GivenWhenThen
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-
-case class TestInput(a: String = "a", b: Long = 0)
 
 class ClassGeneratorSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
 
