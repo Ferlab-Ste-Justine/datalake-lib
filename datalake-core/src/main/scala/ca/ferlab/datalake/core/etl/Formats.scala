@@ -1,4 +1,4 @@
-package ca.ferlab.datalake.core
+package ca.ferlab.datalake.core.etl
 
 /**
  * List of all [[Format]] supported by Sparkles
