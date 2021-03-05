@@ -26,6 +26,6 @@ case class DataSource(storageAlias: String,
       .map(_.path)
       .getOrElse(throw new IllegalArgumentException(s"storage with alias [$storageAlias] not found"))
 
-    s"$rootPath/$relativePath".replace("//", "/")
+    s"$rootPath$relativePath".replace("//", "/")
   }
 }
