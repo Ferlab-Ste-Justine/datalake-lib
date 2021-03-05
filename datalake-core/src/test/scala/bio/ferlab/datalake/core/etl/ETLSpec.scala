@@ -1,7 +1,9 @@
-package ca.ferlab.datalake.core.etl
+package bio.ferlab.datalake.core.etl
 
-import ca.ferlab.datalake.core.config.{Configuration, StorageConf}
-import ca.ferlab.datalake.core.etl.Formats.{CSV, DELTA}
+import bio.ferlab.datalake.core.config.{Configuration, StorageConf}
+import bio.ferlab.datalake.core.etl.Formats.{CSV, DELTA}
+import bio.ferlab.datalake.core.config.Configuration
+import Formats.{CSV, DELTA}
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.LongType
 import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}

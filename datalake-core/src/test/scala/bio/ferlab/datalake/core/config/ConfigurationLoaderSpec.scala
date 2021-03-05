@@ -1,4 +1,4 @@
-package ca.ferlab.datalake.core.config
+package bio.ferlab.datalake.core.config
 
 import org.scalatest.GivenWhenThen
 import org.scalatest.flatspec.AnyFlatSpec

@@ -1,6 +1,6 @@
-package ca.ferlab.datalake.core.etl
+package bio.ferlab.datalake.core.etl
 
-import ca.ferlab.datalake.core.config.Configuration
+import bio.ferlab.datalake.core.config.Configuration
 
 /**
  * Abstraction on a data source

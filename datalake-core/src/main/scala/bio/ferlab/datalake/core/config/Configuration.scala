@@ -1,4 +1,4 @@
-package ca.ferlab.datalake.core.config
+package bio.ferlab.datalake.core.config
 
 case class StorageConf(alias: String, path: String)
 

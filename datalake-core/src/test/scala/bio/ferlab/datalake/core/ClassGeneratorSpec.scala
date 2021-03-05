@@ -1,6 +1,6 @@
-package ca.ferlab.datalake.core
+package bio.ferlab.datalake.core
 
-import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.apache.spark.sql.SparkSession
 import org.scalatest.GivenWhenThen
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

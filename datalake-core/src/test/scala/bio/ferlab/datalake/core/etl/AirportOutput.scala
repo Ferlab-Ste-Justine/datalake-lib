@@ -1,4 +1,4 @@
-package ca.ferlab.datalake.core.etl
+package bio.ferlab.datalake.core.etl
 
 import java.sql.Timestamp
 
