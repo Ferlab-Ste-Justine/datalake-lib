@@ -4,8 +4,6 @@
  * information regarding copyright ownership.
  */
 
-organization in ThisBuild := "ca.ferlab"
-
 scalaVersion in ThisBuild := "2.12.13"
 
 scalacOptions ++= Seq("-deprecation")
@@ -28,7 +26,7 @@ val providedLibrairies = Seq(
 
 lazy val root = (project in file("."))
   .settings(name := "datalake-lib")
-  .settings(version := "0.0.1-SNAPSHOT")
+  .settings(version := "0.1.0-SNAPSHOT")
   .aggregate(`datalake-core`)
 
 lazy val `datalake-core` = (project in file("datalake-core"))
@@ -40,7 +38,7 @@ lazy val `datalake-core` = (project in file("datalake-core"))
   .settings(libraryDependencies += "org.typelevel"    %% "cats-core"  % catsVersion)
   .settings(libraryDependencies += "org.scalatest"    %% "scalatest"  % scalatestVersion % Test)
   .settings(libraryDependencies += "io.projectglow"   %% "glow-spark3"% glowVersion)
-  .settings(version := "0.0.1-SNAPSHOT")
+  .settings(version := "0.1.0-SNAPSHOT")
   .settings(coverageMinimum := 90)
 
 
