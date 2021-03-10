@@ -2,14 +2,13 @@ package bio.ferlab.datalake.core.etl
 
 import bio.ferlab.datalake.core.config.{Configuration, StorageConf}
 import bio.ferlab.datalake.core.etl.Formats.{CSV, DELTA}
-import org.apache.spark.sql.functions._
-import org.apache.spark.sql.types.LongType
-import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
+import bio.ferlab.datalake.core.transformation.Transformation
+import org.apache.spark.sql.SparkSession
 import org.scalatest.GivenWhenThen
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-class ETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
+class RawToNormalizedETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
 
   implicit lazy val spark: SparkSession = SparkSession.builder()
     .config("spark.ui.enabled", value = false)
@@ -29,55 +28,33 @@ class ETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
   val srcConf: DataSource = DataSource("raw", "/airports.csv", "raw_db", "raw_airports", CSV, Map("header" -> "true", "delimiter" -> "|"))
   val destConf: DataSource = DataSource("normalized", "/airports", "normalized_db", "airports", DELTA)
 
-  case class TestETL() extends ETL(destConf) {
-    override def extract()(implicit spark: SparkSession): Map[DataSource, DataFrame] = {
-      Map(srcConf -> spark.read.format(srcConf.format.sparkFormat).options(srcConf.readOptions).load(srcConf.location))
-    }
+  val job: RawToNormalizedETL = new RawToNormalizedETL(srcConf, destConf, List.empty[Transformation])
 
-    override def transform(data: Map[DataSource, DataFrame])(implicit spark: SparkSession): DataFrame = {
-      data(srcConf)
-        .select(
-          col("id").cast(LongType),
-          trim(col("CODE")) as "airport_cd",
-          trim(col("description")) as "description_EN",
-          sha1(col("id")) as "hash_id",
-          input_file_name() as "input_file_name",
-          current_timestamp() as "createdOn"
-        )
-
-    }
-
-    override def load(data: DataFrame)(implicit spark: SparkSession): Unit = {
-      spark.sql(s"CREATE DATABASE IF NOT EXISTS ${destination.database}")
-      data
-        .write
-        .format("delta")
-        .mode(SaveMode.Overwrite)
-        .option("path", destination.location)
-        .saveAsTable(s"${destination.database}.${destination.name}")
-    }
-  }
-
-  val job: ETL = TestETL()
-
-  "extract" should "return the expected format" in {
+  "RawToNormalizedETL extract" should "return the expected format" in {
     import spark.implicits._
 
     val data = job.extract()
     data(srcConf).as[AirportInput]
-    data(srcConf).show(false)
   }
 
-  "transform" should "return the expected format" in {
+  "RawToNormalizedETL transform and publish" should "return the expected format" in {
     import spark.implicits._
 
     val input = job.extract()
     val output = job.transform(input)
-    output.as[AirportOutput]
-    output.show(false)
+    output.as[AirportInput]
+
+    job.publish()
+    val files = job.fs.list(srcConf.location.replace("landing", "archive"), true)
+    files.foreach(f => println(f.path))
+    files.head.name shouldBe "airports.csv"
   }
 
-  "load" should "create the expected table" in {
+  "list files" should "work" in {
+
+  }
+
+  "RawToNormalizedETL load" should "create the expected table" in {
     import spark.implicits._
 
     val output = Seq(AirportOutput()).toDF()
@@ -85,7 +62,6 @@ class ETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
     job.load(output)
 
     val table = spark.table(s"${destConf.database}.${destConf.name}")
-    table.show(false)
     table.as[AirportOutput].collect().head shouldBe AirportOutput()
   }
 

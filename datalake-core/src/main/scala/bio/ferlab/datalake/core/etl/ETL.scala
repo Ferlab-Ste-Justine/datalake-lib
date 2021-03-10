@@ -1,6 +1,7 @@
 package bio.ferlab.datalake.core.etl
 
 import bio.ferlab.datalake.core.config.Configuration
+import bio.ferlab.datalake.core.file.{FileSystem, HadoopFileSystem}
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
 
@@ -11,6 +12,11 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
  * @param conf application configuration
  */
 abstract class ETL(val destination: DataSource)(implicit val conf: Configuration) {
+
+  /**
+   * Default file system
+   */
+  val fs: FileSystem = HadoopFileSystem
 
   /**
    * Reads data from a file system and produce a Map[DataSource, DataFrame].
