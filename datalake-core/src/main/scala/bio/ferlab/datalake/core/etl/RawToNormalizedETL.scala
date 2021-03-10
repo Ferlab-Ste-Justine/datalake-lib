@@ -1,6 +1,7 @@
 package bio.ferlab.datalake.core.etl
 
 import bio.ferlab.datalake.core.config.Configuration
+import bio.ferlab.datalake.core.file.{FileSystem, HadoopFileSystem}
 import bio.ferlab.datalake.core.transformation.Transformation
 import org.apache.spark.sql.functions.input_file_name
 import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
@@ -10,10 +11,10 @@ class RawToNormalizedETL(val source: DataSource,
                          val transformations: List[Transformation])
                         (override implicit val conf: Configuration) extends ETL(destination) {
 
-  var processedFiles: List[String] = List()
+  private var processedFiles: List[String] = List()
 
   override def extract()(implicit spark: SparkSession): Map[DataSource, DataFrame] = {
-    Map(source -> spark.read.format(source.format.sparkFormat).load(source.location))
+    Map(source -> spark.read.format(source.format.sparkFormat).options(source.readOptions).load(source.location))
   }
 
   /**
@@ -41,7 +42,8 @@ class RawToNormalizedETL(val source: DataSource,
    * @param spark an instance of SparkSession
    */
   override def load(data: DataFrame)(implicit spark: SparkSession): Unit = {
-    //TODO replace with DeltaUtils.upsert()
+    spark.sql(s"CREATE DATABASE IF NOT EXISTS ${destination.database}")
+    //TODO should be upsert here instead
     data
       .write
       .format(destination.format.sparkFormat)
@@ -57,10 +59,11 @@ class RawToNormalizedETL(val source: DataSource,
    * @param spark an instance of SparkSession
    */
   override def publish()(implicit spark: SparkSession): Unit = {
-    processedFiles.foreach(file =>
-      //TODO move to archive folder
-      println(s"Moving to /raw/archive: $file")
+    val files = processedFiles
+    files.foreach(file =>
+      fs.move(file, file.replace("landing", "archive"), overwrite = true)
     )
+    processedFiles = List.empty[String]
   }
 }
 

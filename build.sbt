@@ -6,8 +6,8 @@
 
 scalaVersion in ThisBuild := "2.12.13"
 
-scalacOptions ++= Seq("-deprecation")
-scalacOptions += "-Ypartial-unification"
+scalacOptions ++= Seq("-deprecation", "-Ypartial-unification")
+javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
 
 val sparkVersion = "3.0.2"
 val deltaCoreVersion = "0.8.0"
@@ -30,15 +30,16 @@ lazy val root = (project in file("."))
   .aggregate(`datalake-core`)
 
 lazy val `datalake-core` = (project in file("datalake-core"))
-  .settings(libraryDependencies += "org.apache.spark" %% "spark-core" % sparkVersion)
-  .settings(libraryDependencies += "org.apache.spark" %% "spark-sql"  % sparkVersion)
-  .settings(libraryDependencies += "io.delta"         %% "delta-core" % deltaCoreVersion)
-  //.settings(libraryDependencies += "com.typesafe"     %  "config"     % typesafeVersion)
+  .settings(libraryDependencies += "org.apache.spark"      %% "spark-core" % sparkVersion)
+  .settings(libraryDependencies += "org.apache.spark"      %% "spark-sql"  % sparkVersion)
+  .settings(libraryDependencies += "io.delta"              %% "delta-core" % deltaCoreVersion)
   .settings(libraryDependencies += "com.github.pureconfig" %% "pureconfig" % "0.14.1")
-  .settings(libraryDependencies += "org.typelevel"    %% "cats-core"  % catsVersion)
-  .settings(libraryDependencies += "org.scalatest"    %% "scalatest"  % scalatestVersion % Test)
-  .settings(libraryDependencies += "io.projectglow"   %% "glow-spark3"% glowVersion)
+  .settings(libraryDependencies += "org.typelevel"         %% "cats-core"  % catsVersion)
+  .settings(libraryDependencies += "org.scalatest"         %% "scalatest"  % scalatestVersion % Test)
+  .settings(libraryDependencies += "io.projectglow"        %% "glow-spark3"% glowVersion)
   .settings(version := "0.1.0-SNAPSHOT")
+  .settings(parallelExecution in test := false)
+  .settings(fork := true)
   .settings(coverageMinimum := 90)
 
 
