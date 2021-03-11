@@ -21,11 +21,13 @@ case class DataSource(storageAlias: String,
                       readOptions: Map[String, String] = Map.empty[String, String],
                       writeOptions: Map[String, String] = Map.empty[String, String]) {
 
-  def location(implicit config: Configuration): String = {
-    val rootPath: String = config.storages.find(_.alias.equalsIgnoreCase(storageAlias))
+  def rootPath(implicit config: Configuration): String = {
+    config.storages.find(_.alias.equalsIgnoreCase(storageAlias))
       .map(_.path)
       .getOrElse(throw new IllegalArgumentException(s"storage with alias [$storageAlias] not found"))
+  }
 
-    s"$rootPath$relativePath".replace("//", "/")
+  def location(implicit config: Configuration): String = {
+    s"$rootPath$relativePath"
   }
 }

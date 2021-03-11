@@ -23,7 +23,7 @@ class DeltaUtilsSpec extends AnyFlatSpec with Matchers {
 
   spark.sparkContext.setLogLevel("ERROR")
 
-  val output: String = getClass.getClassLoader.getResource("normalized/").getFile
+  val output: String = getClass.getClassLoader.getResource("normalized/").getFile + "testtable"
 
   "upsert" should "update existing data and insert new data" in {
 
@@ -39,7 +39,7 @@ class DeltaUtilsSpec extends AnyFlatSpec with Matchers {
       Test("aaa", "aaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1)
     ).toDF
 
-    DeltaLoader.writeOnce(existing, "testtable", output)
+    DeltaLoader.writeOnce(output, "testtable", existing)
 
     val updates: Seq[Test] = Seq(
       Test("a", "b", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),
@@ -77,7 +77,7 @@ class DeltaUtilsSpec extends AnyFlatSpec with Matchers {
       Test("aaa", "aaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1)
     ).toDF
 
-    DeltaLoader.writeOnce(existing, "testtable", output)
+    DeltaLoader.writeOnce(output, "testtable", existing)
 
     val updates: DataFrame = Seq(
       Test("a", "b", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),
