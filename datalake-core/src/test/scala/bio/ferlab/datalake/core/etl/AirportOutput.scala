@@ -2,7 +2,7 @@ package bio.ferlab.datalake.core.etl
 
 import java.sql.Timestamp
 
-case class AirportOutput(id: Long = 1,
+case class AirportOutput(airport_id: Long = 1,
                          airport_cd: String = "YYC",
                          description_EN: String = "Calgary airport",
                          hash_id: String = "356a192b7913b04c54574d18c28d46e6395428ab",

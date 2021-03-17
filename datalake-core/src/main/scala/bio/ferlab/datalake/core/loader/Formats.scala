@@ -1,7 +1,7 @@
-package bio.ferlab.datalake.core.etl
+package bio.ferlab.datalake.core.loader
 
 /**
- * List of all [[Format]] supported by Sparkles
+ * List of all [[Format]] supported
  */
 object Formats {
 

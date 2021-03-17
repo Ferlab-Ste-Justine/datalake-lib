@@ -1,10 +1,10 @@
 package bio.ferlab.datalake.core.etl
 
 import bio.ferlab.datalake.core.config.Configuration
-import bio.ferlab.datalake.core.loader.DeltaLoader
+import bio.ferlab.datalake.core.loader.LoadResolver
 import bio.ferlab.datalake.core.transformation.Transformation
 import org.apache.spark.sql.functions.input_file_name
-import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
+import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.slf4j.{Logger, LoggerFactory}
 
 import scala.util.{Failure, Success, Try}
@@ -14,7 +14,7 @@ class RawToNormalizedETL(val source: DataSource,
                          val transformations: List[Transformation])
                         (override implicit val conf: Configuration) extends ETL(destination) {
 
-  val log: Logger = LoggerFactory.getLogger(getClass)
+  val log: Logger = LoggerFactory.getLogger(getClass.getCanonicalName)
 
   private var processedFiles: List[String] = List()
 
@@ -40,7 +40,7 @@ class RawToNormalizedETL(val source: DataSource,
     //apply list of transformations to the input data
     val finalDf = Transformation.applyTransformations(data(source), transformations).persist()
 
-    log.info(s"unique ids: ${finalDf.dropDuplicates("id").count()}")
+    log.info(s"unique ids: ${finalDf.dropDuplicates(destination.idName).count()}")
     log.info(s"rows: ${finalDf.count()}")
     finalDf
   }
@@ -55,12 +55,10 @@ class RawToNormalizedETL(val source: DataSource,
   override def load(data: DataFrame)(implicit spark: SparkSession): Unit = {
     log.info(s"loading: ${destination.name}")
     spark.sql(s"CREATE DATABASE IF NOT EXISTS ${destination.database}")
-    data
-      .write
-      .format(destination.format.sparkFormat)
-      .mode(SaveMode.Overwrite)
-      .option("path", destination.location)
-      .saveAsTable(s"${destination.database}.${destination.name}")
+
+    LoadResolver
+      .resolve(spark, conf)(destination.format -> destination.loadType)
+      .apply(destination, data)
   }
 
 
