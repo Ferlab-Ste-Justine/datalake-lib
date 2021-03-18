@@ -52,7 +52,7 @@ class RawToNormalizedETL(val source: DataSource,
    * @param data  output data produced by the transform method.
    * @param spark an instance of SparkSession
    */
-  override def load(data: DataFrame)(implicit spark: SparkSession): Unit = {
+  override def load(data: DataFrame)(implicit spark: SparkSession): DataFrame = {
     log.info(s"loading: ${destination.name}")
     spark.sql(s"CREATE DATABASE IF NOT EXISTS ${destination.database}")
 

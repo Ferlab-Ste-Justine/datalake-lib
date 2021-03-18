@@ -48,7 +48,7 @@ class ETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
 
     }
 
-    override def load(data: DataFrame)(implicit spark: SparkSession): Unit = {
+    override def load(data: DataFrame)(implicit spark: SparkSession): DataFrame = {
       spark.sql(s"CREATE DATABASE IF NOT EXISTS ${destination.database}")
       data
         .write
@@ -56,6 +56,7 @@ class ETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
         .mode(SaveMode.Overwrite)
         .option("path", destination.location)
         .saveAsTable(s"${destination.database}.${destination.name}")
+      data
     }
   }
 

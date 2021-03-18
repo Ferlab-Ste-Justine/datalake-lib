@@ -43,7 +43,7 @@ abstract class ETL(val destination: DataSource)(implicit val conf: Configuration
    * @param data output data produced by the transform method.
    * @param spark an instance of SparkSession
    */
-  def load(data: DataFrame)(implicit spark: SparkSession): Unit
+  def load(data: DataFrame)(implicit spark: SparkSession): DataFrame
 
   /**
    * OPTIONAL - Contains all actions needed to be done in order to make the data available to users
@@ -58,11 +58,12 @@ abstract class ETL(val destination: DataSource)(implicit val conf: Configuration
    * Entry point of the etl - execute this method in order to run the whole ETL
    * @param spark an instance of SparkSession
    */
-  def run()(implicit spark: SparkSession): Unit = {
+  def run()(implicit spark: SparkSession): DataFrame = {
     val inputs = extract()
     val output = transform(inputs)
-    load(output)
+    val finalDf = load(output)
     publish()
+    finalDf
   }
 
 }
