@@ -1,5 +1,6 @@
 package bio.ferlab.datalake.core.loader
 
+import bio.ferlab.datalake.core.etl.Partitioning
 import io.delta.tables.DeltaTable
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.scalatest.flatspec.AnyFlatSpec
@@ -12,7 +13,7 @@ case class Test(uid: String, oid: String,
                 createdOn: Timestamp, updatedOn: Timestamp,
                 data: Long, chromosome: String = "1", start: Long = 666)
 
-class DeltaUtilsSpec extends AnyFlatSpec with Matchers {
+class DeltaLoaderSpec extends AnyFlatSpec with Matchers {
 
   implicit lazy val spark: SparkSession = SparkSession.builder()
     .config("spark.ui.enabled", value = false)
@@ -27,7 +28,7 @@ class DeltaUtilsSpec extends AnyFlatSpec with Matchers {
 
   "upsert" should "update existing data and insert new data" in {
 
-    spark.sql("DROP TABLE IF EXISTS testtable")
+    spark.sql("DROP TABLE IF EXISTS default.testtable")
 
     import spark.implicits._
 
@@ -39,7 +40,7 @@ class DeltaUtilsSpec extends AnyFlatSpec with Matchers {
       Test("aaa", "aaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1)
     ).toDF
 
-    DeltaLoader.writeOnce(output, "testtable", existing)
+    DeltaLoader.writeOnce(output, "default", "testtable", existing, Partitioning.default)
 
     val updates: Seq[Test] = Seq(
       Test("a", "b", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),
@@ -52,9 +53,11 @@ class DeltaUtilsSpec extends AnyFlatSpec with Matchers {
 
     DeltaLoader.upsert(
       output,
+      "default",
       "testtable",
       updatedDF,
-      "uid"
+      "uid",
+      partitioning = Partitioning.default
     )
 
     DeltaTable
@@ -65,7 +68,7 @@ class DeltaUtilsSpec extends AnyFlatSpec with Matchers {
 
   "scd1" should "update existing data and insert new data" in {
 
-    spark.sql("DROP TABLE IF EXISTS testtable")
+    spark.sql("DROP TABLE IF EXISTS default.testtable")
 
     import spark.implicits._
 
@@ -77,7 +80,7 @@ class DeltaUtilsSpec extends AnyFlatSpec with Matchers {
       Test("aaa", "aaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1)
     ).toDF
 
-    DeltaLoader.writeOnce(output, "testtable", existing)
+    DeltaLoader.writeOnce(output, "default", "testtable", existing, Partitioning.default)
 
     val updates: DataFrame = Seq(
       Test("a", "b", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),
@@ -93,12 +96,14 @@ class DeltaUtilsSpec extends AnyFlatSpec with Matchers {
 
     DeltaLoader.scd1(
       output,
+      "default",
       "testtable",
       updates,
       "uid",
       "oid",
       "createdOn",
-      "updatedOn"
+      "updatedOn",
+      Partitioning.default
     )
 
     DeltaTable

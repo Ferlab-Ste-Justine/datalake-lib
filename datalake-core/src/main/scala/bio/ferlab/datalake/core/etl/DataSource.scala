@@ -1,6 +1,8 @@
 package bio.ferlab.datalake.core.etl
 
 import bio.ferlab.datalake.core.config.Configuration
+import bio.ferlab.datalake.core.loader.Format
+import bio.ferlab.datalake.core.loader.LoadTypes.LoadType
 
 /**
  * Abstraction on a data source
@@ -9,7 +11,8 @@ import bio.ferlab.datalake.core.config.Configuration
  * @param relativePath the relative path from the root of the storage to the data source. ie, /raw/my-system/my-source
  * @param database name of the database where the data is
  * @param name name of the source inside the database. the combining of database and name should be unique
- * @param format the format of the data
+ * @param format data format
+ * @param loadType how the data is written
  * @param readOptions OPTIONAL - read options to pass to spark in order to read the data into a DataFrame
  * @param writeOptions OPTIONAL - write options to pass to spark in order to write the data into files
  */
@@ -18,8 +21,14 @@ case class DataSource(storageAlias: String,
                       database: String,
                       name: String,
                       format: Format,
+                      loadType: LoadType,
+                      partitioning: Partitioning = Partitioning.default,
                       readOptions: Map[String, String] = Map.empty[String, String],
                       writeOptions: Map[String, String] = Map.empty[String, String]) {
+
+  def idName: String = {
+    s"${name}_id"
+  }
 
   def rootPath(implicit config: Configuration): String = {
     config.storages.find(_.alias.equalsIgnoreCase(storageAlias))

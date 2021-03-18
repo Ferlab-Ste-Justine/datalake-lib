@@ -1,7 +1,8 @@
 package bio.ferlab.datalake.core.etl
 
 import bio.ferlab.datalake.core.config.{Configuration, StorageConf}
-import bio.ferlab.datalake.core.etl.Formats.{CSV, DELTA}
+import bio.ferlab.datalake.core.loader.Formats.{CSV, DELTA}
+import bio.ferlab.datalake.core.loader.LoadTypes._
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.LongType
 import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
@@ -26,8 +27,8 @@ class ETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
     StorageConf("normalized", getClass.getClassLoader.getResource("normalized/").getFile)
   ))
 
-  val srcConf: DataSource = DataSource("raw", "/airports.csv", "raw_db", "raw_airports", CSV, Map("header" -> "true", "delimiter" -> "|"))
-  val destConf: DataSource = DataSource("normalized", "/airports", "normalized_db", "airports", DELTA)
+  val srcConf: DataSource = DataSource("raw", "/airports.csv", "raw_db", "raw_airports", CSV, OverWrite, Partitioning.default, Map("header" -> "true", "delimiter" -> "|"))
+  val destConf: DataSource = DataSource("normalized", "/airports", "normalized_db", "airport", DELTA, OverWrite, Partitioning.default)
 
   case class TestETL() extends ETL(destConf) {
     override def extract()(implicit spark: SparkSession): Map[DataSource, DataFrame] = {
@@ -37,7 +38,7 @@ class ETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
     override def transform(data: Map[DataSource, DataFrame])(implicit spark: SparkSession): DataFrame = {
       data(srcConf)
         .select(
-          col("id").cast(LongType),
+          col("id").cast(LongType) as "airport_id",
           trim(col("CODE")) as "airport_cd",
           trim(col("description")) as "description_EN",
           sha1(col("id")) as "hash_id",

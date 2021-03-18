@@ -1,9 +1,12 @@
 package bio.ferlab.datalake.core.etl
 
 import bio.ferlab.datalake.core.config.{Configuration, StorageConf}
-import bio.ferlab.datalake.core.etl.Formats.{CSV, DELTA}
-import bio.ferlab.datalake.core.transformation.Transformation
+import bio.ferlab.datalake.core.loader.Formats.{CSV, DELTA}
+import bio.ferlab.datalake.core.loader.LoadTypes.OverWrite
+import bio.ferlab.datalake.core.transformation.{Custom, Transformation}
 import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.functions.{col, current_timestamp, input_file_name, sha1, trim}
+import org.apache.spark.sql.types.LongType
 import org.scalatest.GivenWhenThen
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -25,10 +28,17 @@ class RawToNormalizedETLSpec extends AnyFlatSpec with GivenWhenThen with Matcher
     StorageConf("normalized", getClass.getClassLoader.getResource("normalized/").getFile)
   ))
 
-  val srcConf: DataSource = DataSource("raw", "/airports.csv", "raw_db", "raw_airports", CSV, Map("header" -> "true", "delimiter" -> "|"))
-  val destConf: DataSource = DataSource("normalized", "/airports", "normalized_db", "airports", DELTA)
+  val srcConf: DataSource = DataSource("raw", "/airports.csv", "raw_db", "raw_airports", CSV, OverWrite, Partitioning.default, readOptions = Map("header" -> "true", "delimiter" -> "|"))
+  val destConf: DataSource = DataSource("normalized", "/airports", "normalized_db", "airport", DELTA, OverWrite, Partitioning.default)
 
-  val job: RawToNormalizedETL = new RawToNormalizedETL(srcConf, destConf, List.empty[Transformation])
+  val job: RawToNormalizedETL = new RawToNormalizedETL(srcConf, destConf, List(Custom(_.select(
+    col("id").cast(LongType) as "airport_id",
+    trim(col("CODE")) as "airport_cd",
+    trim(col("description")) as "description_EN",
+    sha1(col("id")) as "hash_id",
+    input_file_name() as "input_file_name",
+    current_timestamp() as "createdOn"
+  ))))
 
   "RawToNormalizedETL extract" should "return the expected format" in {
     import spark.implicits._
@@ -42,16 +52,12 @@ class RawToNormalizedETLSpec extends AnyFlatSpec with GivenWhenThen with Matcher
 
     val input = job.extract()
     val output = job.transform(input)
-    output.as[AirportInput]
+    output.as[AirportOutput]
 
     job.publish()
     val files = job.fs.list(srcConf.location.replace("landing", "archive"), true)
     files.foreach(f => println(f.path))
     files.head.name shouldBe "airports.csv"
-  }
-
-  "list files" should "work" in {
-
   }
 
   "RawToNormalizedETL load" should "create the expected table" in {

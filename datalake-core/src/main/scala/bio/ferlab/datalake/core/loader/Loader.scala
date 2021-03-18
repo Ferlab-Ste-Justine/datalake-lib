@@ -1,8 +1,21 @@
 package bio.ferlab.datalake.core.loader
 
-import org.apache.spark.sql.{Column, DataFrame, SparkSession}
+import bio.ferlab.datalake.core.etl.Partitioning
+import org.apache.spark.sql.{DataFrame, SparkSession}
 
 trait Loader {
+
+  /**
+   * Default read logic for a loader
+   * @param location absolute path of where the data is
+   * @param format string representing the format
+   * @param readOptions read options
+   * @param spark spark session
+   * @return the data as a dataframe
+   */
+  def read(location: String,
+           format: String,
+           readOptions: Map[String, String])(implicit spark: SparkSession): DataFrame
 
   /**
    * Overwrites the data located in output/tableName
@@ -10,19 +23,15 @@ trait Loader {
    * @param df the data to write
    * @param tableName the name of the table
    * @param location full path of where the data will be located
-   * @param repartitionExpr OPTIONAL - repartition logic
-   * @param sortWithinPartitions OPTIONAL - sort within partition logic
-   * @param partitionBy OPTIONAL - partition configuration
    * @param dataChange if the data is expected to be different from the data already written
    * @param spark a valid spark session
    * @return the data as a dataframe
    */
   def writeOnce(location: String,
+                databaseName: String,
                 tableName: String,
                 df: DataFrame,
-                repartitionExpr: Seq[Column],
-                sortWithinPartitions: Seq[Column],
-                partitionBy: Seq[String],
+                partitioning: Partitioning,
                 dataChange: Boolean = true)(implicit spark: SparkSession): DataFrame
 
   /**
@@ -32,21 +41,15 @@ trait Loader {
    * @param tableName the name of the updated/created table
    * @param updates new data to be merged with existing data
    * @param uidName name of the column holding the unique id
-   * @param repartitionExpr OPTIONAL - repartition logic
-   * @param sortWithinPartitions OPTIONAL - sort within partition logic
-   * @param partitionBy OPTIONAL - partition configuration
-   * @param dataChange if the data is expected to be different from the data already written
    * @param spark a valid spark session
    * @return the data as a dataframe
    */
   def upsert(location: String,
+             databaseName: String,
              tableName: String,
              updates: DataFrame,
              uidName: String,
-             repartitionExpr: Seq[Column],
-             sortWithinPartitions: Seq[Column],
-             partitionBy: Seq[String],
-             dataChange: Boolean = true)(implicit spark: SparkSession): DataFrame
+             partitioning: Partitioning)(implicit spark: SparkSession): DataFrame
 
   /**
    * Update the data only if the data has changed
@@ -60,23 +63,17 @@ trait Loader {
    * @param oidName name of the column holding the hash of the column that can change over time (or version number)
    * @param createdOnName name of the column holding the creation timestamp
    * @param updatedOnName name of the column holding the last update timestamp
-   * @param repartitionExpr OPTIONAL - repartition logic
-   * @param sortWithinPartitions OPTIONAL - sort within partition logic
-   * @param partitionBy OPTIONAL - partition configuration
-   * @param dataChange if the data is expected to be different from the data already written
    * @param spark a valid spark session
    * @return the data as a dataframe
    */
   def scd1(location: String,
+           databaseName: String,
            tableName: String,
            updates: DataFrame,
            uidName: String,
            oidName: String,
            createdOnName: String,
            updatedOnName: String,
-           repartitionExpr: Seq[Column],
-           sortWithinPartitions: Seq[Column],
-           partitionBy: Seq[String],
-           dataChange: Boolean = true)(implicit spark: SparkSession): DataFrame
+           partitioning: Partitioning)(implicit spark: SparkSession): DataFrame
 
 }
