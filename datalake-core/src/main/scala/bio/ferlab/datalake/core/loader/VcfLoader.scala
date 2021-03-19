@@ -1,12 +1,22 @@
 package bio.ferlab.datalake.core.loader
 
 import bio.ferlab.datalake.core.etl.Partitioning
+import io.projectglow.Glow
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
-object CsvLoader extends Loader {
+object VcfLoader extends Loader {
 
-  override def read(location: String, format: String, readOptions: Map[String, String])(implicit spark: SparkSession): DataFrame = {
-    spark.read.options(readOptions).csv(location)
+  override def read(location: String,
+                    format: String = "vcf",
+                    readOptions: Map[String, String] = Map())(implicit spark: SparkSession): DataFrame = {
+
+    val inputs = location.split(",")
+    val df = spark.read.format(format)
+      .option("flattenInfoFields", "true")
+      .load(inputs: _*)
+      .withColumnRenamed("filters", "INFO_FILTERS") // Avoid losing filters columns before split
+
+    Glow.transform("split_multiallelics", df)
   }
 
   override def writeOnce(location: String,
@@ -16,13 +26,7 @@ object CsvLoader extends Loader {
                          partitioning: Partitioning,
                          dataChange: Boolean)
                         (implicit spark:  SparkSession): DataFrame = {
-    val repartitionedData = partitioning.repartitionExpr(df).persist()
-    repartitionedData
-      .write
-      .mode("overwrite")
-      .partitionBy(partitioning.partitionBy:_*)
-      .save(location)
-    repartitionedData
+    throw NotImplementedException
   }
 
   override def upsert(location: String,

@@ -56,7 +56,7 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers {
       "default",
       "testtable",
       updatedDF,
-      "uid",
+      Seq("uid"),
       partitioning = Partitioning.default
     )
 
@@ -99,7 +99,7 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers {
       "default",
       "testtable",
       updates,
-      "uid",
+      Seq("uid"),
       "oid",
       "createdOn",
       "updatedOn",

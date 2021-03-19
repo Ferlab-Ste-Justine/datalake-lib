@@ -1,13 +1,12 @@
 package bio.ferlab.datalake.core.etl
 
-import org.apache.spark.sql.Column
+import org.apache.spark.sql.DataFrame
 
-case class Partitioning(repartitionExpr: Seq[Column],
-                        sortWithinPartitions: Seq[Column],
+case class Partitioning(repartitionExpr: DataFrame => DataFrame,
                         partitionBy: Seq[String]) {
 
 }
 
 object Partitioning {
-  def default: Partitioning = Partitioning(Seq(), Seq(), Seq())
+  def default: Partitioning = Partitioning({ df => df }, Seq())
 }

@@ -22,13 +22,10 @@ case class DataSource(storageAlias: String,
                       name: String,
                       format: Format,
                       loadType: LoadType,
+                      primaryKeys: Seq[String] = Seq("id"),
                       partitioning: Partitioning = Partitioning.default,
                       readOptions: Map[String, String] = Map.empty[String, String],
                       writeOptions: Map[String, String] = Map.empty[String, String]) {
-
-  def idName: String = {
-    s"${name}_id"
-  }
 
   def rootPath(implicit config: Configuration): String = {
     config.storages.find(_.alias.equalsIgnoreCase(storageAlias))
