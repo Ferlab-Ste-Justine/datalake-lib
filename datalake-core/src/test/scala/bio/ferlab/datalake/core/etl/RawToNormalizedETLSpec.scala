@@ -3,9 +3,9 @@ package bio.ferlab.datalake.core.etl
 import bio.ferlab.datalake.core.config.{Configuration, StorageConf}
 import bio.ferlab.datalake.core.loader.Formats.{CSV, DELTA}
 import bio.ferlab.datalake.core.loader.LoadTypes.OverWrite
-import bio.ferlab.datalake.core.transformation.{Custom, Transformation}
+import bio.ferlab.datalake.core.transformation.Custom
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.sql.functions.{col, current_timestamp, input_file_name, sha1, trim}
+import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.LongType
 import org.scalatest.GivenWhenThen
 import org.scalatest.flatspec.AnyFlatSpec
@@ -28,8 +28,8 @@ class RawToNormalizedETLSpec extends AnyFlatSpec with GivenWhenThen with Matcher
     StorageConf("normalized", getClass.getClassLoader.getResource("normalized/").getFile)
   ))
 
-  val srcConf: DataSource = DataSource("raw", "/airports.csv", "raw_db", "raw_airports", CSV, OverWrite, Partitioning.default, readOptions = Map("header" -> "true", "delimiter" -> "|"))
-  val destConf: DataSource = DataSource("normalized", "/airports", "normalized_db", "airport", DELTA, OverWrite, Partitioning.default)
+  val srcConf: DataSource = DataSource("raw", "/airports.csv", "raw_db", "raw_airports", CSV, OverWrite, readOptions = Map("header" -> "true", "delimiter" -> "|"))
+  val destConf: DataSource = DataSource("normalized", "/airports", "normalized_db", "airport", DELTA, OverWrite, Seq("airport_id"))
 
   val job: RawToNormalizedETL = new RawToNormalizedETL(srcConf, destConf, List(Custom(_.select(
     col("id").cast(LongType) as "airport_id",

@@ -12,7 +12,7 @@ object LoadResolver {
   type DataSourceLoader = (DataSource, DataFrame) => DataFrame
 
   def resolve(implicit spark: SparkSession, conf: Configuration): PartialFunction[(Format, LoadType), DataSourceLoader] = {
-    case (DELTA, Upsert)    => (ds: DataSource, df: DataFrame) => DeltaLoader.upsert(ds.location, ds.database, ds.name, df, ds.idName, ds.partitioning)
+    case (DELTA, Upsert)    => (ds: DataSource, df: DataFrame) => DeltaLoader.upsert(ds.location, ds.database, ds.name, df, ds.primaryKeys, ds.partitioning)
     case (DELTA, OverWrite) => (ds: DataSource, df: DataFrame) => DeltaLoader.writeOnce(ds.location, ds.database, ds.name, df, ds.partitioning, dataChange = true)
     case (DELTA, Compact)   => (ds: DataSource, df: DataFrame) => DeltaLoader.writeOnce(ds.location, ds.database, ds.name, df, ds.partitioning, dataChange = false)
   }

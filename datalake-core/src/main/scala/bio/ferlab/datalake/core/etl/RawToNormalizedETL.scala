@@ -40,7 +40,7 @@ class RawToNormalizedETL(val source: DataSource,
     //apply list of transformations to the input data
     val finalDf = Transformation.applyTransformations(data(source), transformations).persist()
 
-    log.info(s"unique ids: ${finalDf.dropDuplicates(destination.idName).count()}")
+    log.info(s"unique ids: ${finalDf.dropDuplicates(destination.primaryKeys).count()}")
     log.info(s"rows: ${finalDf.count()}")
     finalDf
   }

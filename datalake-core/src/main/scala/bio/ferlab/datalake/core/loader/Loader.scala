@@ -40,7 +40,7 @@ trait Loader {
    * @param location full path of where the data will be located
    * @param tableName the name of the updated/created table
    * @param updates new data to be merged with existing data
-   * @param uidName name of the column holding the unique id
+   * @param primaryKeys name of the columns holding the unique id
    * @param spark a valid spark session
    * @return the data as a dataframe
    */
@@ -48,7 +48,7 @@ trait Loader {
              databaseName: String,
              tableName: String,
              updates: DataFrame,
-             uidName: String,
+             primaryKeys: Seq[String],
              partitioning: Partitioning)(implicit spark: SparkSession): DataFrame
 
   /**
@@ -59,7 +59,7 @@ trait Loader {
    * @param location full path of where the data will be located
    * @param tableName the name of the updated/created table
    * @param updates new data to be merged with existing data
-   * @param uidName name of the column holding the unique id
+   * @param primaryKeys name of the columns holding the unique id
    * @param oidName name of the column holding the hash of the column that can change over time (or version number)
    * @param createdOnName name of the column holding the creation timestamp
    * @param updatedOnName name of the column holding the last update timestamp
@@ -70,7 +70,7 @@ trait Loader {
            databaseName: String,
            tableName: String,
            updates: DataFrame,
-           uidName: String,
+           primaryKeys: Seq[String],
            oidName: String,
            createdOnName: String,
            updatedOnName: String,

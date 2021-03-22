@@ -27,8 +27,8 @@ class ETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
     StorageConf("normalized", getClass.getClassLoader.getResource("normalized/").getFile)
   ))
 
-  val srcConf: DataSource = DataSource("raw", "/airports.csv", "raw_db", "raw_airports", CSV, OverWrite, Partitioning.default, Map("header" -> "true", "delimiter" -> "|"))
-  val destConf: DataSource = DataSource("normalized", "/airports", "normalized_db", "airport", DELTA, OverWrite, Partitioning.default)
+  val srcConf: DataSource = DataSource("raw", "/airports.csv", "raw_db", "raw_airports", CSV, OverWrite, readOptions = Map("header" -> "true", "delimiter" -> "|"))
+  val destConf: DataSource = DataSource("normalized", "/airports", "normalized_db", "airport", DELTA, OverWrite, primaryKeys = Seq("airport_id"))
 
   case class TestETL() extends ETL(destConf) {
     override def extract()(implicit spark: SparkSession): Map[DataSource, DataFrame] = {
