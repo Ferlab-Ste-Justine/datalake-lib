@@ -21,11 +21,11 @@ jobs:
       - name: Nexus Repo Publish
         uses: sonatype-nexus-community/nexus-repo-github-action@master
         with:
-          serverUrl: https://s01.oss.sonatype.org
-          username: botekchristophe
+          serverUrl: https://s01.oss.sonatype.org/service/local/staging/deploy/maven2
+          username: ${{ secrets.SONATYPE_USER }}
           password: ${{ secrets.SONATYPE_PASSWORD }}
           format: maven2
-          repository: maven-releases
+          repository: releases
           coordinates: groupId=bio.ferlab artifactId=datalake-core version=0.0.11
           assets: extension=jar
           filename: ./datalake-core/target/scala-2.12/datalake-core_2.12-0.0.11.jar
