@@ -1,15 +1,25 @@
 package bio.ferlab.datalake.core.file
 
+import org.apache.hadoop
 import org.apache.hadoop.fs._
 import org.apache.spark.sql.SparkSession
 
+import scala.language.implicitConversions
+
 object HadoopFileSystem extends FileSystem {
-  override def list(path: String, recursive: Boolean): List[File] = {
+
+  private def getFileSystem(path: String): hadoop.fs.FileSystem = {
     val folderPath = new Path(path)
     val conf = SparkSession.active.sparkContext.hadoopConfiguration
-    val fs = folderPath.getFileSystem(conf)
-    val it = fs.listFiles(folderPath, true)
-    var files: List[File] = List()
+    folderPath.getFileSystem(conf)
+  }
+
+  implicit def stringToPath(path: String): Path = new Path(path)
+
+  override def list(path: String, recursive: Boolean): List[File] = {
+    val fs = getFileSystem(path)
+    val it = fs.listFiles(path, true)
+    var files: List[File] = List.empty[File]
     while(it.hasNext) {
       val item = it.next()
       files = files :+ File(item.getPath.toString, item.getPath.getName, item.getLen ,item.isDirectory)
@@ -18,25 +28,17 @@ object HadoopFileSystem extends FileSystem {
   }
 
   override def copy(source: String, destination: String, overwrite: Boolean): Unit = {
-    val src = new Path(source)
-    val dst = new Path(destination)
-    val conf = SparkSession.active.sparkContext.hadoopConfiguration
-    val srcFs = src.getFileSystem(conf)
-    srcFs.copyFromLocalFile(false, overwrite, src, dst)
+    val fs = getFileSystem(source)
+    fs.copyFromLocalFile(false, overwrite, source, destination)
   }
 
   override def move(source: String, destination: String, overwrite: Boolean): Unit = {
-    val src = new Path(source)
-    val dst = new Path(destination)
-    val conf = SparkSession.active.sparkContext.hadoopConfiguration
-    val srcFs = src.getFileSystem(conf)
-    srcFs.copyFromLocalFile(true, overwrite, src, dst)
+    val fs = getFileSystem(source)
+    fs.copyFromLocalFile(true, overwrite, source, destination)
   }
 
   override def remove(path: String): Unit = {
-    val folderPath = new Path(path)
-    val conf = SparkSession.active.sparkContext.hadoopConfiguration
-    val fs = folderPath.getFileSystem(conf)
-    fs.delete(folderPath, true)
+    val fs = getFileSystem(path)
+    fs.delete(path, true)
   }
 }
