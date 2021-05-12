@@ -22,29 +22,8 @@ val providedLibrairies = Seq(
   "io.delta"         %% "delta-core" % deltaCoreVersion,
   "com.typesafe"     %  "config"     % typesafeVersion
 )
-
-lazy val root = (project in file("."))
-  .settings(name := "datalake-lib")
-  .settings(sonatypeCredentialHost := "s01.oss.sonatype.org")
-  .aggregate(`datalake-core`)
-
-lazy val `datalake-core` = (project in file("datalake-core"))
-  .settings(libraryDependencies += "org.apache.spark"      %% "spark-core" % sparkVersion % Provided)
-  .settings(libraryDependencies += "org.apache.spark"      %% "spark-sql"  % sparkVersion % Provided)
-  .settings(libraryDependencies += "io.delta"              %% "delta-core" % deltaCoreVersion % Provided)
-  .settings(libraryDependencies += "com.github.pureconfig" %% "pureconfig" % "0.14.1")
-  .settings(libraryDependencies += "org.typelevel"         %% "cats-core"  % catsVersion)
-  .settings(libraryDependencies += "org.scalatest"         %% "scalatest"  % scalatestVersion % Test)
-  .settings(libraryDependencies += "io.projectglow"        %% "glow-spark3"% glowVersion  exclude ("org.apache.hadoop", "hadoop-client"))
-  .settings(parallelExecution in test := false)
-  .settings(sonatypeCredentialHost := "s01.oss.sonatype.org")
-  .settings(fork := true)
-
 import ReleaseTransformations._
-
-releasePublishArtifactsAction := PgpKeys.publishSigned.value
-
-releaseProcess := Seq[ReleaseStep](
+val releaseSteps = Seq[ReleaseStep](
   checkSnapshotDependencies,
   inquireVersions,
   runClean,
@@ -60,5 +39,21 @@ releaseProcess := Seq[ReleaseStep](
   pushChanges
 )
 
-credentials += Credentials(Path.userHome / ".sbt" / "sonatype_credentials")
+lazy val root = (project in file("."))
+  .settings(name := "datalake-lib")
+  .aggregate(`datalake-core`)
 
+lazy val `datalake-core` = (project in file("datalake-core"))
+  .settings(libraryDependencies += "org.apache.spark"      %% "spark-core" % sparkVersion % Provided)
+  .settings(libraryDependencies += "org.apache.spark"      %% "spark-sql"  % sparkVersion % Provided)
+  .settings(libraryDependencies += "io.delta"              %% "delta-core" % deltaCoreVersion % Provided)
+  .settings(libraryDependencies += "com.github.pureconfig" %% "pureconfig" % "0.14.1")
+  .settings(libraryDependencies += "org.typelevel"         %% "cats-core"  % catsVersion)
+  .settings(libraryDependencies += "org.scalatest"         %% "scalatest"  % scalatestVersion % Test)
+  .settings(libraryDependencies += "io.projectglow"        %% "glow-spark3"% glowVersion  exclude ("org.apache.hadoop", "hadoop-client"))
+  .settings(parallelExecution in test := false)
+  .settings(sonatypeCredentialHost := "s01.oss.sonatype.org")
+  .settings(releaseProcess := releaseSteps)
+  .settings(releasePublishArtifactsAction := PgpKeys.publishSigned.value)
+  .settings(credentials += Credentials(Path.userHome / ".sbt" / "sonatype_credentials"))
+  .settings(fork := true)
