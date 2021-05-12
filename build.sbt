@@ -39,12 +39,12 @@ val releaseSteps = Seq[ReleaseStep](
   pushChanges
 )
 
-//lazy val root = (project in file("."))
-//  .settings(name := "datalake-lib")
-//  .settings(sonatypeCredentialHost := "s01.oss.sonatype.org")
-//  .settings(releaseProcess := releaseSteps)
-//  .aggregate(`datalake-core`)
-//  .dependsOn(`datalake-core`)
+lazy val root = (project in file("."))
+  .settings(name := "datalake-lib")
+  .settings(sonatypeCredentialHost := "s01.oss.sonatype.org")
+  .settings(releaseProcess := releaseSteps)
+  .aggregate(`datalake-core`)
+  .dependsOn(`datalake-core`)
 
 lazy val `datalake-core` = (project in file("datalake-core"))
   .settings(libraryDependencies += "org.apache.spark"      %% "spark-core" % sparkVersion % Provided)
