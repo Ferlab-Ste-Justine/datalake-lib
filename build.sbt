@@ -33,7 +33,7 @@ val releaseSteps = Seq[ReleaseStep](
   tagRelease,
   releaseStepCommand("publishSigned"),
   //releaseStepCommandAndRemaining("+publishSigned"),
-  releaseStepCommand("project datalake-core;sonatypeBundleRelease"),
+  releaseStepCommand("sonatypeBundleRelease"),
   setNextVersion,
   commitNextVersion,
   pushChanges
