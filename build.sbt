@@ -44,6 +44,7 @@ lazy val root = (project in file("."))
   .settings(sonatypeCredentialHost := "s01.oss.sonatype.org")
   .settings(releaseProcess := releaseSteps)
   .aggregate(`datalake-core`)
+  .dependsOn(`datalake-core`)
 
 lazy val `datalake-core` = (project in file("datalake-core"))
   .settings(libraryDependencies += "org.apache.spark"      %% "spark-core" % sparkVersion % Provided)
