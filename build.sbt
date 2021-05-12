@@ -37,12 +37,12 @@ lazy val `datalake-core` = (project in file("datalake-core"))
   .settings(libraryDependencies += "org.scalatest"         %% "scalatest"  % scalatestVersion % Test)
   .settings(libraryDependencies += "io.projectglow"        %% "glow-spark3"% glowVersion  exclude ("org.apache.hadoop", "hadoop-client"))
   .settings(parallelExecution in test := false)
+  .settings(sonatypeCredentialHost := "s01.oss.sonatype.org")
   .settings(fork := true)
 
 import ReleaseTransformations._
 
 releasePublishArtifactsAction := PgpKeys.publishSigned.value
-sonatypeCredentialHost := "s01.oss.sonatype.org"
 
 releaseProcess := Seq[ReleaseStep](
   checkSnapshotDependencies,
