@@ -11,7 +11,6 @@ javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
 
 val sparkVersion = "3.0.2"
 val deltaCoreVersion = "0.8.0"
-val testNgVersion = "6.14.3"
 val typesafeVersion = "1.4.1"
 val catsVersion = "2.2.0"
 val scalatestVersion = "3.2.0"
@@ -26,7 +25,7 @@ val providedLibrairies = Seq(
 
 lazy val root = (project in file("."))
   .settings(name := "datalake-lib")
-  .settings(version := "0.0.11")
+  .settings(sonatypeCredentialHost := "s01.oss.sonatype.org")
   .aggregate(`datalake-core`)
 
 lazy val `datalake-core` = (project in file("datalake-core"))
@@ -37,11 +36,29 @@ lazy val `datalake-core` = (project in file("datalake-core"))
   .settings(libraryDependencies += "org.typelevel"         %% "cats-core"  % catsVersion)
   .settings(libraryDependencies += "org.scalatest"         %% "scalatest"  % scalatestVersion % Test)
   .settings(libraryDependencies += "io.projectglow"        %% "glow-spark3"% glowVersion  exclude ("org.apache.hadoop", "hadoop-client"))
-  .settings(version := "0.0.11")
   .settings(parallelExecution in test := false)
   .settings(fork := true)
-  .settings(coverageMinimum := 90)
 
+import ReleaseTransformations._
+
+releasePublishArtifactsAction := PgpKeys.publishSigned.value
+sonatypeCredentialHost := "s01.oss.sonatype.org"
+
+releaseProcess := Seq[ReleaseStep](
+  checkSnapshotDependencies,
+  inquireVersions,
+  runClean,
+  runTest,
+  setReleaseVersion,
+  commitReleaseVersion,
+  tagRelease,
+  releaseStepCommand("publishSigned"),
+  //releaseStepCommandAndRemaining("+publishSigned"),
+  releaseStepCommand("sonatypeBundleRelease"),
+  setNextVersion,
+  commitNextVersion,
+  pushChanges
+)
 
 credentials += Credentials(Path.userHome / ".sbt" / "sonatype_credentials")
 
