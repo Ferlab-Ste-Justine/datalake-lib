@@ -23,6 +23,7 @@ ThisBuild / homepage := Some(url("https://github.com/Ferlab-Ste-Justine/datalake
 
 // Remove all additional repository other than Maven Central from POM
 ThisBuild / pomIncludeRepository := { _ => false }
+
 ThisBuild / publishTo := {
   val nexus = "https://s01.oss.sonatype.org/"
   if (isSnapshot.value) Some("snapshots" at nexus + "content/repositories/snapshots")

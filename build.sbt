@@ -25,6 +25,7 @@ val providedLibrairies = Seq(
 
 lazy val root = (project in file("."))
   .settings(name := "datalake-lib")
+  .settings(sonatypeCredentialHost := "s01.oss.sonatype.org")
   .aggregate(`datalake-core`)
 
 lazy val `datalake-core` = (project in file("datalake-core"))
@@ -41,19 +42,22 @@ lazy val `datalake-core` = (project in file("datalake-core"))
 import ReleaseTransformations._
 
 releasePublishArtifactsAction := PgpKeys.publishSigned.value
+sonatypeCredentialHost := "s01.oss.sonatype.org"
 
 releaseProcess := Seq[ReleaseStep](
-  checkSnapshotDependencies,              // : ReleaseStep
-  inquireVersions,                        // : ReleaseStep
-  runClean,                               // : ReleaseStep
-  runTest,                                // : ReleaseStep
-  setReleaseVersion,                      // : ReleaseStep
-  commitReleaseVersion,                   // : ReleaseStep, performs the initial git checks
-  tagRelease,                             // : ReleaseStep
-  publishArtifacts,                       // : ReleaseStep, checks whether `publishTo` is properly set up
-  setNextVersion,                         // : ReleaseStep
-  commitNextVersion,                      // : ReleaseStep
-  pushChanges                             // : ReleaseStep, also checks that an upstream branch is properly configured
+  checkSnapshotDependencies,
+  inquireVersions,
+  runClean,
+  runTest,
+  setReleaseVersion,
+  commitReleaseVersion,
+  tagRelease,
+  releaseStepCommand("publishSigned"),
+  //releaseStepCommandAndRemaining("+publishSigned"),
+  releaseStepCommand("sonatypeBundleRelease"),
+  setNextVersion,
+  commitNextVersion,
+  pushChanges
 )
 
 credentials += Credentials(Path.userHome / ".sbt" / "sonatype_credentials")
