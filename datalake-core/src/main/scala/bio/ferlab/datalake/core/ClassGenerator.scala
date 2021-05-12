@@ -42,7 +42,7 @@ object ClassGenerator {
     case (name, values, DecimalType())                                 => values.getAs(name)
     case (name, values, DateType)                                      => s"""Date.valueOf("${values.getAs(name)}")"""
     case (name, values, TimestampType)                                 => s"""Timestamp.valueOf("${values.getAs(name)}")"""
-    case (name, values, ArrayType(StringType,_))                       => values.getAs[List[String]](name).mkString("List(", ", ", ")")
+    case (name, values, ArrayType(StringType,_))                       => values.getAs[List[String]](name).mkString("List(\"", "\", \"", "\")")
     case (name, values, ArrayType(FloatType,_))                        => values.getAs[List[Float]](name).mkString("List(", ", ", ")")
     case (name, values, ArrayType(IntegerType,_))                      => values.getAs[List[Int]](name).mkString("List(", ", ", ")")
     case (name, values, ArrayType(BooleanType,_))                      => values.getAs[List[Boolean]](name).mkString("List(", ", ", ")")
@@ -74,8 +74,7 @@ object ClassGenerator {
     val spacing = s"case class $className(".toCharArray.map(_ => " ")
 
     s"""
-       |case class $className(${fields.mkString("", s",\n${spacing.mkString}" , ")")}
-       |""".stripMargin
+case class $className(${fields.mkString("", s",\n${spacing.mkString}" , ")")}"""
   }
 
   private def getNestedClasses: DataFrame => List[String] = {df =>
