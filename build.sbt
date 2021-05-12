@@ -42,6 +42,7 @@ val releaseSteps = Seq[ReleaseStep](
 lazy val root = (project in file("."))
   .settings(name := "datalake-lib")
   .settings(sonatypeCredentialHost := "s01.oss.sonatype.org")
+  .settings(releaseProcess := releaseSteps)
   .aggregate(`datalake-core`)
 
 lazy val `datalake-core` = (project in file("datalake-core"))
