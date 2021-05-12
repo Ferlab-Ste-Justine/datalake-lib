@@ -40,6 +40,8 @@ lazy val `datalake-core` = (project in file("datalake-core"))
 
 import ReleaseTransformations._
 
+releasePublishArtifactsAction := PgpKeys.publishSigned.value
+
 releaseProcess := Seq[ReleaseStep](
   checkSnapshotDependencies,              // : ReleaseStep
   inquireVersions,                        // : ReleaseStep
