@@ -11,5 +11,3 @@ trait FileSystem {
   def remove(path: String): Unit
 
 }
-
-case class File(path: String, name: String, size: Long, isDir: Boolean)
