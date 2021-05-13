@@ -49,7 +49,8 @@ lazy val root = (project in file("."))
   .aggregate(`datalake-spark3`, `datalake-spark2`)
 
 lazy val `datalake-spark3` = (project in file("datalake-spark3"))
-  .settings(crossScalaVersions := List(scala211, scala212))
+  .settings(scalaVersion := scala212)
+  //.settings(crossScalaVersions := List(scala211, scala212))
   .settings(libraryDependencies += "org.apache.spark"      %% "spark-core" % spark3Version % Provided)
   .settings(libraryDependencies += "org.apache.spark"      %% "spark-sql"  % spark3Version % Provided)
   .settings(libraryDependencies += "io.delta"              %% "delta-core" % deltaCoreVersion % Provided)
@@ -66,7 +67,8 @@ lazy val `datalake-spark3` = (project in file("datalake-spark3"))
 
 lazy val `datalake-spark2` = (project in file("datalake-spark2"))
   .settings(
-    crossScalaVersions := List(scala211),
+    scalaVersion := scala211,
+    //crossScalaVersions := List(scala211),
     libraryDependencies += "org.apache.spark" % "spark-sql_2.11" % spark2Version % Provided,
     libraryDependencies += "org.elasticsearch" % "elasticsearch-spark-20_2.11" % elasticsearch_spark_version % Provided
   )
