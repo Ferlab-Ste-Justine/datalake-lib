@@ -72,7 +72,7 @@ class ElasticSearchClient(url: String) {
    * @param aliasName name of the alias to update
    * @return the http response sent by ElasticSearch
    */
-  def setAlias(indexName: String, aliasName: String)(implicit spark: SparkSession): HttpResponse = {
+  def setAlias(indexName: String, aliasName: String): HttpResponse = {
 
     val requestUrl = s"$url/_aliases"
 
