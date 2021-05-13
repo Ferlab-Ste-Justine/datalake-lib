@@ -44,6 +44,7 @@ ThisBuild / releaseProcess := releaseSteps
 ThisBuild / credentials += Credentials(Path.userHome / ".sbt" / "sonatype_credentials")
 ThisBuild / releasePublishArtifactsAction := PgpKeys.publishSigned.value
 ThisBuild / fork := true
+ThisBuild / versionScheme := Some("semver-spec")
 
 lazy val `datalake-spark3` = (project in file("datalake-spark3"))
   .settings(
