@@ -29,28 +29,29 @@ val releaseSteps = Seq[ReleaseStep](
   setReleaseVersion,
   commitReleaseVersion,
   tagRelease,
-  //releaseStepCommand("publishSigned"),
-  releaseStepCommandAndRemaining("+publishSigned"),
-  releaseStepCommand("sonatypeBundleRelease"),
+  releaseStepCommand("publishSigned"),
+  //releaseStepCommandAndRemaining("+publishSigned"),
+  releaseStepCommand("project datalake-spark3;sonatypeBundleRelease"),
+  releaseStepCommand("project datalake-spark2;sonatypeBundleRelease"),
+  releaseStepCommand("sonatypeBundleClean"),
   setNextVersion,
   commitNextVersion,
   pushChanges
 )
 
-lazy val root = (project in file("."))
-  .settings(name := "datalake-lib")
-  .settings(sonatypeCredentialHost := "s01.oss.sonatype.org")
-  .settings(releaseProcess := releaseSteps)
-  .settings(
-    // crossScalaVersions must be set to Nil on the aggregating project
-    crossScalaVersions := Nil,
-    publish / skip := true
-  )
-  .aggregate(`datalake-spark3`, `datalake-spark2`)
+//lazy val root = (project in file("."))
+//  .settings(name := "datalake-lib")
+//  .settings(sonatypeCredentialHost := "s01.oss.sonatype.org")
+//  .settings(releaseProcess := releaseSteps)
+//  .settings(
+//    // crossScalaVersions must be set to Nil on the aggregating project
+//    crossScalaVersions := Nil,
+//    publish / skip := true
+//  )
+//  .aggregate(`datalake-spark3`, `datalake-spark2`)
 
 lazy val `datalake-spark3` = (project in file("datalake-spark3"))
   .settings(scalaVersion := scala212)
-  //.settings(crossScalaVersions := List(scala211, scala212))
   .settings(libraryDependencies += "org.apache.spark"      %% "spark-core" % spark3Version % Provided)
   .settings(libraryDependencies += "org.apache.spark"      %% "spark-sql"  % spark3Version % Provided)
   .settings(libraryDependencies += "io.delta"              %% "delta-core" % deltaCoreVersion % Provided)
@@ -61,6 +62,7 @@ lazy val `datalake-spark3` = (project in file("datalake-spark3"))
   .settings(parallelExecution in test := false)
   .settings(sonatypeCredentialHost := "s01.oss.sonatype.org")
   .settings(releaseProcess := releaseSteps)
+  .settings(sonatypeBundleDirectory := (ThisBuild / baseDirectory).value / target.value.getName / "sonatype-staging" / (ThisBuild / version).value)
   .settings(releasePublishArtifactsAction := PgpKeys.publishSigned.value)
   .settings(credentials += Credentials(Path.userHome / ".sbt" / "sonatype_credentials"))
   .settings(fork := true)
@@ -68,7 +70,12 @@ lazy val `datalake-spark3` = (project in file("datalake-spark3"))
 lazy val `datalake-spark2` = (project in file("datalake-spark2"))
   .settings(
     scalaVersion := scala211,
-    //crossScalaVersions := List(scala211),
     libraryDependencies += "org.apache.spark" % "spark-sql_2.11" % spark2Version % Provided,
     libraryDependencies += "org.elasticsearch" % "elasticsearch-spark-20_2.11" % elasticsearch_spark_version % Provided
-  )
+  ).settings(parallelExecution in test := false)
+  .settings(sonatypeCredentialHost := "s01.oss.sonatype.org")
+  .settings(releaseProcess := releaseSteps)
+  .settings(sonatypeBundleDirectory := (ThisBuild / baseDirectory).value / target.value.getName / "sonatype-staging" / (ThisBuild / version).value)
+  .settings(releasePublishArtifactsAction := PgpKeys.publishSigned.value)
+  .settings(credentials += Credentials(Path.userHome / ".sbt" / "sonatype_credentials"))
+  .settings(fork := true)
