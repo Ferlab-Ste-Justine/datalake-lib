@@ -39,16 +39,16 @@ val releaseSteps = Seq[ReleaseStep](
   pushChanges
 )
 
-//lazy val root = (project in file("."))
-//  .settings(name := "datalake-lib")
-//  .settings(sonatypeCredentialHost := "s01.oss.sonatype.org")
-//  .settings(releaseProcess := releaseSteps)
-//  .settings(
-//    // crossScalaVersions must be set to Nil on the aggregating project
-//    crossScalaVersions := Nil,
-//    publish / skip := true
-//  )
-//  .aggregate(`datalake-spark3`, `datalake-spark2`)
+lazy val root = (project in file("."))
+  .settings(name := "datalake-lib")
+  .settings(sonatypeCredentialHost := "s01.oss.sonatype.org")
+  .settings(releaseProcess := releaseSteps)
+  .settings(
+    // crossScalaVersions must be set to Nil on the aggregating project
+    crossScalaVersions := Nil,
+    publish / skip := true
+  )
+  .aggregate(`datalake-spark3`, `datalake-spark2`)
 
 lazy val `datalake-spark3` = (project in file("datalake-spark3"))
   .settings(scalaVersion := scala212)
