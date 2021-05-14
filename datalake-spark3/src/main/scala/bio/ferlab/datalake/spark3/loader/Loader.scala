@@ -1,6 +1,5 @@
 package bio.ferlab.datalake.spark3.loader
 
-import bio.ferlab.datalake.spark3.etl.Partitioning
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
 trait Loader {
@@ -31,7 +30,7 @@ trait Loader {
                 databaseName: String,
                 tableName: String,
                 df: DataFrame,
-                partitioning: Partitioning,
+                partitioning: List[String],
                 dataChange: Boolean = true)(implicit spark: SparkSession): DataFrame
 
   /**
@@ -49,7 +48,7 @@ trait Loader {
              tableName: String,
              updates: DataFrame,
              primaryKeys: Seq[String],
-             partitioning: Partitioning)(implicit spark: SparkSession): DataFrame
+             partitioning: List[String])(implicit spark: SparkSession): DataFrame
 
   /**
    * Update the data only if the data has changed
@@ -74,6 +73,6 @@ trait Loader {
            oidName: String,
            createdOnName: String,
            updatedOnName: String,
-           partitioning: Partitioning)(implicit spark: SparkSession): DataFrame
+           partitioning: List[String])(implicit spark: SparkSession): DataFrame
 
 }

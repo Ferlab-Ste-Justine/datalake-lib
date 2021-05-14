@@ -10,21 +10,21 @@ class ConfigurationLoaderSpec extends AnyFlatSpec with GivenWhenThen with Matche
 
     val parsedConf = ConfigurationLoader.loadFromPath(getClass.getClassLoader.getResource("config/application.conf").getFile)
 
-    parsedConf shouldBe Configuration(List(StorageConf("default", "spark-local")))
+    parsedConf shouldBe Configuration(storages = List(StorageConf("default", "spark-local")))
   }
 
   "loadEtlConfiguration" should "not throw an exception but use default config when config file not found" in {
 
     val parsedConf = ConfigurationLoader.loadFromPath("config/application.conf")
 
-    parsedConf shouldBe Configuration(List(StorageConf("default", "spark-fallback")))
+    parsedConf shouldBe Configuration(storages = List(StorageConf("default", "spark-fallback")))
   }
 
   "loadEtlConfiguration" should "load config from resources" in {
 
     val parsedConf = ConfigurationLoader.loadFromResources("config/application.conf")
 
-    parsedConf shouldBe Configuration(List(StorageConf("default", "spark-local")))
+    parsedConf shouldBe Configuration(storages = List(StorageConf("default", "spark-local")))
   }
 
   "loadEtlConfiguration" should "load config from string" in {
@@ -41,7 +41,7 @@ class ConfigurationLoaderSpec extends AnyFlatSpec with GivenWhenThen with Matche
 
     val parsedConf = ConfigurationLoader.loadFromString(conf)
 
-    parsedConf shouldBe Configuration(List(StorageConf("default", "spark-local")))
+    parsedConf shouldBe Configuration(storages = List(StorageConf("default", "spark-local")))
   }
 
 

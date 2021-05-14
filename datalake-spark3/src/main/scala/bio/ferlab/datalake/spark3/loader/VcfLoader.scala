@@ -1,6 +1,5 @@
 package bio.ferlab.datalake.spark3.loader
 
-import bio.ferlab.datalake.spark3.etl.Partitioning
 import io.projectglow.Glow
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
@@ -23,7 +22,7 @@ object VcfLoader extends Loader {
                          databaseName: String,
                          tableName:  String,
                          df:  DataFrame,
-                         partitioning: Partitioning,
+                         partitioning: List[String],
                          dataChange: Boolean)
                         (implicit spark:  SparkSession): DataFrame = {
     throw NotImplementedException
@@ -34,7 +33,7 @@ object VcfLoader extends Loader {
                       tableName: String,
                       updates:  DataFrame,
                       primaryKeys: Seq[String],
-                      partitioning: Partitioning)
+                      partitioning: List[String])
                      (implicit spark:  SparkSession): DataFrame = {
     throw NotImplementedException
   }
@@ -47,7 +46,7 @@ object VcfLoader extends Loader {
                     oidName: String,
                     createdOnName: String,
                     updatedOnName: String,
-                    partitioning: Partitioning)
+                    partitioning: List[String])
                    (implicit spark:  SparkSession): DataFrame = {
     throw NotImplementedException
   }

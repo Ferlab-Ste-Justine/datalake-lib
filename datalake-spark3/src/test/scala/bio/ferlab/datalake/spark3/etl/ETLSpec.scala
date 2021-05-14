@@ -1,8 +1,8 @@
 package bio.ferlab.datalake.spark3.etl
 
-import bio.ferlab.datalake.spark3.config.{Configuration, StorageConf}
-import bio.ferlab.datalake.spark3.loader.Formats.{CSV, DELTA}
-import bio.ferlab.datalake.spark3.loader.LoadTypes._
+import bio.ferlab.datalake.spark3.config.{Configuration, SourceConf, StorageConf}
+import bio.ferlab.datalake.spark3.loader.Format.{CSV, DELTA}
+import bio.ferlab.datalake.spark3.loader.LoadType._
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.LongType
 import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
@@ -22,20 +22,21 @@ class ETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
   spark.sparkContext.setLogLevel("ERROR")
 
 
-  implicit val conf: Configuration = Configuration(List(
+  implicit val conf: Configuration = Configuration(storages = List(
     StorageConf("raw", getClass.getClassLoader.getResource("raw/landing").getFile),
-    StorageConf("normalized", getClass.getClassLoader.getResource("normalized/").getFile)
-  ))
+    StorageConf("normalized", getClass.getClassLoader.getResource("normalized/").getFile)),
+    sources = List()
+  )
 
-  val srcConf: DataSource = DataSource("raw", "/airports.csv", "raw_db", "raw_airports", CSV, OverWrite, readOptions = Map("header" -> "true", "delimiter" -> "|"))
-  val destConf: DataSource = DataSource("normalized", "/airports", "normalized_db", "airport", DELTA, OverWrite, primaryKeys = Seq("airport_id"))
+  val srcConf: SourceConf = SourceConf("raw", "/airports.csv", "raw_db", "raw_airports", CSV, OverWrite, readoptions = Map("header" -> "true", "delimiter" -> "|"))
+  val destConf: SourceConf = SourceConf("normalized", "/airports", "normalized_db", "airport", DELTA, OverWrite, keys = List("airport_id"))
 
-  case class TestETL() extends ETL(destConf) {
-    override def extract()(implicit spark: SparkSession): Map[DataSource, DataFrame] = {
-      Map(srcConf -> spark.read.format(srcConf.format.sparkFormat).options(srcConf.readOptions).load(srcConf.location))
+  case class TestETL() extends ETL() {
+    override def extract()(implicit spark: SparkSession): Map[SourceConf, DataFrame] = {
+      Map(srcConf -> spark.read.format(srcConf.format.sparkFormat).options(srcConf.readoptions).load(srcConf.location))
     }
 
-    override def transform(data: Map[DataSource, DataFrame])(implicit spark: SparkSession): DataFrame = {
+    override def transform(data: Map[SourceConf, DataFrame])(implicit spark: SparkSession): DataFrame = {
       data(srcConf)
         .select(
           col("id").cast(LongType) as "airport_id",
@@ -49,13 +50,13 @@ class ETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
     }
 
     override def load(data: DataFrame)(implicit spark: SparkSession): DataFrame = {
-      spark.sql(s"CREATE DATABASE IF NOT EXISTS ${destination.database}")
+      spark.sql(s"CREATE DATABASE IF NOT EXISTS ${destConf.database}")
       data
         .write
         .format("delta")
         .mode(SaveMode.Overwrite)
-        .option("path", destination.location)
-        .saveAsTable(s"${destination.database}.${destination.name}")
+        .option("path", destConf.location)
+        .saveAsTable(s"${destConf.database}.${destConf.name}")
       data
     }
   }

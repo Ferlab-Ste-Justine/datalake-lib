@@ -1,6 +1,6 @@
 package bio.ferlab.datalake.spark3.etl
 
-import bio.ferlab.datalake.spark3.config.Configuration
+import bio.ferlab.datalake.spark3.config.{Configuration, SourceConf}
 import bio.ferlab.datalake.spark3.loader.LoadResolver
 import bio.ferlab.datalake.spark3.transformation.Transformation
 import org.apache.spark.sql.functions.input_file_name
@@ -9,18 +9,18 @@ import org.slf4j.{Logger, LoggerFactory}
 
 import scala.util.{Failure, Success, Try}
 
-class RawToNormalizedETL(val source: DataSource,
-                         override val destination: DataSource,
+class RawToNormalizedETL(val source: SourceConf,
+                         val destination: SourceConf,
                          val transformations: List[Transformation])
-                        (override implicit val conf: Configuration) extends ETL(destination) {
+                        (override implicit val conf: Configuration) extends ETL() {
 
   val log: Logger = LoggerFactory.getLogger(getClass.getCanonicalName)
 
   private var processedFiles: List[String] = List()
 
-  override def extract()(implicit spark: SparkSession): Map[DataSource, DataFrame] = {
+  override def extract()(implicit spark: SparkSession): Map[SourceConf, DataFrame] = {
     log.info(s"extracting: ${source.location}")
-    Map(source -> spark.read.format(source.format.sparkFormat).options(source.readOptions).load(source.location))
+    Map(source -> spark.read.format(source.format.sparkFormat).options(source.readoptions).load(source.location))
   }
 
   /**
@@ -31,7 +31,7 @@ class RawToNormalizedETL(val source: DataSource,
    * @param spark an instance of SparkSession
    * @return
    */
-  override def transform(data: Map[DataSource, DataFrame])(implicit spark: SparkSession): DataFrame = {
+  override def transform(data: Map[SourceConf, DataFrame])(implicit spark: SparkSession): DataFrame = {
     import spark.implicits._
     log.info(s"transforming: ${source.name} to ${destination.name}")
     //keep in memory which files are being processed
@@ -40,7 +40,7 @@ class RawToNormalizedETL(val source: DataSource,
     //apply list of transformations to the input data
     val finalDf = Transformation.applyTransformations(data(source), transformations).persist()
 
-    log.info(s"unique ids: ${finalDf.dropDuplicates(destination.primaryKeys).count()}")
+    log.info(s"unique ids: ${finalDf.dropDuplicates(destination.keys).count()}")
     log.info(s"rows: ${finalDf.count()}")
     finalDf
   }
@@ -57,7 +57,7 @@ class RawToNormalizedETL(val source: DataSource,
     spark.sql(s"CREATE DATABASE IF NOT EXISTS ${destination.database}")
 
     LoadResolver
-      .resolve(spark, conf)(destination.format -> destination.loadType)
+      .resolve(spark, conf)(destination.format -> destination.loadtype)
       .apply(destination, data)
   }
 
@@ -72,8 +72,7 @@ class RawToNormalizedETL(val source: DataSource,
     val files = processedFiles
     Try {
       files.foreach(file =>
-        fs.move(file, file.replace("landing", "archive")
-          , overwrite = true)
+        fs.move(file, file.replace("landing", "archive"), overwrite = true)
       )
       processedFiles = List.empty[String]
     } match {
