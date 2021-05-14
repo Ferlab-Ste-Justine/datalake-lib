@@ -1,6 +1,5 @@
 package bio.ferlab.datalake.spark3.loader
 
-import bio.ferlab.datalake.spark3.etl.Partitioning
 import io.delta.tables.DeltaTable
 import org.apache.spark.sql.{Column, DataFrame, SaveMode, SparkSession}
 
@@ -13,7 +12,7 @@ object DeltaLoader extends Loader {
                       tableName: String,
                       updates: DataFrame,
                       primaryKeys: Seq[String],
-                      partitioning: Partitioning)(implicit spark: SparkSession): DataFrame = {
+                      partitioning: List[String])(implicit spark: SparkSession): DataFrame = {
 
     require(primaryKeys.forall(updates.columns.contains), s"requires column [${primaryKeys.mkString(", ")}]")
 
@@ -48,7 +47,7 @@ object DeltaLoader extends Loader {
            oidName: String,
            createdOnName: String,
            updatedOnName: String,
-           partitioning: Partitioning)(implicit spark: SparkSession): DataFrame = {
+           partitioning: List[String])(implicit spark: SparkSession): DataFrame = {
 
     require(primaryKeys.forall(updates.columns.contains), s"requires column [${primaryKeys.mkString(", ")}]")
     require(updates.columns.exists(_.equals(oidName)), s"requires column [$oidName]")
@@ -62,7 +61,7 @@ object DeltaLoader extends Loader {
         val mergeCondition: Column =
           primaryKeys
             .map(c => updates(c) === existingDf(c))
-            .reduce((a, b) => a && b)  && updates(oidName) =!= existingDf(oidName)
+            .reduce((a, b) => a && b) && updates(oidName) =!= existingDf(oidName)
 
         existing.as("existing")
           .merge(
@@ -82,15 +81,14 @@ object DeltaLoader extends Loader {
                          databaseName: String,
                          tableName: String,
                          df: DataFrame,
-                         partitioning: Partitioning,
+                         partitioning: List[String],
                          dataChange: Boolean)(implicit spark: SparkSession): DataFrame = {
     spark.sql(s"CREATE DATABASE IF NOT EXISTS $databaseName")
-    partitioning
-      .repartitionExpr(df)
+    df
       .write
       .option("dataChange", dataChange)
       .mode(SaveMode.Overwrite)
-      .partitionBy(partitioning.partitionBy: _*)
+      .partitionBy(partitioning: _*)
       .format("delta")
       .option("path", s"$location")
       .saveAsTable(s"$databaseName.$tableName")

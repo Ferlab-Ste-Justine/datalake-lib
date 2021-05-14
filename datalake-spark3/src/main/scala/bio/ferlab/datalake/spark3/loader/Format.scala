@@ -1,9 +1,11 @@
 package bio.ferlab.datalake.spark3.loader
 
+import enum.Enum
+
 /**
  * List of all [[Format]] supported
  */
-object Formats {
+object Format {
 
   /**
    * Apache Avro file format, https://github.com/apache/avro
@@ -67,6 +69,8 @@ object Formats {
    * https://iceberg.apache.org/
    */
   case object ICEBERG extends Format {override val sparkFormat = "iceberg"; override val fileExtension: String = ".parquet"}
+
+  implicit val EnumInstance: Enum[Format] = Enum.derived[Format]
 }
 
 /**

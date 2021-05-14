@@ -19,6 +19,8 @@ val catsVersion = "2.2.0"
 val scalatestVersion = "3.2.0"
 val glowVersion = "0.6.0"
 val elasticsearch_spark_version = "7.9.1"
+val zioVersion = "1.0.5"
+val pureconfigVersion = "0.15.0"
 
 import ReleaseTransformations._
 val releaseSteps = Seq[ReleaseStep](
@@ -49,13 +51,17 @@ ThisBuild / versionScheme := Some("semver-spec")
 lazy val `datalake-spark3` = (project in file("datalake-spark3"))
   .settings(
     scalaVersion := scala212,
-    libraryDependencies += "org.apache.spark"      %% "spark-core" % spark3Version % Provided,
-    libraryDependencies += "org.apache.spark"      %% "spark-sql"  % spark3Version % Provided,
-    libraryDependencies += "io.delta"              %% "delta-core" % deltaCoreVersion % Provided,
-    libraryDependencies += "com.github.pureconfig" %% "pureconfig" % "0.14.1",
-    libraryDependencies += "org.typelevel"         %% "cats-core"  % catsVersion,
-    libraryDependencies += "org.scalatest"         %% "scalatest"  % scalatestVersion % Test,
-    libraryDependencies += "io.projectglow"        %% "glow-spark3"% glowVersion  exclude ("org.apache.hadoop", "hadoop-client"))
+    libraryDependencies += "org.apache.spark"      %% "spark-core"          % spark3Version % Provided,
+    libraryDependencies += "org.apache.spark"      %% "spark-sql"           % spark3Version % Provided,
+    libraryDependencies += "io.delta"              %% "delta-core"          % deltaCoreVersion % Provided,
+    libraryDependencies += "com.github.pureconfig" %% "pureconfig"          % pureconfigVersion,
+    libraryDependencies += "com.github.pureconfig" %% "pureconfig-enum"     % pureconfigVersion,
+    libraryDependencies += "org.typelevel"         %% "cats-core"           % catsVersion,
+    libraryDependencies += "org.scalatest"         %% "scalatest"           % scalatestVersion % Test,
+    libraryDependencies += "io.projectglow"        %% "glow-spark3"         % glowVersion  exclude ("org.apache.hadoop", "hadoop-client"),
+    libraryDependencies += "dev.zio"               %% "zio-config-typesafe" % zioVersion,
+    libraryDependencies += "dev.zio"               %% "zio-config"          % zioVersion,
+    libraryDependencies += "dev.zio"               %% "zio-config-magnolia" % zioVersion)
 
 lazy val `datalake-spark2` = (project in file("datalake-spark2"))
   .settings(

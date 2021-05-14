@@ -1,6 +1,6 @@
 package bio.ferlab.datalake.spark3.etl
 
-import bio.ferlab.datalake.spark3.config.Configuration
+import bio.ferlab.datalake.spark3.config.{Configuration, SourceConf}
 import bio.ferlab.datalake.spark3.file.{FileSystem, HadoopFileSystem}
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
@@ -8,10 +8,9 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
 /**
  * Defines a common workflow for ETL jobs.
  * By definition an ETL can take 1..n sources as input and can produce only 1 output.
- * @param destination where the output data will be written
  * @param conf application configuration
  */
-abstract class ETL(val destination: DataSource)(implicit val conf: Configuration) {
+abstract class ETL()(implicit val conf: Configuration) {
 
   /**
    * Default file system
@@ -24,7 +23,7 @@ abstract class ETL(val destination: DataSource)(implicit val conf: Configuration
    * @param spark an instance of SparkSession
    * @return all the data needed to pass to the transform method and produce the desired output.
    */
-  def extract()(implicit spark: SparkSession): Map[DataSource, DataFrame]
+  def extract()(implicit spark: SparkSession): Map[SourceConf, DataFrame]
 
   /**
    * Takes a Map[DataSource, DataFrame] as input and apply a set of transformation to it to produce the ETL output.
@@ -34,7 +33,7 @@ abstract class ETL(val destination: DataSource)(implicit val conf: Configuration
    * @param spark an instance of SparkSession
    * @return
    */
-  def transform(data: Map[DataSource, DataFrame])(implicit spark: SparkSession): DataFrame
+  def transform(data: Map[SourceConf, DataFrame])(implicit spark: SparkSession): DataFrame
 
   /**
    * Loads the output data into a persistent storage.

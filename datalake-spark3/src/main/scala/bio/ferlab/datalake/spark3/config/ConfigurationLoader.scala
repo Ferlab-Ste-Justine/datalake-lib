@@ -3,10 +3,12 @@ package bio.ferlab.datalake.spark3.config
 import pureconfig.ConfigReader.Result
 import pureconfig._
 import pureconfig.generic.auto._
+import pureconfig.module.enum._
 
 import scala.language.implicitConversions
 
 object ConfigurationLoader {
+
 
   /**
    * Implicit conversion - convert a Result[Configuration] to a Configuration by loading in succession
@@ -17,7 +19,7 @@ object ConfigurationLoader {
    * @param result result from an attempt to load a configuration file
    * @return the configuration file or a fallback configuration.
    */
-  private implicit def resultToConfiguration(result: Result[Configuration]): Configuration = {
+  implicit def resultToConfiguration(result: Result[Configuration]): Configuration = {
     result
       .fold(_ => ConfigSource.default.load[Configuration], conf => Right(conf))
       .fold(failure => throw new IllegalArgumentException(failure.prettyPrint()), conf => conf)

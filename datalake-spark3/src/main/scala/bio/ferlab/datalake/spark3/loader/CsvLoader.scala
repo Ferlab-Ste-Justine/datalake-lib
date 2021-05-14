@@ -1,6 +1,5 @@
 package bio.ferlab.datalake.spark3.loader
 
-import bio.ferlab.datalake.spark3.etl.Partitioning
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
 object CsvLoader extends Loader {
@@ -11,18 +10,17 @@ object CsvLoader extends Loader {
 
   override def writeOnce(location: String,
                          databaseName: String,
-                         tableName:  String,
-                         df:  DataFrame,
-                         partitioning: Partitioning,
+                         tableName: String,
+                         df: DataFrame,
+                         partitioning: List[String],
                          dataChange: Boolean)
                         (implicit spark:  SparkSession): DataFrame = {
-    val repartitionedData = partitioning.repartitionExpr(df).persist()
-    repartitionedData
+    df
       .write
       .mode("overwrite")
-      .partitionBy(partitioning.partitionBy:_*)
+      .partitionBy(partitioning:_*)
       .save(location)
-    repartitionedData
+    df
   }
 
   override def upsert(location: String,
@@ -30,7 +28,7 @@ object CsvLoader extends Loader {
                       tableName: String,
                       updates:  DataFrame,
                       primaryKeys: Seq[String],
-                      partitioning: Partitioning)
+                      partitioning: List[String])
                      (implicit spark:  SparkSession): DataFrame = {
     throw NotImplementedException
   }
@@ -43,7 +41,7 @@ object CsvLoader extends Loader {
                     oidName: String,
                     createdOnName: String,
                     updatedOnName: String,
-                    partitioning: Partitioning)
+                    partitioning: List[String])
                    (implicit spark:  SparkSession): DataFrame = {
     throw NotImplementedException
   }

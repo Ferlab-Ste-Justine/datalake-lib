@@ -1,6 +1,5 @@
 package bio.ferlab.datalake.spark3.loader
 
-import bio.ferlab.datalake.spark3.etl.Partitioning
 import io.delta.tables.DeltaTable
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.scalatest.flatspec.AnyFlatSpec
@@ -40,7 +39,7 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers {
       Test("aaa", "aaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1)
     ).toDF
 
-    DeltaLoader.writeOnce(output, "default", "testtable", existing, Partitioning.default)
+    DeltaLoader.writeOnce(output, "default", "testtable", existing, List())
 
     val updates: Seq[Test] = Seq(
       Test("a", "b", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),
@@ -57,7 +56,7 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers {
       "testtable",
       updatedDF,
       Seq("uid"),
-      partitioning = Partitioning.default
+      List()
     )
 
     DeltaTable
@@ -80,7 +79,7 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers {
       Test("aaa", "aaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1)
     ).toDF
 
-    DeltaLoader.writeOnce(output, "default", "testtable", existing, Partitioning.default)
+    DeltaLoader.writeOnce(output, "default", "testtable", existing, List())
 
     val updates: DataFrame = Seq(
       Test("a", "b", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),
@@ -103,7 +102,7 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers {
       "oid",
       "createdOn",
       "updatedOn",
-      Partitioning.default
+      List()
     )
 
     DeltaTable

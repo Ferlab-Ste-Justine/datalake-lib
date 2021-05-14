@@ -1,8 +1,7 @@
 package bio.ferlab.datalake.spark3.etl
 
 import bio.ferlab.datalake.spark3.config.Configuration
-import bio.ferlab.datalake.spark3.loader.Format
-import bio.ferlab.datalake.spark3.loader.LoadTypes.LoadType
+import bio.ferlab.datalake.spark3.loader.{Format, LoadType}
 
 /**
  * Abstraction on a data source
@@ -16,6 +15,7 @@ import bio.ferlab.datalake.spark3.loader.LoadTypes.LoadType
  * @param readOptions OPTIONAL - read options to pass to spark in order to read the data into a DataFrame
  * @param writeOptions OPTIONAL - write options to pass to spark in order to write the data into files
  */
+@Deprecated
 case class DataSource(storageAlias: String,
                       relativePath: String,
                       database: String,
@@ -23,7 +23,7 @@ case class DataSource(storageAlias: String,
                       format: Format,
                       loadType: LoadType,
                       primaryKeys: Seq[String] = Seq("id"),
-                      partitioning: Partitioning = Partitioning.default,
+                      partitioning: List[String] = List(),
                       readOptions: Map[String, String] = Map.empty[String, String],
                       writeOptions: Map[String, String] = Map.empty[String, String]) {
 
