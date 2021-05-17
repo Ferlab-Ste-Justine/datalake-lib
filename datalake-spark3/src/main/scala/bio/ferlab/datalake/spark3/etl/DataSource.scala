@@ -25,7 +25,8 @@ case class DataSource(storageAlias: String,
                       primaryKeys: Seq[String] = Seq("id"),
                       partitioning: List[String] = List(),
                       readOptions: Map[String, String] = Map.empty[String, String],
-                      writeOptions: Map[String, String] = Map.empty[String, String]) {
+                      writeOptions: Map[String, String] = Map.empty[String, String],
+                      documentationPath: Option[String] = None) {
 
   def rootPath(implicit config: Configuration): String = {
     config.storages.find(_.alias.equalsIgnoreCase(storageAlias))

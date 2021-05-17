@@ -34,6 +34,7 @@ class ConfigurationWriterSpec extends AnyFlatSpec with GivenWhenThen with Matche
          |    {
          |        alias=a
          |        database=db
+         |        documentationpath=""
          |        format=PARQUET
          |        keys=[
          |            id
@@ -45,6 +46,7 @@ class ConfigurationWriterSpec extends AnyFlatSpec with GivenWhenThen with Matche
          |        readoptions {
          |            key=value
          |        }
+         |        view=""
          |        writeoptions {
          |            key2=value
          |        }
@@ -52,6 +54,7 @@ class ConfigurationWriterSpec extends AnyFlatSpec with GivenWhenThen with Matche
          |    {
          |        alias=b
          |        database=db
+         |        documentationpath=""
          |        format=PARQUET
          |        keys=[
          |            id
@@ -63,6 +66,7 @@ class ConfigurationWriterSpec extends AnyFlatSpec with GivenWhenThen with Matche
          |        readoptions {
          |            key=value
          |        }
+         |        view=""
          |        writeoptions {
          |            key2=value
          |        }
