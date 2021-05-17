@@ -13,6 +13,8 @@ import bio.ferlab.datalake.spark3.loader.{Format, LoadType}
  * @param loadtype how the data is written
  * @param readoptions OPTIONAL - read options to pass to spark in order to read the data into a DataFrame
  * @param writeoptions OPTIONAL - write options to pass to spark in order to write the data into files
+ * @param documentationpath OPTIONAL - path to the documentation file
+ * @param view OPTIONAL - schema of the view pointing to the concrete table
  */
 case class SourceConf(alias: String,
                       path: String,
@@ -20,10 +22,12 @@ case class SourceConf(alias: String,
                       name: String,
                       format: Format,
                       loadtype: LoadType,
-                      keys: List[String] = List("id"),
+                      keys: List[String] = List(),
                       partitionby: List[String] = List(),
                       readoptions: Map[String, String] = Map(),
-                      writeoptions: Map[String, String] = Map()) {
+                      writeoptions: Map[String, String] = Map(),
+                      documentationpath: String = "",
+                      view: String = "") {
 
   def rootPath(implicit config: Configuration): String = {
     config.getStorage(alias)

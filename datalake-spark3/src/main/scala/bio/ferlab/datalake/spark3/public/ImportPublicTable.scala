@@ -7,6 +7,7 @@ object ImportPublicTable extends SparkApp {
   val Array(_, tableName) = args
 
   tableName match {
+    case "clinvar" => new ImportClinvar().run()
     case "genes" => new ImportGenesTable().run()
   }
 }

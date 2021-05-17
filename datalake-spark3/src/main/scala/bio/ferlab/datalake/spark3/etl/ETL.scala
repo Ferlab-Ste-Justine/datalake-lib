@@ -12,6 +12,8 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
  */
 abstract class ETL()(implicit val conf: Configuration) {
 
+  val destination: SourceConf
+
   /**
    * Default file system
    */

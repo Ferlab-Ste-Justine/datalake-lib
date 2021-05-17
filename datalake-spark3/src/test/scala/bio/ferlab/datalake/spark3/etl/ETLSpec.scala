@@ -32,6 +32,9 @@ class ETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
   val destConf: SourceConf = SourceConf("normalized", "/airports", "normalized_db", "airport", DELTA, OverWrite, keys = List("airport_id"))
 
   case class TestETL() extends ETL() {
+
+    override val destination: SourceConf = destConf
+
     override def extract()(implicit spark: SparkSession): Map[SourceConf, DataFrame] = {
       Map(srcConf -> spark.read.format(srcConf.format.sparkFormat).options(srcConf.readoptions).load(srcConf.location))
     }
@@ -50,13 +53,13 @@ class ETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
     }
 
     override def load(data: DataFrame)(implicit spark: SparkSession): DataFrame = {
-      spark.sql(s"CREATE DATABASE IF NOT EXISTS ${destConf.database}")
+      spark.sql(s"CREATE DATABASE IF NOT EXISTS ${destination.database}")
       data
         .write
         .format("delta")
         .mode(SaveMode.Overwrite)
-        .option("path", destConf.location)
-        .saveAsTable(s"${destConf.database}.${destConf.name}")
+        .option("path", destination.location)
+        .saveAsTable(s"${destination.database}.${destination.name}")
       data
     }
   }

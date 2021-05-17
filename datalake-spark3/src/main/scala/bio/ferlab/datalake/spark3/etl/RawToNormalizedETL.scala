@@ -10,7 +10,7 @@ import org.slf4j.{Logger, LoggerFactory}
 import scala.util.{Failure, Success, Try}
 
 class RawToNormalizedETL(val source: SourceConf,
-                         val destination: SourceConf,
+                         override val destination: SourceConf,
                          val transformations: List[Transformation])
                         (override implicit val conf: Configuration) extends ETL() {
 
