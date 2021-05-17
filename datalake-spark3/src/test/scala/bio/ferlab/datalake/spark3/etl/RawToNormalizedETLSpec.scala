@@ -1,6 +1,6 @@
 package bio.ferlab.datalake.spark3.etl
 
-import bio.ferlab.datalake.spark3.config.{Configuration, SourceConf, StorageConf}
+import bio.ferlab.datalake.spark3.config.{Configuration, DatasetConf, StorageConf, TableConf}
 import bio.ferlab.datalake.spark3.loader.Format.{CSV, DELTA}
 import bio.ferlab.datalake.spark3.loader.LoadType.OverWrite
 import bio.ferlab.datalake.spark3.transformation.Custom
@@ -28,8 +28,8 @@ class RawToNormalizedETLSpec extends AnyFlatSpec with GivenWhenThen with Matcher
     StorageConf("normalized", getClass.getClassLoader.getResource("normalized/").getFile)
   ))
 
-  val srcConf: SourceConf = SourceConf("raw", "/airports.csv", "raw_db", "raw_airports", CSV, OverWrite, readoptions = Map("header" -> "true", "delimiter" -> "|"))
-  val destConf: SourceConf = SourceConf("normalized", "/airports", "normalized_db", "airport", DELTA, OverWrite, keys = List("airport_id"))
+  val srcConf: DatasetConf =  DatasetConf("raw_airports", "raw"       , "/airports.csv", CSV  , OverWrite, Some(TableConf("raw_db" , "raw_airports")), readoptions = Map("header" -> "true", "delimiter" -> "|"))
+  val destConf: DatasetConf = DatasetConf("airport"     , "normalized", "/airports"    , DELTA, OverWrite, Some(TableConf("normalized_db", "airport")), keys = List("airport_id"))
 
   val job: RawToNormalizedETL = new RawToNormalizedETL(srcConf, destConf, List(Custom(_.select(
     col("id").cast(LongType) as "airport_id",
@@ -67,7 +67,7 @@ class RawToNormalizedETLSpec extends AnyFlatSpec with GivenWhenThen with Matcher
 
     job.load(output)
 
-    val table = spark.table(s"${destConf.database}.${destConf.name}")
+    val table = spark.table(s"${destConf.table.get.fullName}")
     table.as[AirportOutput].collect().head shouldBe AirportOutput()
   }
 

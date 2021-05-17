@@ -33,7 +33,7 @@ class ConfigurationLoaderSpec extends AnyFlatSpec with GivenWhenThen with Matche
       """
         |storages = [
         |  {
-        |   alias = "default"
+        |   storageid = "default"
         |   path = "spark-local"
         |  }
         |]

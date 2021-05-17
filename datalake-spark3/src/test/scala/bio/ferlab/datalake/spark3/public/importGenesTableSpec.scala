@@ -1,6 +1,6 @@
 package bio.ferlab.datalake.spark3.public
 
-import bio.ferlab.datalake.spark3.config.SourceConf
+import bio.ferlab.datalake.spark3.config.DatasetConf
 import bio.ferlab.datalake.spark3.testmodels._
 import bio.ferlab.datalake.spark3.testutils.WithSparkSession
 import org.apache.spark.sql.functions
@@ -12,13 +12,13 @@ import org.scalatest.matchers.should.Matchers
 class importGenesTableSpec extends AnyFlatSpec with GivenWhenThen with WithSparkSession with Matchers {
   import spark.implicits._
 
-  val destination       : SourceConf = conf.getSource("genes")
-  val omim_gene_set     : SourceConf = conf.getSource("omim_gene_set")
-  val orphanet_gene_set : SourceConf = conf.getSource("orphanet_gene_set")
-  val hpo_gene_set      : SourceConf = conf.getSource("hpo_gene_set")
-  val human_genes       : SourceConf = conf.getSource("human_genes")
-  val ddd_gene_set      : SourceConf = conf.getSource("ddd_gene_set")
-  val cosmic_gene_set   : SourceConf = conf.getSource("cosmic_gene_set")
+  val destination       : DatasetConf = conf.getDataset("genes")
+  val omim_gene_set     : DatasetConf = conf.getDataset("omim_gene_set")
+  val orphanet_gene_set : DatasetConf = conf.getDataset("orphanet_gene_set")
+  val hpo_gene_set      : DatasetConf = conf.getDataset("hpo_gene_set")
+  val human_genes       : DatasetConf = conf.getDataset("human_genes")
+  val ddd_gene_set      : DatasetConf = conf.getDataset("ddd_gene_set")
+  val cosmic_gene_set   : DatasetConf = conf.getDataset("cosmic_gene_set")
 
   "run" should "creates genes table" in {
 

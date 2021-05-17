@@ -1,8 +1,10 @@
 package bio.ferlab.datalake.spark3.etl
 
-import bio.ferlab.datalake.spark3.config.{Configuration, SourceConf}
+import bio.ferlab.datalake.spark3.config.{Configuration, DatasetConf}
 import bio.ferlab.datalake.spark3.file.{FileSystem, HadoopFileSystem}
-import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
+
+import scala.util.Try
 
 
 /**
@@ -12,28 +14,30 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
  */
 abstract class ETL()(implicit val conf: Configuration) {
 
+  val destination: DatasetConf
+
   /**
    * Default file system
    */
   val fs: FileSystem = HadoopFileSystem
 
   /**
-   * Reads data from a file system and produce a Map[DataSource, DataFrame].
+   * Reads data from a file system and produce a Map[DatasetConf, DataFrame].
    * This method should avoid transformation and joins but can implement filters in order to make the ETL more efficient.
    * @param spark an instance of SparkSession
    * @return all the data needed to pass to the transform method and produce the desired output.
    */
-  def extract()(implicit spark: SparkSession): Map[SourceConf, DataFrame]
+  def extract()(implicit spark: SparkSession): Map[DatasetConf, DataFrame]
 
   /**
-   * Takes a Map[DataSource, DataFrame] as input and apply a set of transformation to it to produce the ETL output.
+   * Takes a Map[DatasetConf, DataFrame] as input and apply a set of transformation to it to produce the ETL output.
    * It is recommended to not read any additional data but to use the extract() method instead to inject input data.
    *
-   * @param data
+   * @param data input data
    * @param spark an instance of SparkSession
    * @return
    */
-  def transform(data: Map[SourceConf, DataFrame])(implicit spark: SparkSession): DataFrame
+  def transform(data: Map[DatasetConf, DataFrame])(implicit spark: SparkSession): DataFrame
 
   /**
    * Loads the output data into a persistent storage.
@@ -42,7 +46,27 @@ abstract class ETL()(implicit val conf: Configuration) {
    * @param data output data produced by the transform method.
    * @param spark an instance of SparkSession
    */
-  def load(data: DataFrame)(implicit spark: SparkSession): DataFrame
+  def load(data: DataFrame)(implicit spark: SparkSession): DataFrame = {
+    if (destination.table.isEmpty) {
+      data
+        .write
+        .mode(SaveMode.Overwrite)
+        .format(destination.format.sparkFormat)
+        .option("path", destination.location)
+        .save()
+    } else {
+      destination.table.foreach {t =>
+        Try(spark.sql(s"CREATE DATABASE iF NOT EXISTS ${t.database}"))
+        data
+          .write
+          .mode(SaveMode.Overwrite)
+          .format(destination.format.sparkFormat)
+          .option("path", destination.location)
+          .saveAsTable(s"${t.database}.${t.name}")
+      }
+    }
+    data
+  }
 
   /**
    * OPTIONAL - Contains all actions needed to be done in order to make the data available to users
