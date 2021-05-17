@@ -6,18 +6,22 @@ import org.apache.spark.sql.SparkSession
 
 trait SparkApp extends App {
 
-  implicit val conf: Configuration = ConfigurationLoader.loadFromResources(args(0))
+  def init(): (Configuration, SparkSession) = {
 
-  val arguments: Array[String] = args.tail ++ conf.args
+    println(s"LOADING ${args(0)}...")
 
-  val sparkConf: SparkConf = conf.sparkconf.foldLeft(new SparkConf()){ case (c, (k, v)) => c.set(k, v) }
+    val conf: Configuration = ConfigurationLoader.loadFromResources(args(0))
 
-  implicit val spark: SparkSession =
-    SparkSession
-      .builder
-      .config(sparkConf)
-      .enableHiveSupport()
-      .appName("SparkApp")
-      .getOrCreate()
+    val sparkConf: SparkConf = conf.sparkconf.foldLeft(new SparkConf()){ case (c, (k, v)) => c.set(k, v) }
+
+    val spark: SparkSession =
+      SparkSession
+        .builder
+        .config(sparkConf)
+        .enableHiveSupport()
+        .appName("SparkApp")
+        .getOrCreate()
+    (conf, spark)
+  }
 
 }

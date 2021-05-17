@@ -58,6 +58,7 @@ lazy val `datalake-spark3` = (project in file("datalake-spark3"))
     libraryDependencies += "com.github.pureconfig" %% "pureconfig-enum"     % pureconfigVersion,
     libraryDependencies += "org.typelevel"         %% "cats-core"           % catsVersion,
     libraryDependencies += "org.scalatest"         %% "scalatest"           % scalatestVersion % Test,
+    libraryDependencies += "org.apache.spark"      %% "spark-hive"          % spark3Version % Test,
     libraryDependencies += "io.projectglow"        %% "glow-spark3"         % glowVersion  exclude ("org.apache.hadoop", "hadoop-client"),
     libraryDependencies += "dev.zio"               %% "zio-config-typesafe" % zioVersion,
     libraryDependencies += "dev.zio"               %% "zio-config"          % zioVersion,

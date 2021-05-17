@@ -23,7 +23,8 @@ class ImportGenesTable()(implicit conf: Configuration)
       orphanet_gene_set -> spark.read.parquet(orphanet_gene_set.location),
       hpo_gene_set      -> spark.read.parquet(hpo_gene_set.location),
       human_genes       -> spark.read.parquet(human_genes.location),
-      ddd_gene_set      -> spark.read.parquet(ddd_gene_set.location)
+      ddd_gene_set      -> spark.read.parquet(ddd_gene_set.location),
+      cosmic_gene_set   -> spark.read.parquet(cosmic_gene_set.location)
     )
   }
 
