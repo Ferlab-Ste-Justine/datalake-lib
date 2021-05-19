@@ -2,8 +2,8 @@ package bio.ferlab.datalake.spark3.etl
 
 import bio.ferlab.datalake.spark3.config.Configuration
 import bio.ferlab.datalake.spark3.hive.UpdateTableComments
+import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions.{col, lit, regexp_extract, trim}
-import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 
 import scala.util.Try
 

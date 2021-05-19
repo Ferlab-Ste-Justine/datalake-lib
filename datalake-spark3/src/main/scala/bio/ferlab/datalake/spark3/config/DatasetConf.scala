@@ -1,6 +1,7 @@
 package bio.ferlab.datalake.spark3.config
 
 import bio.ferlab.datalake.spark3.loader.{Format, LoadType}
+import org.apache.spark.sql.{DataFrame, SparkSession}
 
 /**
  * Abstraction on a dataset configuration
@@ -15,7 +16,7 @@ import bio.ferlab.datalake.spark3.loader.{Format, LoadType}
  * @param documentationpath OPTIONAL - path to the documentation file
  * @param view OPTIONAL - schema of the view pointing to the concrete table
  */
-case class DatasetConf(datasetid: String,
+case class DatasetConf(id: String,
                        storageid: String,
                        path: String,
                        format: Format,
@@ -35,10 +36,18 @@ case class DatasetConf(datasetid: String,
   def location(implicit config: Configuration): String = {
     s"$rootPath$path"
   }
+
+  def read(implicit config: Configuration, spark: SparkSession): DataFrame = {
+    table.fold {
+      spark.read.format(format.sparkFormat).load(location)
+    }{t =>
+      spark.table(t.fullName)
+    }
+  }
 }
 
 object DatasetConf {
-  def apply(datasetid: String,
+  def apply(id: String,
             storageid: String,
             path: String,
             format: Format,
@@ -46,7 +55,7 @@ object DatasetConf {
             table: TableConf,
             view: TableConf): DatasetConf = {
     new DatasetConf(
-      datasetid,
+      id,
       storageid,
       path,
       format,
@@ -56,14 +65,14 @@ object DatasetConf {
     )
   }
 
-  def apply(datasetid: String,
+  def apply(id: String,
             storageid: String,
             path: String,
             format: Format,
             loadtype: LoadType,
             table: TableConf): DatasetConf = {
     new DatasetConf(
-      datasetid,
+      id,
       storageid,
       path,
       format,

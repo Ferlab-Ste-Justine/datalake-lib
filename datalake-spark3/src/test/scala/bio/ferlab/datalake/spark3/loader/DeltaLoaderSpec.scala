@@ -39,7 +39,7 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers {
       Test("aaa", "aaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1)
     ).toDF
 
-    DeltaLoader.writeOnce(output, "default", "testtable", existing, List())
+    DeltaLoader.writeOnce(output, "default", "testtable", existing, List(), "delta")
 
     val updates: Seq[Test] = Seq(
       Test("a", "b", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),
@@ -56,7 +56,8 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers {
       "testtable",
       updatedDF,
       Seq("uid"),
-      List()
+      List(),
+      "delta"
     )
 
     DeltaTable
@@ -79,7 +80,7 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers {
       Test("aaa", "aaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1)
     ).toDF
 
-    DeltaLoader.writeOnce(output, "default", "testtable", existing, List())
+    DeltaLoader.writeOnce(output, "default", "testtable", existing, List(), "delta")
 
     val updates: DataFrame = Seq(
       Test("a", "b", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),
@@ -102,7 +103,8 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers {
       "oid",
       "createdOn",
       "updatedOn",
-      List()
+      List(),
+      "delta"
     )
 
     DeltaTable

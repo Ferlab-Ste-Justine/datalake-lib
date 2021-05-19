@@ -12,12 +12,13 @@ object DeltaLoader extends Loader {
                       tableName: String,
                       updates: DataFrame,
                       primaryKeys: Seq[String],
-                      partitioning: List[String])(implicit spark: SparkSession): DataFrame = {
+                      partitioning: List[String],
+                      format: String)(implicit spark: SparkSession): DataFrame = {
 
     require(primaryKeys.forall(updates.columns.contains), s"requires column [${primaryKeys.mkString(", ")}]")
 
     Try(DeltaTable.forName(s"$databaseName.$tableName")) match {
-      case Failure(_) => writeOnce(location, databaseName, tableName, updates, partitioning)
+      case Failure(_) => writeOnce(location, databaseName, tableName, updates, partitioning, format)
       case Success(existing) =>
 
         val existingDf = existing.toDF
@@ -47,7 +48,8 @@ object DeltaLoader extends Loader {
            oidName: String,
            createdOnName: String,
            updatedOnName: String,
-           partitioning: List[String])(implicit spark: SparkSession): DataFrame = {
+           partitioning: List[String],
+           format: String)(implicit spark: SparkSession): DataFrame = {
 
     require(primaryKeys.forall(updates.columns.contains), s"requires column [${primaryKeys.mkString(", ")}]")
     require(updates.columns.exists(_.equals(oidName)), s"requires column [$oidName]")
@@ -55,7 +57,7 @@ object DeltaLoader extends Loader {
     require(updates.columns.exists(_.equals(updatedOnName)), s"requires column [$updatedOnName]")
 
     Try(DeltaTable.forName(s"$databaseName.$tableName")) match {
-      case Failure(_) => writeOnce(location, databaseName, tableName, spark.table(tableName), partitioning)
+      case Failure(_) => writeOnce(location, databaseName, tableName, spark.table(tableName), partitioning, format)
       case Success(existing) =>
         val existingDf = existing.toDF
         val mergeCondition: Column =
@@ -82,6 +84,7 @@ object DeltaLoader extends Loader {
                          tableName: String,
                          df: DataFrame,
                          partitioning: List[String],
+                         format: String,
                          dataChange: Boolean)(implicit spark: SparkSession): DataFrame = {
     spark.sql(s"CREATE DATABASE IF NOT EXISTS $databaseName")
     df

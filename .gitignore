@@ -3,3 +3,5 @@
 .idea
 target
 .bsp
+metastore_db
+spark-warehouse

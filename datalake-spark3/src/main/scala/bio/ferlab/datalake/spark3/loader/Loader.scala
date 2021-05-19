@@ -31,6 +31,7 @@ trait Loader {
                 tableName: String,
                 df: DataFrame,
                 partitioning: List[String],
+                format: String,
                 dataChange: Boolean = true)(implicit spark: SparkSession): DataFrame
 
   /**
@@ -48,7 +49,8 @@ trait Loader {
              tableName: String,
              updates: DataFrame,
              primaryKeys: Seq[String],
-             partitioning: List[String])(implicit spark: SparkSession): DataFrame
+             partitioning: List[String],
+             format: String)(implicit spark: SparkSession): DataFrame
 
   /**
    * Update the data only if the data has changed
@@ -73,6 +75,7 @@ trait Loader {
            oidName: String,
            createdOnName: String,
            updatedOnName: String,
-           partitioning: List[String])(implicit spark: SparkSession): DataFrame
+           partitioning: List[String],
+           format: String)(implicit spark: SparkSession): DataFrame
 
 }

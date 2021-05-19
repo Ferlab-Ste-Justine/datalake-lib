@@ -17,21 +17,21 @@ class ImportGenesTable()(implicit conf: Configuration)
   val ddd_gene_set      : DatasetConf = conf.getDataset("ddd_gene_set")
   val cosmic_gene_set   : DatasetConf = conf.getDataset("cosmic_gene_set")
 
-  override def extract()(implicit spark: SparkSession): Map[DatasetConf, DataFrame] = {
+  override def extract()(implicit spark: SparkSession): Map[String, DataFrame] = {
     Map(
-      omim_gene_set     -> spark.read.parquet(omim_gene_set.location),
-      orphanet_gene_set -> spark.read.parquet(orphanet_gene_set.location),
-      hpo_gene_set      -> spark.read.parquet(hpo_gene_set.location),
-      human_genes       -> spark.read.parquet(human_genes.location),
-      ddd_gene_set      -> spark.read.parquet(ddd_gene_set.location),
-      cosmic_gene_set   -> spark.read.parquet(cosmic_gene_set.location)
+      omim_gene_set.id      -> spark.read.parquet(omim_gene_set.location),
+      orphanet_gene_set.id  -> spark.read.parquet(orphanet_gene_set.location),
+      hpo_gene_set.id       -> spark.read.parquet(hpo_gene_set.location),
+      human_genes.id        -> spark.read.parquet(human_genes.location),
+      ddd_gene_set.id       -> spark.read.parquet(ddd_gene_set.location),
+      cosmic_gene_set.id    -> spark.read.parquet(cosmic_gene_set.location)
     )
   }
 
-  override def transform(data: Map[DatasetConf, DataFrame])(implicit spark: SparkSession): DataFrame = {
+  override def transform(data: Map[String, DataFrame])(implicit spark: SparkSession): DataFrame = {
     import spark.implicits._
 
-    val humanGenes = data(human_genes)
+    val humanGenes = data(human_genes.id)
       .select($"chromosome", $"symbol", $"entrez_gene_id", $"omim_gene_id",
         $"external_references.hgnc" as "hgnc",
         $"ensembl_gene_id",
@@ -40,10 +40,10 @@ class ImportGenesTable()(implicit conf: Configuration)
         $"synonyms" as "alias",
         regexp_replace($"type_of_gene", "-", "_") as "biotype")
 
-    val orphanet = data(orphanet_gene_set)
+    val orphanet = data(orphanet_gene_set.id)
       .select($"gene_symbol" as "symbol", $"disorder_id", $"name" as "panel", $"type_of_inheritance" as "inheritance")
 
-    val omim = data(omim_gene_set)
+    val omim = data(omim_gene_set.id)
       .where($"phenotype.name".isNotNull)
       .select(
         $"omim_gene_id",
@@ -52,15 +52,15 @@ class ImportGenesTable()(implicit conf: Configuration)
         $"phenotype.inheritance" as "inheritance",
         $"phenotype.inheritance_code" as "inheritance_code")
 
-    val hpo = data(hpo_gene_set)
+    val hpo = data(hpo_gene_set.id)
       .select($"entrez_gene_id", $"hpo_term_id", $"hpo_term_name")
       .distinct()
       .withColumn("hpo_term_label", concat($"hpo_term_name", lit(" ("), $"hpo_term_id", lit(")")))
 
-    val ddd_gene_set_df = data(ddd_gene_set)
+    val ddd_gene_set_df = data(ddd_gene_set.id)
       .select("disease_name", "symbol")
 
-    val cosmic_gene_set_df = data(cosmic_gene_set)
+    val cosmic_gene_set_df = data(cosmic_gene_set.id)
       .select("symbol", "tumour_types_germline")
 
     humanGenes

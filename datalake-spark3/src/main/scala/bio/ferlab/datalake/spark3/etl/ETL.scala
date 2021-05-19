@@ -2,7 +2,8 @@ package bio.ferlab.datalake.spark3.etl
 
 import bio.ferlab.datalake.spark3.config.{Configuration, DatasetConf}
 import bio.ferlab.datalake.spark3.file.{FileSystem, HadoopFileSystem}
-import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
+import bio.ferlab.datalake.spark3.loader.LoadResolver
+import org.apache.spark.sql.{DataFrame, SparkSession}
 
 import scala.util.Try
 
@@ -27,7 +28,7 @@ abstract class ETL()(implicit val conf: Configuration) {
    * @param spark an instance of SparkSession
    * @return all the data needed to pass to the transform method and produce the desired output.
    */
-  def extract()(implicit spark: SparkSession): Map[DatasetConf, DataFrame]
+  def extract()(implicit spark: SparkSession): Map[String, DataFrame]
 
   /**
    * Takes a Map[DatasetConf, DataFrame] as input and apply a set of transformation to it to produce the ETL output.
@@ -37,7 +38,7 @@ abstract class ETL()(implicit val conf: Configuration) {
    * @param spark an instance of SparkSession
    * @return
    */
-  def transform(data: Map[DatasetConf, DataFrame])(implicit spark: SparkSession): DataFrame
+  def transform(data: Map[String, DataFrame])(implicit spark: SparkSession): DataFrame
 
   /**
    * Loads the output data into a persistent storage.
@@ -47,24 +48,9 @@ abstract class ETL()(implicit val conf: Configuration) {
    * @param spark an instance of SparkSession
    */
   def load(data: DataFrame)(implicit spark: SparkSession): DataFrame = {
-    if (destination.table.isEmpty) {
-      data
-        .write
-        .mode(SaveMode.Overwrite)
-        .format(destination.format.sparkFormat)
-        .option("path", destination.location)
-        .save()
-    } else {
-      destination.table.foreach {t =>
-        Try(spark.sql(s"CREATE DATABASE iF NOT EXISTS ${t.database}"))
-        data
-          .write
-          .mode(SaveMode.Overwrite)
-          .format(destination.format.sparkFormat)
-          .option("path", destination.location)
-          .saveAsTable(s"${t.database}.${t.name}")
-      }
-    }
+    LoadResolver
+      .resolve(spark, conf)(destination.format -> destination.loadtype)
+      .apply(destination, data)
     data
   }
 

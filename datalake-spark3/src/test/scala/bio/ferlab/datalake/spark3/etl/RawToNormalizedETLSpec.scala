@@ -44,7 +44,7 @@ class RawToNormalizedETLSpec extends AnyFlatSpec with GivenWhenThen with Matcher
     import spark.implicits._
 
     val data = job.extract()
-    data(srcConf).as[AirportInput]
+    data(srcConf.id).as[AirportInput]
   }
 
   "RawToNormalizedETL transform and publish" should "return the expected format" in {
