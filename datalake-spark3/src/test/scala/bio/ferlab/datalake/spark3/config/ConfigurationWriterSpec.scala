@@ -17,8 +17,8 @@ class ConfigurationWriterSpec extends AnyFlatSpec with GivenWhenThen with Matche
     args = List("arg1", "arg2"),
     storages = List(StorageConf("a", "s3://a")),
     sources = List(
-      SourceConf("a", "/path/a", "db", "name_a", PARQUET, OverWrite, List("id"), List(), Map("key" -> "value"), Map("key2" -> "value")),
-      SourceConf("b", "/path/b", "db", "name_b", PARQUET, OverWrite, List("id"), List(), Map("key" -> "value"), Map("key2" -> "value"))),
+      DatasetConf("name_a", "a" ,"/path/a", PARQUET, OverWrite, Some(TableConf("db", "name_a")), List("id"), List(), Map("key" -> "value"), Map("key2" -> "value")),
+      DatasetConf("name_b", "b" ,"/path/b", PARQUET, OverWrite, Some(TableConf("db", "name_b")), List("id"), List(), Map("key" -> "value"), Map("key2" -> "value"))),
     sparkconf = Map("spark.conf1" -> "v1", "spark.conf2" -> "v2")
   )
 
@@ -32,41 +32,45 @@ class ConfigurationWriterSpec extends AnyFlatSpec with GivenWhenThen with Matche
          |]
          |sources=[
          |    {
-         |        alias=a
-         |        database=db
+         |        datasetid="name_a"
          |        documentationpath=""
          |        format=PARQUET
          |        keys=[
          |            id
          |        ]
          |        loadtype=OverWrite
-         |        name="name_a"
          |        partitionby=[]
          |        path="/path/a"
          |        readoptions {
          |            key=value
          |        }
-         |        view=""
+         |        storageid=a
+         |        table {
+         |            database=db
+         |            name="name_a"
+         |        }
          |        writeoptions {
          |            key2=value
          |        }
          |    },
          |    {
-         |        alias=b
-         |        database=db
+         |        datasetid="name_b"
          |        documentationpath=""
          |        format=PARQUET
          |        keys=[
          |            id
          |        ]
          |        loadtype=OverWrite
-         |        name="name_b"
          |        partitionby=[]
          |        path="/path/b"
          |        readoptions {
          |            key=value
          |        }
-         |        view=""
+         |        storageid=b
+         |        table {
+         |            database=db
+         |            name="name_b"
+         |        }
          |        writeoptions {
          |            key2=value
          |        }
@@ -78,8 +82,8 @@ class ConfigurationWriterSpec extends AnyFlatSpec with GivenWhenThen with Matche
          |}
          |storages=[
          |    {
-         |        alias=a
          |        path="s3://a"
+         |        storageid=a
          |    }
          |]
          |""".stripMargin

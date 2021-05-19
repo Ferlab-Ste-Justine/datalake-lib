@@ -1,6 +1,6 @@
 package bio.ferlab.datalake.spark3.etl
 
-import bio.ferlab.datalake.spark3.config.{Configuration, SourceConf, StorageConf}
+import bio.ferlab.datalake.spark3.config.{Configuration, DatasetConf, StorageConf, TableConf}
 import bio.ferlab.datalake.spark3.loader.Format.{CSV, DELTA}
 import bio.ferlab.datalake.spark3.loader.LoadType._
 import org.apache.spark.sql.functions._
@@ -28,18 +28,18 @@ class ETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
     sources = List()
   )
 
-  val srcConf: SourceConf = SourceConf("raw", "/airports.csv", "raw_db", "raw_airports", CSV, OverWrite, readoptions = Map("header" -> "true", "delimiter" -> "|"))
-  val destConf: SourceConf = SourceConf("normalized", "/airports", "normalized_db", "airport", DELTA, OverWrite, keys = List("airport_id"))
+  val srcConf: DatasetConf =  DatasetConf("raw_airports", "raw"       , "/airports.csv", CSV  , OverWrite, Some(TableConf("raw_db" , "raw_airports")), readoptions = Map("header" -> "true", "delimiter" -> "|"))
+  val destConf: DatasetConf = DatasetConf("airport"     , "normalized", "/airports"    , DELTA, OverWrite, Some(TableConf("normalized_db", "airport")), keys = List("airport_id"))
 
   case class TestETL() extends ETL() {
 
-    override val destination: SourceConf = destConf
+    override val destination: DatasetConf = destConf
 
-    override def extract()(implicit spark: SparkSession): Map[SourceConf, DataFrame] = {
+    override def extract()(implicit spark: SparkSession): Map[DatasetConf, DataFrame] = {
       Map(srcConf -> spark.read.format(srcConf.format.sparkFormat).options(srcConf.readoptions).load(srcConf.location))
     }
 
-    override def transform(data: Map[SourceConf, DataFrame])(implicit spark: SparkSession): DataFrame = {
+    override def transform(data: Map[DatasetConf, DataFrame])(implicit spark: SparkSession): DataFrame = {
       data(srcConf)
         .select(
           col("id").cast(LongType) as "airport_id",
@@ -50,17 +50,6 @@ class ETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
           current_timestamp() as "createdOn"
         )
 
-    }
-
-    override def load(data: DataFrame)(implicit spark: SparkSession): DataFrame = {
-      spark.sql(s"CREATE DATABASE IF NOT EXISTS ${destination.database}")
-      data
-        .write
-        .format("delta")
-        .mode(SaveMode.Overwrite)
-        .option("path", destination.location)
-        .saveAsTable(s"${destination.database}.${destination.name}")
-      data
     }
   }
 
@@ -90,7 +79,7 @@ class ETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
 
     job.load(output)
 
-    val table = spark.table(s"${destConf.database}.${destConf.name}")
+    val table = spark.table(s"${destConf.table.get.fullName}")
     table.show(false)
     table.as[AirportOutput].collect().head shouldBe AirportOutput()
   }

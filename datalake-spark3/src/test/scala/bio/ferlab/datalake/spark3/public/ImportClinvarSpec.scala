@@ -10,7 +10,7 @@ import org.scalatest.matchers.should.Matchers
 class ImportClinvarSpec extends AnyFlatSpec with GivenWhenThen with WithSparkSession with Matchers {
   import spark.implicits._
 
-  val clinvar_vcf = conf.getSource("clinvar_vcf")
+  val clinvar_vcf = conf.getDataset("clinvar_vcf")
 
   "run" should "creates clinvar table" in {
 

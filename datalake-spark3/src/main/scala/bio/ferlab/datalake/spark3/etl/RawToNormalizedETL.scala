@@ -1,6 +1,6 @@
 package bio.ferlab.datalake.spark3.etl
 
-import bio.ferlab.datalake.spark3.config.{Configuration, SourceConf}
+import bio.ferlab.datalake.spark3.config.{Configuration, DatasetConf}
 import bio.ferlab.datalake.spark3.loader.LoadResolver
 import bio.ferlab.datalake.spark3.transformation.Transformation
 import org.apache.spark.sql.functions.input_file_name
@@ -9,8 +9,8 @@ import org.slf4j.{Logger, LoggerFactory}
 
 import scala.util.{Failure, Success, Try}
 
-class RawToNormalizedETL(val source: SourceConf,
-                         override val destination: SourceConf,
+class RawToNormalizedETL(val source: DatasetConf,
+                         override val destination: DatasetConf,
                          val transformations: List[Transformation])
                         (override implicit val conf: Configuration) extends ETL() {
 
@@ -18,7 +18,7 @@ class RawToNormalizedETL(val source: SourceConf,
 
   private var processedFiles: List[String] = List()
 
-  override def extract()(implicit spark: SparkSession): Map[SourceConf, DataFrame] = {
+  override def extract()(implicit spark: SparkSession): Map[DatasetConf, DataFrame] = {
     log.info(s"extracting: ${source.location}")
     Map(source -> spark.read.format(source.format.sparkFormat).options(source.readoptions).load(source.location))
   }
@@ -27,13 +27,13 @@ class RawToNormalizedETL(val source: SourceConf,
    * Takes a Map[DataSource, DataFrame] as input and apply a set of transformation to it to produce the ETL output.
    * It is recommended to not read any additional data but to use the extract() method instead to inject input data.
    *
-   * @param data
+   * @param data input data
    * @param spark an instance of SparkSession
    * @return
    */
-  override def transform(data: Map[SourceConf, DataFrame])(implicit spark: SparkSession): DataFrame = {
+  override def transform(data: Map[DatasetConf, DataFrame])(implicit spark: SparkSession): DataFrame = {
     import spark.implicits._
-    log.info(s"transforming: ${source.name} to ${destination.name}")
+    log.info(s"transforming: ${source.datasetid} to ${destination.datasetid}")
     //keep in memory which files are being processed
     processedFiles = data(source).withColumn("files", input_file_name())
       .select("files").as[String].collect().distinct.toList
@@ -53,8 +53,10 @@ class RawToNormalizedETL(val source: SourceConf,
    * @param spark an instance of SparkSession
    */
   override def load(data: DataFrame)(implicit spark: SparkSession): DataFrame = {
-    log.info(s"loading: ${destination.name}")
-    spark.sql(s"CREATE DATABASE IF NOT EXISTS ${destination.database}")
+    log.info(s"loading: ${destination.datasetid}")
+    Try(
+      spark.sql(s"CREATE DATABASE IF NOT EXISTS ${destination.table.get.database}")
+    )
 
     LoadResolver
       .resolve(spark, conf)(destination.format -> destination.loadtype)

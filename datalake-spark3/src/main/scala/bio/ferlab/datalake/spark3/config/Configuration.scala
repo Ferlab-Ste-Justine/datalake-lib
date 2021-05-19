@@ -8,21 +8,20 @@ package bio.ferlab.datalake.spark3.config
  * @param sparkconf extra configuration for the spark conf
  */
 case class Configuration(storages: List[StorageConf] = List(),
-                         sources: List[SourceConf] = List(),
+                         sources: List[DatasetConf] = List(),
                          args: List[String] = List.empty[String],
                          sparkconf: Map[String, String] = Map()) {
 
-  def getSource(database: String, name: String): SourceConf =
-    sources
-      .find(s => s.name.equalsIgnoreCase(name) && s.database.equalsIgnoreCase(database))
-      .getOrElse(throw new Exception(s"""Source [$database.$name] not found in ${sources.map(s => s"${s.database}.${s.name}").mkString("[", ", ", "]")}."""))
+  def getDataset(database: String, name: String): DatasetConf =
+    sources.find(_.table.contains(TableConf(database, name)))
+      .getOrElse(throw new Exception(s"""Dataset [$database.$name] not found in ${sources.map(_.table).mkString("[", ", ", "]")}."""))
 
-  def getSource(name: String): SourceConf =
-    sources.find(_.name.equalsIgnoreCase(name))
-      .getOrElse(throw new Exception(s"""Source [$name] not found in ${sources.map(_.name).mkString("[", ", ", "]")}."""))
+  def getDataset(id: String): DatasetConf =
+    sources.find(_.datasetid.equalsIgnoreCase(id))
+      .getOrElse(throw new Exception(s"""Dataset [$id] not found in ${sources.map(_.datasetid).mkString("[", ", ", "]")}."""))
 
   def getStorage(alias: String): String = {
-    storages.find(_.alias.equalsIgnoreCase(alias))
+    storages.find(_.storageid.equalsIgnoreCase(alias))
       .map(_.path)
       .getOrElse(throw new IllegalArgumentException(s"storage with alias [$alias] not found"))
   }

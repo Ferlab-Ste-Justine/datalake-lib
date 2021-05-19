@@ -1,14 +1,15 @@
 package bio.ferlab.datalake.spark3.hive
 
-import bio.ferlab.datalake.spark3.config.SourceConf
+import bio.ferlab.datalake.spark3.config.DatasetConf
 import org.apache.spark.sql.SparkSession
 
 import scala.util.{Failure, Success, Try}
 
 object UpdateTableComments {
 
-  def run(table: SourceConf)(implicit spark: SparkSession): Unit = {
-    run(table.database, table.name, table.documentationpath)
+  def run(ds: DatasetConf)(implicit spark: SparkSession): Unit = {
+    if(ds.table.nonEmpty)
+      run(ds.table.get.database, ds.table.get.name, ds.documentationpath)
   }
 
   def run(database: String, table: String, metadata_file: String)(implicit spark: SparkSession): Unit = {

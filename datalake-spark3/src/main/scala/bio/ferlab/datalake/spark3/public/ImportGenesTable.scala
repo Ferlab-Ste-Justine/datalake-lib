@@ -1,6 +1,6 @@
 package bio.ferlab.datalake.spark3.public
 
-import bio.ferlab.datalake.spark3.config.{Configuration, SourceConf}
+import bio.ferlab.datalake.spark3.config.{Configuration, DatasetConf}
 import bio.ferlab.datalake.spark3.etl.ETL
 import bio.ferlab.datalake.spark3.implicits.SparkUtils.removeEmptyObjectsIn
 import org.apache.spark.sql.functions._
@@ -9,15 +9,15 @@ import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 class ImportGenesTable()(implicit conf: Configuration)
   extends ETL()(conf) {
 
-  val destination       : SourceConf = conf.getSource("genes")
-  val omim_gene_set     : SourceConf = conf.getSource("omim_gene_set")
-  val orphanet_gene_set : SourceConf = conf.getSource("orphanet_gene_set")
-  val hpo_gene_set      : SourceConf = conf.getSource("hpo_gene_set")
-  val human_genes       : SourceConf = conf.getSource("human_genes")
-  val ddd_gene_set      : SourceConf = conf.getSource("ddd_gene_set")
-  val cosmic_gene_set   : SourceConf = conf.getSource("cosmic_gene_set")
+  val destination       : DatasetConf = conf.getDataset("genes")
+  val omim_gene_set     : DatasetConf = conf.getDataset("omim_gene_set")
+  val orphanet_gene_set : DatasetConf = conf.getDataset("orphanet_gene_set")
+  val hpo_gene_set      : DatasetConf = conf.getDataset("hpo_gene_set")
+  val human_genes       : DatasetConf = conf.getDataset("human_genes")
+  val ddd_gene_set      : DatasetConf = conf.getDataset("ddd_gene_set")
+  val cosmic_gene_set   : DatasetConf = conf.getDataset("cosmic_gene_set")
 
-  override def extract()(implicit spark: SparkSession): Map[SourceConf, DataFrame] = {
+  override def extract()(implicit spark: SparkSession): Map[DatasetConf, DataFrame] = {
     Map(
       omim_gene_set     -> spark.read.parquet(omim_gene_set.location),
       orphanet_gene_set -> spark.read.parquet(orphanet_gene_set.location),
@@ -28,7 +28,7 @@ class ImportGenesTable()(implicit conf: Configuration)
     )
   }
 
-  override def transform(data: Map[SourceConf, DataFrame])(implicit spark: SparkSession): DataFrame = {
+  override def transform(data: Map[DatasetConf, DataFrame])(implicit spark: SparkSession): DataFrame = {
     import spark.implicits._
 
     val humanGenes = data(human_genes)
@@ -87,14 +87,7 @@ class ImportGenesTable()(implicit conf: Configuration)
   }
 
   override def load(data: DataFrame)(implicit spark: SparkSession): DataFrame = {
-    data
-      .repartition(1)
-      .write
-      .mode(SaveMode.Overwrite)
-      .format(destination.format.sparkFormat)
-      .option("path", destination.location)
-      .saveAsTable(s"${destination.database}.${destination.name}")
-    data
+    super.load(data.repartition(1))
   }
 }
 
