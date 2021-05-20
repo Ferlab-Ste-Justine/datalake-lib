@@ -30,19 +30,23 @@ import scala.util.Try
 class Indexer(jobType: String,
               templateFilePath: String,
               alias: String,
-              release: String)
+              oldRelease: String,
+              newRelease: String)
              (implicit val spark: SparkSession) {
 
   spark.sparkContext.setLogLevel("ERROR")
 
   def run(df: DataFrame)(implicit esClient: ElasticSearchClient): Unit = {
-    val index = s"${alias}_$release".toLowerCase
+    val oldIndex = s"${alias}_$oldRelease".toLowerCase
+    val index = s"${alias}_$newRelease".toLowerCase
     val ES_config = Map("es.write.operation"-> jobType)
 
     if (jobType == "index") setupIndex(index, templateFilePath)
 
     df.saveToEs(s"$index/_doc", ES_config)
-    Try(esClient.setAlias(index, alias))
+    Try {
+      esClient.setAlias(add = List(index), remove = List(oldIndex), alias)
+    }
   }
 
 

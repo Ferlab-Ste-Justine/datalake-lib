@@ -3,11 +3,39 @@ package bio.ferlab.datalake.spark2.elasticsearch
 import org.apache.http.client.methods.{HttpDelete, HttpGet, HttpPost, HttpPut}
 import org.apache.http.entity.StringEntity
 import org.apache.http.impl.client.DefaultHttpClient
+import org.apache.http.protocol.HttpContext
 import org.apache.http.util.EntityUtils
-import org.apache.http.{HttpHeaders, HttpResponse}
+import org.json4s.DefaultFormats
+import org.json4s.jackson.Serialization.write
+import org.apache.http.{HttpHeaders, HttpRequest, HttpRequestInterceptor, HttpResponse}
 import org.apache.spark.sql.SparkSession
+import org.json4s.DefaultFormats
+import org.spark_project.guava.io.BaseEncoding
 
-class ElasticSearchClient(url: String) {
+import java.nio.charset.StandardCharsets
+
+class ElasticSearchClient(url: String, username: Option[String] = None, password: Option[String] = None) {
+
+  private val indexUrl: String => String = indexName => s"$url/$indexName"
+  private val templateUrl: String => String = templateName => s"$url/_template/$templateName"
+  private val aliasesUrl: String = s"$url/_aliases"
+
+  val http: DefaultHttpClient = {
+    val client = new DefaultHttpClient()
+
+    if(username.isDefined && password.isDefined) {
+      client.addRequestInterceptor(new HttpRequestInterceptor {
+        override def process(request: HttpRequest, context: HttpContext): Unit = {
+          val auth = s"${username.get}:${password.get}"
+          request.addHeader(
+            "Authorization",
+            s"Basic ${BaseEncoding.base64().encode(auth.getBytes(StandardCharsets.UTF_8))}"
+          )
+        }
+      })
+    }
+    client
+  }
 
   /**
    * Sends a GET on the url and verify the status code of the response is 200
@@ -15,7 +43,7 @@ class ElasticSearchClient(url: String) {
    *         false if not running or if status code not 200
    */
   def isRunning: Boolean = {
-    val response = new DefaultHttpClient().execute(new HttpGet(url))
+    val response = http.execute(new HttpGet(url))
 
     println(s"""
                |GET $url
@@ -31,7 +59,7 @@ class ElasticSearchClient(url: String) {
    *         false if not running or if status code not 200
    */
   def checkNodeRoles: Boolean = {
-    val response = new DefaultHttpClient().execute(new HttpGet(url + "/_nodes/http"))
+    val response = http.execute(new HttpGet(url + "/_nodes/http"))
 
     println(s"""
                |GET $url/_nodes/http
@@ -44,25 +72,22 @@ class ElasticSearchClient(url: String) {
   /**
    * Set a template to ElasticSearch
    * @param templatePath path of the template.json that is expected to be in the resource folder
-   * @param templateName name for the template
    * @return the http response sent by ElasticSearch
    */
   def setTemplate(templatePath: String)(implicit spark: SparkSession): HttpResponse = {
-
     val templateName = templatePath.split('.').dropRight(1).last.split('/').last
-    val requestUrl = s"$url/_template/$templateName"
 
     val fileContent = spark.read.option("wholetext", "true").textFile(templatePath).collect().mkString
 
-    println(s"SENDING: PUT $requestUrl with content: $fileContent")
+    println(s"SENDING: PUT ${templateUrl(templateName)} with content: $fileContent")
 
-    val request = new HttpPut(requestUrl)
+    val request = new HttpPut(templateUrl(templateName))
     request.addHeader(HttpHeaders.CONTENT_TYPE,"application/json")
     request.setEntity(new StringEntity(fileContent))
-    val response = new DefaultHttpClient().execute(request)
+    val response = http.execute(request)
     val status = response.getStatusLine
     if (!status.getStatusCode.equals(200))
-      throw new Exception(s"Server could not set template [$templatePath] and replied :${status.getStatusCode + " : " + status.getReasonPhrase}")
+      throw new Exception(s"Server could not set template and replied :${status.getStatusCode + " : " + status.getReasonPhrase}")
     response
   }
 
@@ -72,31 +97,25 @@ class ElasticSearchClient(url: String) {
    * @param aliasName name of the alias to update
    * @return the http response sent by ElasticSearch
    */
-  def setAlias(indexName: String, aliasName: String): HttpResponse = {
+  def setAlias(add: List[String], remove: List[String], alias: String): HttpResponse = {
 
-    val requestUrl = s"$url/_aliases"
+    val action = ActionsRequest(
+      add.map(name => AddAction(Map("index" -> name, "alias" -> alias))) ++
+        remove.map(name => RemoveAction(Map("index" -> name, "alias" -> alias)))
+    )
 
-    println(s"UPDATING ALIAS: ADD ${indexName} to $aliasName")
+    implicit val formats = DefaultFormats
 
-    val body =
-      s"""
-         |{
-         |	"actions": [{
-         |		"add": {
-         |			"index": "$indexName",
-         |			"alias": "$aliasName"
-         |		}
-         |	}]
-         |}
-         |""".stripMargin
+    val requestBody = write(action)
 
-    val request = new HttpPost(requestUrl)
+    val request = new HttpPost(aliasesUrl)
     request.addHeader(HttpHeaders.CONTENT_TYPE,"application/json")
-    request.setEntity(new StringEntity(body))
-    val response = new DefaultHttpClient().execute(request)
+    request.setEntity(new StringEntity(requestBody))
+
+    val response = http.execute(request)
     val status = response.getStatusLine
     if (!status.getStatusCode.equals(200))
-      throw new Exception(s"Server could not add [$indexName] to $aliasName and replied :${status.getStatusCode + " : " + status.getReasonPhrase}")
+      throw new Exception(s"Server could not set alias to $alias and replied :${status.getStatusCode + " : " + status.getReasonPhrase}")
     response
   }
 
@@ -106,10 +125,7 @@ class ElasticSearchClient(url: String) {
    * @return the http response sent by ElasticSearch
    */
   def deleteTemplate(templateName: String): HttpResponse = {
-    val requestUrl = s"$url/_template/$templateName"
-    val request = new HttpDelete(requestUrl)
-    val response = new DefaultHttpClient().execute(request)
-    response
+    http.execute(new HttpDelete(templateUrl(templateName)))
   }
 
   /**
@@ -118,10 +134,7 @@ class ElasticSearchClient(url: String) {
    * @return the http response sent by ElasticSearch
    */
   def createIndex(indexName: String): HttpResponse = {
-    val requestUrl = s"$url/$indexName"
-    val request = new HttpPut(requestUrl)
-    val response = new DefaultHttpClient().execute(request)
-    response
+    http.execute(new HttpPut(indexUrl(indexName)))
   }
 
   /**
@@ -130,11 +143,13 @@ class ElasticSearchClient(url: String) {
    * @return the http response sent by ElasticSearch
    */
   def deleteIndex(indexName: String): HttpResponse = {
-    val requestUrl = s"$url/$indexName"
-    val request = new HttpDelete(requestUrl)
-    val response = new DefaultHttpClient().execute(request)
-    response
+    http.execute(new HttpDelete(indexUrl(indexName)))
   }
+
+  sealed trait Action
+  case class AddAction(add: Map[String, String]) extends Action
+  case class RemoveAction(remove: Map[String, String]) extends Action
+  case class ActionsRequest(actions: Seq[Action])
 
 }
 
