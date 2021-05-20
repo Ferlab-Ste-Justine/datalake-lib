@@ -10,9 +10,16 @@ object LoadResolver {
   type DataSourceLoader = (DatasetConf, DataFrame) => DataFrame
 
   def resolve(implicit spark: SparkSession, conf: Configuration): PartialFunction[(Format, LoadType), DataSourceLoader] = {
-    case (DELTA, Upsert)    => (ds: DatasetConf, df: DataFrame) => DeltaLoader.upsert(ds.location, ds.table.get.database, ds.table.get.name, df, ds.keys, ds.partitionby)
-    case (DELTA, OverWrite) => (ds: DatasetConf, df: DataFrame) => DeltaLoader.writeOnce(ds.location, ds.table.get.database, ds.table.get.name, df, ds.partitionby, dataChange = true)
-    case (DELTA, Compact)   => (ds: DatasetConf, df: DataFrame) => DeltaLoader.writeOnce(ds.location, ds.table.get.database, ds.table.get.name, df, ds.partitionby, dataChange = false)
+    case (DELTA, Upsert)    => (ds: DatasetConf, df: DataFrame) =>
+      DeltaLoader.upsert(ds.location, ds.table.map(_.database).getOrElse(""), ds.table.map(_.name).getOrElse(""), df, ds.keys, ds.partitionby, ds.format.sparkFormat)
+    case (DELTA, OverWrite) => (ds: DatasetConf, df: DataFrame) =>
+      DeltaLoader.writeOnce(ds.location, ds.table.map(_.database).getOrElse(""), ds.table.map(_.name).getOrElse(""), df, ds.partitionby, ds.format.sparkFormat, dataChange = true)
+    case (DELTA, Compact)   => (ds: DatasetConf, df: DataFrame) =>
+      DeltaLoader.writeOnce(ds.location, ds.table.map(_.database).getOrElse(""), ds.table.map(_.name).getOrElse(""), df, ds.partitionby, ds.format.sparkFormat, dataChange = false)
+
+    //generic fallback behaviour
+    case (f, OverWrite)   => (ds: DatasetConf, df: DataFrame) =>
+      GenericLoader.writeOnce(ds.location, ds.table.map(_.database).getOrElse(""), ds.table.map(_.name).getOrElse(""), df, ds.partitionby, f.sparkFormat)
   }
 
 }

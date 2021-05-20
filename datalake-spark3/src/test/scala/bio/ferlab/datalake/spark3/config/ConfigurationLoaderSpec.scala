@@ -33,7 +33,7 @@ class ConfigurationLoaderSpec extends AnyFlatSpec with GivenWhenThen with Matche
       """
         |storages = [
         |  {
-        |   storageid = "default"
+        |   id = "default"
         |   path = "spark-local"
         |  }
         |]
@@ -44,7 +44,14 @@ class ConfigurationLoaderSpec extends AnyFlatSpec with GivenWhenThen with Matche
     parsedConf shouldBe Configuration(storages = List(StorageConf("default", "spark-local")))
   }
 
+  it should "load config with env variable" in {
 
+    val p = this.getClass.getClassLoader.getResource("config/env.conf").getFile
+    val URL = sys.env.get("URL")
+    val ENV_URL = ConfigurationLoader.loadFromPath(p).storages.head.path
 
+    URL.getOrElse("fallback_url") shouldBe ENV_URL
+
+  }
 
 }

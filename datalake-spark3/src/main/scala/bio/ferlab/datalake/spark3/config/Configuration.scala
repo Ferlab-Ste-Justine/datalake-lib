@@ -17,11 +17,11 @@ case class Configuration(storages: List[StorageConf] = List(),
       .getOrElse(throw new Exception(s"""Dataset [$database.$name] not found in ${sources.map(_.table).mkString("[", ", ", "]")}."""))
 
   def getDataset(id: String): DatasetConf =
-    sources.find(_.datasetid.equalsIgnoreCase(id))
-      .getOrElse(throw new Exception(s"""Dataset [$id] not found in ${sources.map(_.datasetid).mkString("[", ", ", "]")}."""))
+    sources.find(_.id.equalsIgnoreCase(id))
+      .getOrElse(throw new Exception(s"""Dataset [$id] not found in ${sources.map(_.id).mkString("[", ", ", "]")}."""))
 
   def getStorage(alias: String): String = {
-    storages.find(_.storageid.equalsIgnoreCase(alias))
+    storages.find(_.id.equalsIgnoreCase(alias))
       .map(_.path)
       .getOrElse(throw new IllegalArgumentException(s"storage with alias [$alias] not found"))
   }

@@ -2,10 +2,10 @@ package bio.ferlab.datalake.spark3.loader
 
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
-object CsvLoader extends Loader {
+object GenericLoader extends Loader {
 
   override def read(location: String, format: String, readOptions: Map[String, String])(implicit spark: SparkSession): DataFrame = {
-    spark.read.options(readOptions).csv(location)
+    spark.read.options(readOptions).format(format).load(location)
   }
 
   override def writeOnce(location: String,
@@ -13,13 +13,23 @@ object CsvLoader extends Loader {
                          tableName: String,
                          df: DataFrame,
                          partitioning: List[String],
+                         format: String,
                          dataChange: Boolean)
-                        (implicit spark:  SparkSession): DataFrame = {
-    df
-      .write
-      .mode("overwrite")
-      .partitionBy(partitioning:_*)
-      .save(location)
+                        (implicit spark: SparkSession): DataFrame = {
+    val dataFrameWriter =
+      df
+        .write
+        .format(format)
+        .mode("overwrite")
+        .partitionBy(partitioning:_*)
+
+    tableName match {
+      case "" =>
+        dataFrameWriter.save(location)
+      case table =>
+        dataFrameWriter.option("path", location).saveAsTable(s"$databaseName.$table")
+    }
+
     df
   }
 
@@ -28,7 +38,8 @@ object CsvLoader extends Loader {
                       tableName: String,
                       updates:  DataFrame,
                       primaryKeys: Seq[String],
-                      partitioning: List[String])
+                      partitioning: List[String],
+                      format: String)
                      (implicit spark:  SparkSession): DataFrame = {
     throw NotImplementedException
   }
@@ -41,8 +52,10 @@ object CsvLoader extends Loader {
                     oidName: String,
                     createdOnName: String,
                     updatedOnName: String,
-                    partitioning: List[String])
+                    partitioning: List[String],
+                    format: String)
                    (implicit spark:  SparkSession): DataFrame = {
     throw NotImplementedException
   }
 }
+

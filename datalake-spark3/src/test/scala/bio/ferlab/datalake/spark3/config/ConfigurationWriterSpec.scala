@@ -32,9 +32,9 @@ class ConfigurationWriterSpec extends AnyFlatSpec with GivenWhenThen with Matche
          |]
          |sources=[
          |    {
-         |        datasetid="name_a"
          |        documentationpath=""
          |        format=PARQUET
+         |        id="name_a"
          |        keys=[
          |            id
          |        ]
@@ -54,9 +54,9 @@ class ConfigurationWriterSpec extends AnyFlatSpec with GivenWhenThen with Matche
          |        }
          |    },
          |    {
-         |        datasetid="name_b"
          |        documentationpath=""
          |        format=PARQUET
+         |        id="name_b"
          |        keys=[
          |            id
          |        ]
@@ -82,8 +82,8 @@ class ConfigurationWriterSpec extends AnyFlatSpec with GivenWhenThen with Matche
          |}
          |storages=[
          |    {
+         |        id=a
          |        path="s3://a"
-         |        storageid=a
          |    }
          |]
          |""".stripMargin

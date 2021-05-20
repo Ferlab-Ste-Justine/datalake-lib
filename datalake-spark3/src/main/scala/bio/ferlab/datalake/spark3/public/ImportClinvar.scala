@@ -17,13 +17,13 @@ class ImportClinvar()(implicit conf: Configuration) extends ETLP {
 
   val clinvar_vcf: DatasetConf  = conf.getDataset("clinvar_vcf")
 
-  override def extract()(implicit spark: SparkSession): Map[DatasetConf, DataFrame] = {
-    Map(clinvar_vcf -> vcf(clinvar_vcf.location))
+  override def extract()(implicit spark: SparkSession): Map[String, DataFrame] = {
+    Map(clinvar_vcf.id -> vcf(clinvar_vcf.location))
   }
 
-  override def transform(data: Map[DatasetConf, DataFrame])(implicit spark: SparkSession): DataFrame = {
+  override def transform(data: Map[String, DataFrame])(implicit spark: SparkSession): DataFrame = {
 
-    val df = data(clinvar_vcf)
+    val df = data(clinvar_vcf.id)
     spark.udf.register("inheritance", inheritance_udf)
 
     val intermediateDf =

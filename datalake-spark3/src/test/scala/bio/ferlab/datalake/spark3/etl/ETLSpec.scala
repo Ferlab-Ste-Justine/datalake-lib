@@ -35,12 +35,12 @@ class ETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
 
     override val destination: DatasetConf = destConf
 
-    override def extract()(implicit spark: SparkSession): Map[DatasetConf, DataFrame] = {
-      Map(srcConf -> spark.read.format(srcConf.format.sparkFormat).options(srcConf.readoptions).load(srcConf.location))
+    override def extract()(implicit spark: SparkSession): Map[String, DataFrame] = {
+      Map(srcConf.id -> spark.read.format(srcConf.format.sparkFormat).options(srcConf.readoptions).load(srcConf.location))
     }
 
-    override def transform(data: Map[DatasetConf, DataFrame])(implicit spark: SparkSession): DataFrame = {
-      data(srcConf)
+    override def transform(data: Map[String, DataFrame])(implicit spark: SparkSession): DataFrame = {
+      data(srcConf.id)
         .select(
           col("id").cast(LongType) as "airport_id",
           trim(col("CODE")) as "airport_cd",
@@ -59,8 +59,8 @@ class ETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
     import spark.implicits._
 
     val data = job.extract()
-    data(srcConf).as[AirportInput]
-    data(srcConf).show(false)
+    data(srcConf.id).as[AirportInput]
+    data(srcConf.id).show(false)
   }
 
   "transform" should "return the expected format" in {

@@ -1,6 +1,6 @@
 package bio.ferlab.datalake.spark3.public
 
-import bio.ferlab.datalake.spark3.config.{Configuration, ConfigurationWriter, DatasetConf, StorageConf, TableConf}
+import bio.ferlab.datalake.spark3.config.{Configuration, ConfigurationLoader, ConfigurationWriter, DatasetConf, StorageConf, TableConf}
 import bio.ferlab.datalake.spark3.loader.Format.{PARQUET, VCF}
 import bio.ferlab.datalake.spark3.loader.LoadType.OverWrite
 
@@ -8,7 +8,10 @@ object ReferenceConfiguration extends App {
 
   val kf_alias = "kf-strides-variant"
 
-  val prod_storage = List(StorageConf(kf_alias, "s3a://kf-strides-variant-parquet-prd"))
+  val prod_storage = List(
+    StorageConf(kf_alias, "s3a://kf-strides-variant-parquet-prd")
+  )
+
   val kf_conf =
     Configuration(
       storages = prod_storage,

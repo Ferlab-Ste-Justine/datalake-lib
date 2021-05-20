@@ -23,6 +23,7 @@ object VcfLoader extends Loader {
                          tableName:  String,
                          df:  DataFrame,
                          partitioning: List[String],
+                         format: String,
                          dataChange: Boolean)
                         (implicit spark:  SparkSession): DataFrame = {
     throw NotImplementedException
@@ -33,7 +34,8 @@ object VcfLoader extends Loader {
                       tableName: String,
                       updates:  DataFrame,
                       primaryKeys: Seq[String],
-                      partitioning: List[String])
+                      partitioning: List[String],
+                      format: String)
                      (implicit spark:  SparkSession): DataFrame = {
     throw NotImplementedException
   }
@@ -46,7 +48,8 @@ object VcfLoader extends Loader {
                     oidName: String,
                     createdOnName: String,
                     updatedOnName: String,
-                    partitioning: List[String])
+                    partitioning: List[String],
+                    format: String)
                    (implicit spark:  SparkSession): DataFrame = {
     throw NotImplementedException
   }
