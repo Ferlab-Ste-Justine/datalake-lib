@@ -71,6 +71,5 @@ lazy val `datalake-spark2` = (project in file("datalake-spark2"))
     libraryDependencies += "org.elasticsearch"         %% "elasticsearch-spark-20" % elasticsearch_spark_version % Provided,
     libraryDependencies += "org.scalatest"             %% "scalatest"              % scalatestVersion % Test,
     libraryDependencies += "org.apache.spark"          %% "spark-hive"             % spark2Version % Test,
-    libraryDependencies += "org.apache.httpcomponents" %  "httpclient"             % "4.5.13",
-    test / skip := true
+    libraryDependencies += "org.apache.httpcomponents" %  "httpclient"             % "4.5.13"
   )
