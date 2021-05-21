@@ -2,14 +2,13 @@ package bio.ferlab.datalake.spark2.elasticsearch
 
 import org.apache.http.client.methods.{HttpDelete, HttpGet, HttpPost, HttpPut}
 import org.apache.http.entity.StringEntity
-import org.apache.http.impl.client.DefaultHttpClient
+import org.apache.http.impl.client.{CloseableHttpClient, HttpClientBuilder}
 import org.apache.http.protocol.HttpContext
 import org.apache.http.util.EntityUtils
-import org.json4s.DefaultFormats
-import org.json4s.jackson.Serialization.write
 import org.apache.http.{HttpHeaders, HttpRequest, HttpRequestInterceptor, HttpResponse}
 import org.apache.spark.sql.SparkSession
 import org.json4s.DefaultFormats
+import org.json4s.jackson.Serialization.write
 import org.spark_project.guava.io.BaseEncoding
 
 import java.nio.charset.StandardCharsets
@@ -20,11 +19,11 @@ class ElasticSearchClient(url: String, username: Option[String] = None, password
   private val templateUrl: String => String = templateName => s"$url/_template/$templateName"
   private val aliasesUrl: String = s"$url/_aliases"
 
-  val http: DefaultHttpClient = {
-    val client = new DefaultHttpClient()
+  def http: CloseableHttpClient = {
+    val client = HttpClientBuilder.create()
 
     if(username.isDefined && password.isDefined) {
-      client.addRequestInterceptor(new HttpRequestInterceptor {
+      client.addInterceptorFirst(new HttpRequestInterceptor {
         override def process(request: HttpRequest, context: HttpContext): Unit = {
           val auth = s"${username.get}:${password.get}"
           request.addHeader(
@@ -34,7 +33,7 @@ class ElasticSearchClient(url: String, username: Option[String] = None, password
         }
       })
     }
-    client
+    client.build()
   }
 
   /**
@@ -50,6 +49,7 @@ class ElasticSearchClient(url: String, username: Option[String] = None, password
                |${response.toString}
                |${EntityUtils.toString(response.getEntity)}
                |""".stripMargin)
+    http.close()
     response.getStatusLine.getStatusCode == 200
   }
 
@@ -66,6 +66,7 @@ class ElasticSearchClient(url: String, username: Option[String] = None, password
                |${response.toString}
                |${EntityUtils.toString(response.getEntity)}
                |""".stripMargin)
+    http.close()
     response.getStatusLine.getStatusCode == 200
   }
 
@@ -88,6 +89,7 @@ class ElasticSearchClient(url: String, username: Option[String] = None, password
     val status = response.getStatusLine
     if (!status.getStatusCode.equals(200))
       throw new Exception(s"Server could not set template and replied :${status.getStatusCode + " : " + status.getReasonPhrase}")
+    http.close()
     response
   }
 
@@ -108,6 +110,8 @@ class ElasticSearchClient(url: String, username: Option[String] = None, password
 
     val requestBody = write(action)
 
+    println(requestBody)
+
     val request = new HttpPost(aliasesUrl)
     request.addHeader(HttpHeaders.CONTENT_TYPE,"application/json")
     request.setEntity(new StringEntity(requestBody))
@@ -116,6 +120,7 @@ class ElasticSearchClient(url: String, username: Option[String] = None, password
     val status = response.getStatusLine
     if (!status.getStatusCode.equals(200))
       throw new Exception(s"Server could not set alias to $alias and replied :${status.getStatusCode + " : " + status.getReasonPhrase}")
+    http.close()
     response
   }
 
@@ -125,7 +130,20 @@ class ElasticSearchClient(url: String, username: Option[String] = None, password
    * @return the http response sent by ElasticSearch
    */
   def deleteTemplate(templateName: String): HttpResponse = {
-    http.execute(new HttpDelete(templateUrl(templateName)))
+    val response = http.execute(new HttpDelete(templateUrl(templateName)))
+    http.close()
+    response
+  }
+
+  /**
+   * Get an index
+   * @param indexName name of the index to fetch
+   * @return the http response sent by ElasticSearch
+   */
+  def getIndex(indexName: String): HttpResponse = {
+    val response = http.execute(new HttpGet(indexUrl(indexName)))
+    http.close()
+    response
   }
 
   /**
@@ -134,7 +152,9 @@ class ElasticSearchClient(url: String, username: Option[String] = None, password
    * @return the http response sent by ElasticSearch
    */
   def createIndex(indexName: String): HttpResponse = {
-    http.execute(new HttpPut(indexUrl(indexName)))
+    val response = http.execute(new HttpPut(indexUrl(indexName)))
+    http.close()
+    response
   }
 
   /**
@@ -143,7 +163,9 @@ class ElasticSearchClient(url: String, username: Option[String] = None, password
    * @return the http response sent by ElasticSearch
    */
   def deleteIndex(indexName: String): HttpResponse = {
-    http.execute(new HttpDelete(indexUrl(indexName)))
+    val response = http.execute(new HttpDelete(indexUrl(indexName)))
+    http.close()
+    response
   }
 
   sealed trait Action

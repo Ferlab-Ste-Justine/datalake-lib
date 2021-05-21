@@ -5,25 +5,24 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
 
-import scala.util.Random
+import scala.util.Try
 
 class ElasticSearchClientSpec extends AnyFlatSpec with GivenWhenThen with WithSparkSession with Matchers {
 
-  val indexName: String = Random.nextString(20)
+  val indexName: String = "test"
+  val alias: String = "alias"
   val templateFileName: String = getClass.getClassLoader.getResource("template_example.json").getFile
   val esUrl = "http://localhost:9200"
   val esClient = new ElasticSearchClient(esUrl)
 
-  "ES instance" should s"be up on $esUrl" in {
+  Try(esClient.deleteIndex(indexName))
+
+  "ES instance" should s"create/delete index and template and set aliases" in {
     esClient.isRunning shouldBe true
-  }
-
-  "ES client" should "create then delete index" in {
     esClient.createIndex(indexName).getStatusLine.getStatusCode shouldBe 200
+    esClient.setAlias(List(indexName), List(), alias).getStatusLine.getStatusCode shouldBe 200
+    esClient.getIndex(alias).getStatusLine.getStatusCode shouldBe 200
     esClient.deleteIndex(indexName).getStatusLine.getStatusCode shouldBe 200
-  }
-
-  "ES client" should "create then delete template" in {
     esClient.setTemplate(templateFileName).getStatusLine.getStatusCode shouldBe 200
     esClient.deleteTemplate("template_example").getStatusLine.getStatusCode shouldBe 200
   }
