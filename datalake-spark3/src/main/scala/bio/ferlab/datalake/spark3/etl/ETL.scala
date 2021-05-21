@@ -5,8 +5,6 @@ import bio.ferlab.datalake.spark3.file.{FileSystem, HadoopFileSystem}
 import bio.ferlab.datalake.spark3.loader.LoadResolver
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
-import scala.util.Try
-
 
 /**
  * Defines a common workflow for ETL jobs.

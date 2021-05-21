@@ -67,8 +67,10 @@ lazy val `datalake-spark3` = (project in file("datalake-spark3"))
 lazy val `datalake-spark2` = (project in file("datalake-spark2"))
   .settings(
     scalaVersion := scala211,
-    libraryDependencies += "org.apache.spark"  %% "spark-sql"              % spark2Version % Provided,
-    libraryDependencies += "org.elasticsearch" %% "elasticsearch-spark-20" % elasticsearch_spark_version % Provided,
-    libraryDependencies += "org.scalatest"     %% "scalatest"              % scalatestVersion % Test,
-    libraryDependencies += "org.apache.spark"  %% "spark-hive"             % spark2Version % Test
+    libraryDependencies += "org.apache.spark"          %% "spark-sql"              % spark2Version % Provided,
+    libraryDependencies += "org.elasticsearch"         %% "elasticsearch-spark-20" % elasticsearch_spark_version % Provided,
+    libraryDependencies += "org.scalatest"             %% "scalatest"              % scalatestVersion % Test,
+    libraryDependencies += "org.apache.spark"          %% "spark-hive"             % spark2Version % Test,
+    libraryDependencies += "org.apache.httpcomponents" %  "httpclient"             % "4.5.13",
+    test / skip := true
   )
