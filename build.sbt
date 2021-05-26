@@ -11,9 +11,9 @@ lazy val supportedScalaVersions = List(scala212, scala211)
 scalacOptions ++= Seq("-deprecation", "-Ypartial-unification")
 javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
 
-val spark3Version = "3.0.2"
+val spark3Version = "3.1.1"
 val spark2Version = "2.4.7"
-val deltaCoreVersion = "0.8.0"
+val deltaCoreVersion = "1.0.0"
 val typesafeVersion = "1.4.1"
 val catsVersion = "2.2.0"
 val scalatestVersion = "3.2.0"
