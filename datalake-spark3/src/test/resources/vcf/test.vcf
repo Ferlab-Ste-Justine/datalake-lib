@@ -1,0 +1,7 @@
+##fileformat=VCFv4.2
+##INFO=<ID=AF_ESP,Number=1,Type=Float,Description="allele frequencies from GO-ESP">
+##INFO=<ID=AF_EXAC,Number=1,Type=Float,Description="allele frequencies from ExAC">
+##INFO=<ID=AF_TGP,Number=1,Type=Float,Description="allele frequencies from TGP">
+##INFO=<ID=ALLELEID,Number=1,Type=Integer,Description="the ClinVar Allele ID">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+1	63411316	739743	G	A	.	.	AF_EXAC=4.8E-4;AF_TGP=6.0E-4;ALLELEID=746612
