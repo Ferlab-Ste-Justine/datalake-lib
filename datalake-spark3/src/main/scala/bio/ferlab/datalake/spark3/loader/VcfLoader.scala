@@ -53,4 +53,13 @@ object VcfLoader extends Loader {
                    (implicit spark:  SparkSession): DataFrame = {
     throw NotImplementedException
   }
+
+  override def insert(location: String,
+                      databaseName: String,
+                      tableName: String,
+                      updates: DataFrame,
+                      partitioning: List[String],
+                      format: String)(implicit spark: SparkSession): DataFrame = {
+    throw NotImplementedException
+  }
 }

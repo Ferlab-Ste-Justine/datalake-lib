@@ -8,10 +8,6 @@ import org.scalatest.matchers.should.Matchers
 import java.sql.Timestamp
 import java.time.LocalDateTime
 
-case class Test(uid: String, oid: String,
-                createdOn: Timestamp, updatedOn: Timestamp,
-                data: Long, chromosome: String = "1", start: Long = 666)
-
 class DeltaLoaderSpec extends AnyFlatSpec with Matchers {
 
   implicit lazy val spark: SparkSession = SparkSession.builder()
@@ -35,20 +31,20 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers {
     val day2 = day1.plusDays(1)
 
     val existing: DataFrame = Seq(
-      Test("a", "a", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1),
-      Test("aaa", "aaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1)
+      TestData("a", "a", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1),
+      TestData("aaa", "aaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1)
     ).toDF
 
     DeltaLoader.writeOnce(output, "default", "testtable", existing, List(), "delta")
 
-    val updates: Seq[Test] = Seq(
-      Test("a", "b", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),
-      Test("aa", "bb", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),
-      Test("aaa", "aaa", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2)
+    val updates: Seq[TestData] = Seq(
+      TestData("a", "b", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),
+      TestData("aa", "bb", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),
+      TestData("aaa", "aaa", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2)
     )
     val updatedDF = updates.toDF
 
-    val expectedResult: Seq[Test] = updates
+    val expectedResult: Seq[TestData] = updates
 
     DeltaLoader.upsert(
       output,
@@ -62,7 +58,7 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers {
 
     DeltaTable
       .forName("testtable")
-      .toDF.as[Test].collect() should contain allElementsOf expectedResult
+      .toDF.as[TestData].collect() should contain allElementsOf expectedResult
 
   }
 
@@ -76,22 +72,22 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers {
     val day2 = day1.plusDays(1)
 
     val existing: DataFrame = Seq(
-      Test("a", "a", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1),
-      Test("aaa", "aaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1)
+      TestData("a", "a", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1),
+      TestData("aaa", "aaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1)
     ).toDF
 
     DeltaLoader.writeOnce(output, "default", "testtable", existing, List(), "delta")
 
     val updates: DataFrame = Seq(
-      Test("a", "b", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),
-      Test("aa", "bb", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),
-      Test("aaa", "aaa", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2)
+      TestData("a", "b", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),
+      TestData("aa", "bb", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),
+      TestData("aaa", "aaa", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2)
     ).toDF
 
-    val expectedResult: Seq[Test] = Seq(
-      Test("a", "b", Timestamp.valueOf(day1), Timestamp.valueOf(day2), 2),   //updated only will be updated
-      Test("aa", "bb", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2), //will be inserted
-      Test("aaa", "aaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1)//will stay the same
+    val expectedResult: Seq[TestData] = Seq(
+      TestData("a", "b", Timestamp.valueOf(day1), Timestamp.valueOf(day2), 2),   //updated only will be updated
+      TestData("aa", "bb", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2), //will be inserted
+      TestData("aaa", "aaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1)//will stay the same
     )
 
     DeltaLoader.scd1(
@@ -109,7 +105,7 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers {
 
     DeltaTable
       .forName("testtable")
-      .toDF.as[Test].collect() should contain allElementsOf expectedResult
+      .toDF.as[TestData].collect() should contain allElementsOf expectedResult
 
   }
 
