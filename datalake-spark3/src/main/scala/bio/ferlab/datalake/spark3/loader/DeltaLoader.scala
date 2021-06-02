@@ -40,6 +40,15 @@ object DeltaLoader extends Loader {
     DeltaTable.forName(s"$databaseName.$tableName").toDF
   }
 
+  def insert(location: String,
+             databaseName: String,
+             tableName: String,
+             updates: DataFrame,
+             partitioning: List[String],
+             format: String)(implicit spark: SparkSession): DataFrame = {
+    GenericLoader.insert(location, databaseName, tableName, updates, partitioning, "delta")
+  }
+
   def scd1(location: String,
            databaseName: String,
            tableName: String,

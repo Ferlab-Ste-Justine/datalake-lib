@@ -35,8 +35,24 @@ trait Loader {
                 dataChange: Boolean = true)(implicit spark: SparkSession): DataFrame
 
   /**
+   * Insert or append data into a table
+   * Does not resolve duplicates
+   * @param location full path of where the data will be located
+   * @param tableName the name of the updated/created table
+   * @param updates new data to be merged with existing data
+   * @param spark a valid spark session
+   * @return the data as a dataframe
+   */
+  def insert(location: String,
+             databaseName: String,
+             tableName: String,
+             updates: DataFrame,
+             partitioning: List[String],
+             format: String)(implicit spark: SparkSession): DataFrame
+
+  /**
    * Update or insert data into a table
-   * usually used for fact table where duplicates need to be resolved as one record.
+   * Resolves duplicates by using the list of primary key passed as argument
    * @param location full path of where the data will be located
    * @param tableName the name of the updated/created table
    * @param updates new data to be merged with existing data
