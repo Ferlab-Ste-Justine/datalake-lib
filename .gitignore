@@ -5,3 +5,4 @@ target
 .bsp
 metastore_db
 spark-warehouse
+.DS_Store
