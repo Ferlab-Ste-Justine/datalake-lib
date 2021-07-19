@@ -39,14 +39,14 @@ object SparkUtils {
       Glow.transform("normalize_variants", df, ("reference_genome_path", referenceGenomePath))
     }
 
-    val normalized_call: Column => Column = calls =>
+    val normalizeCall: Column => Column = calls =>
       when(col("is_multi_allelic"), transform(calls, c => when(c === -1, lit(0)).otherwise(c))).otherwise(calls)
 
-    val is_heterozygote: Column = col("zygosity") === "HET"
+    val isHeterozygote: Column = col("zygosity") === "HET"
 
-    val is_sexual_genotype: Column = col("chromosome").isin("X", "Y")
+    val isSexualGenotype: Column = col("chromosome").isin("X", "Y")
 
-    val strict_autosomal_transmissions = List(
+    val strictAutosomalTransmissions = List(
       //(proband_calls, father_calls, mother_calls, father_affected, mother_affected, transmission)
       //(“0/1”, “0/0”, “0/0”) -> 	autosomal_dominant (de_novo) [if both parents unaffected]
       (Array(0, 1), Array(0, 0), Array(0, 0), false, false, "autosomal_dominant (de_novo)"),
@@ -66,7 +66,7 @@ object SparkUtils {
       (Array(1, 1), Array(1, 1), Array(1, 1), true, true, "autosomal_recessive")
     )
 
-    val strict_sexual_transmissions = List(
+    val strictSexualTransmissions = List(
       //(gender, proband_calls, father_calls, mother_calls, father_affected, mother_affected, transmission)
       //(“0/1”, “0/0”, “0/0”) -> 	x_linked_dominant (de_novo) [if female proband with both parents unaffected]
       //			                    x_linked_recessive (de_novo) [if male proband with both parents unaffected]
@@ -116,14 +116,14 @@ object SparkUtils {
 
     def withGenotypeTransmission(as: String, fth_calls: Column, mth_calls: Column): DataFrame = {
       val normalizedCallsDf =
-        df.withColumn("norm_fth_calls", normalized_call(fth_calls))
-          .withColumn("norm_mth_calls", normalized_call(mth_calls))
+        df.withColumn("norm_fth_calls", normalizeCall(fth_calls))
+          .withColumn("norm_mth_calls", normalizeCall(mth_calls))
 
       val static_transmissions =
         when(col("calls") === Array(0, 0), lit("non carrier proband"))
           .when(col("calls").isNull or col("calls") === Array(-1, -1), lit("unknown proband genotype"))
 
-      val autosomal_transmissions: Column = strict_autosomal_transmissions.foldLeft[Column](static_transmissions){
+      val autosomal_transmissions: Column = strictAutosomalTransmissions.foldLeft[Column](static_transmissions){
         case (c, (proband_calls, fth_calls, mth_calls, fth_affected_status, mth_affected_status, transmission)) =>
           c.when(
             col("mother_affected_status") === mth_affected_status and
@@ -133,7 +133,7 @@ object SparkUtils {
               col("norm_mth_calls") === mth_calls, lit(transmission))
       }
 
-      val sexual_transmissions: Column = strict_sexual_transmissions.foldLeft[Column](static_transmissions){
+      val sexual_transmissions: Column = strictSexualTransmissions.foldLeft[Column](static_transmissions){
         case (c, (gender, proband_calls, fth_calls, mth_calls, fth_affected_status, mth_affected_status, transmission)) =>
           c.when(
             col("gender") === gender and
@@ -145,15 +145,15 @@ object SparkUtils {
       }
 
       normalizedCallsDf
-        .withColumn(as, when(is_sexual_genotype, sexual_transmissions).otherwise(autosomal_transmissions))
+        .withColumn(as, when(isSexualGenotype, sexual_transmissions).otherwise(autosomal_transmissions))
         .drop("norm_fth_calls", "norm_mth_calls")
     }
 
 
     def withParentalOrigin(as: String, fth_calls: Column, mth_calls: Column, MTH: String = "mother", FTH: String = "father"): DataFrame = {
       val normalizedCallsDf =
-        df.withColumn("norm_fth_calls", normalized_call(fth_calls))
-          .withColumn("norm_mth_calls", normalized_call(mth_calls))
+        df.withColumn("norm_fth_calls", normalizeCall(fth_calls))
+          .withColumn("norm_mth_calls", normalizeCall(mth_calls))
 
       val origins = List(
         //(father_calls, mother_calls, origin)
@@ -168,7 +168,7 @@ object SparkUtils {
         (Array(1, 0), Array(0, 0), FTH),
         (Array(0, 0), Array(1, 0), MTH)
       )
-      val static_origins = when(not(is_heterozygote), lit(null).cast(StringType))
+      val static_origins = when(not(isHeterozygote), lit(null).cast(StringType))
 
       val parental_origin = origins.foldLeft[Column](static_origins){
         case (c, (fth, mth, origin)) => c.when(col("norm_fth_calls") === fth and col("norm_mth_calls") === mth, lit(origin))
@@ -236,12 +236,10 @@ object SparkUtils {
     s"${table}_${studyId.toLowerCase}_${releaseId.toLowerCase}"
   }
 
-  def tableName(
-                 table: String,
-                 studyId: String,
-                 releaseId: String,
-                 database: String = "variant"
-               ): String = {
+  def tableName(table: String,
+                studyId: String,
+                releaseId: String,
+                database: String = "variant"): String = {
     s"${database}.${table}_${studyId.toLowerCase}_${releaseId.toLowerCase}"
   }
 
@@ -396,12 +394,10 @@ object SparkUtils {
     val is_multi_allelic: Column  = col("splitFromMultiAllelic") as "is_multi_allelic"
     val old_multi_allelic: Column = col("INFO_OLD_MULTIALLELIC") as "old_multi_allelic"
 
-    def optional_info(
-                       df: DataFrame,
-                       colName: String,
-                       alias: String,
-                       colType: String = "string"
-                     ): Column =
+    def optional_info(df: DataFrame,
+                      colName: String,
+                      alias: String,
+                      colType: String = "string"): Column =
       (if (df.columns.contains(colName)) col(colName) else lit(null).cast(colType)).as(alias)
 
     //the order matters, do not change it
