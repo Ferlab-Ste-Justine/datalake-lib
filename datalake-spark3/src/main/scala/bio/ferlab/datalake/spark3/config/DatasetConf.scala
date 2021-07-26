@@ -39,7 +39,7 @@ case class DatasetConf(id: String,
 
   def read(implicit config: Configuration, spark: SparkSession): DataFrame = {
     table.fold {
-      spark.read.format(format.sparkFormat).load(location)
+      spark.read.format(format.sparkFormat).options(readoptions).load(location)
     }{t =>
       spark.table(t.fullName)
     }

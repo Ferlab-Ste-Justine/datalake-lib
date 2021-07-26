@@ -8,7 +8,7 @@ trait SparkApp extends App {
 
   def init(): (Configuration, SparkSession) = {
 
-    println(s"LOADING ${args(0)}...")
+    println(s"Loading config file: [${args(0)}]")
 
     val conf: Configuration = ConfigurationLoader.loadFromResources(args(0))
 
