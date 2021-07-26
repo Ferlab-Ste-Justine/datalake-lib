@@ -4,7 +4,7 @@ import bio.ferlab.datalake.spark3.config.{Configuration, DatasetConf}
 import bio.ferlab.datalake.spark3.etl.ETL
 import bio.ferlab.datalake.spark3.implicits.SparkUtils.removeEmptyObjectsIn
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
+import org.apache.spark.sql.{DataFrame, SparkSession}
 
 class ImportGenesTable()(implicit conf: Configuration)
   extends ETL()(conf) {

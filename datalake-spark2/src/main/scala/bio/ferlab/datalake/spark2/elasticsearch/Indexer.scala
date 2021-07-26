@@ -45,7 +45,8 @@ class Indexer(jobType: String,
 
     df.saveToEs(s"$index/_doc", ES_config)
     Try {
-      esClient.setAlias(add = List(index), remove = List(oldIndex), alias)
+      esClient.setAlias(add = List(index), remove = List(), alias)
+      esClient.setAlias(add = List(), remove = List(oldIndex), alias)
     }
   }
 
