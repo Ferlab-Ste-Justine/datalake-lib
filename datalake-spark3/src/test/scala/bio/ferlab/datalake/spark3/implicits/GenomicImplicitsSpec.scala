@@ -151,5 +151,26 @@ class GenomicImplicitsSpec extends AnyFlatSpec with WithSparkSession with Matche
 
   }
 
+  it should "compute transmissions per locus" in {
+
+    val df = Seq(
+      ("1-222-A-G", "autosomal_dominant"),
+      ("1-222-A-G", "autosomal_dominant"),
+      ("2-222-A-G", "autosomal_recessive"),
+      ("2-222-A-G", "denovo"),
+      ("X-222-A-G", "x_linked_recessive")
+    ).toDF("locus", "transmission")
+
+    val resultDf = df.withTransmissionPerLocus(Seq("locus"), "transmission", "result")
+    resultDf.show(false)
+
+    resultDf.select("result").as[Map[String, Long]].collect() should contain allElementsOf Seq(
+      Map("autosomal_dominant" -> 2),
+      Map("autosomal_recessive" -> 1, "denovo" -> 1),
+      Map("x_linked_recessive" -> 1)
+    )
+
+  }
+
 }
 
