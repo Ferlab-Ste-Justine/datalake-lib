@@ -70,6 +70,26 @@ object DatasetConf {
             path: String,
             format: Format,
             loadtype: LoadType,
+            keys: List[String],
+            table: TableConf,
+            view: TableConf): DatasetConf = {
+    new DatasetConf(
+      id,
+      storageid,
+      path,
+      format,
+      loadtype,
+      keys = keys,
+      table = Some(table),
+      view = Some(view)
+    )
+  }
+
+  def apply(id: String,
+            storageid: String,
+            path: String,
+            format: Format,
+            loadtype: LoadType,
             table: TableConf): DatasetConf = {
     new DatasetConf(
       id,
