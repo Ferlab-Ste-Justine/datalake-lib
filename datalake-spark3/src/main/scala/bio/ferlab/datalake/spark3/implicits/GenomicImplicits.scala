@@ -169,6 +169,22 @@ object GenomicImplicits {
         .drop("norm_fth_calls", "norm_mth_calls")
     }
 
+    /**
+     * Compute transmission per locus given an existing column containing the transmission for this particular occurrence.
+     *
+     * @param locusColumnNames list of locus columns
+     * @param transmissionColumnName name of the transmission column
+     * @param resultColumnName name of the resulting computation
+     * @return a dataframe with a new column containing the number of transmission per locus as a Map of transmission type -> count per type.
+     */
+    def withTransmissionPerLocus(locusColumnNames: Seq[String],
+                                 transmissionColumnName: String,
+                                 resultColumnName: String): DataFrame = {
+      df.groupBy(transmissionColumnName, locusColumnNames:_*).count()
+        .groupBy(locusColumnNames.map(col):_*)
+        .agg(map_from_entries(collect_list(struct(col(transmissionColumnName), col("count")))) as resultColumnName)
+    }
+
 
     def withParentalOrigin(as: String, fth_calls: Column, mth_calls: Column, MTH: String = "mother", FTH: String = "father"): DataFrame = {
       val normalizedCallsDf =
