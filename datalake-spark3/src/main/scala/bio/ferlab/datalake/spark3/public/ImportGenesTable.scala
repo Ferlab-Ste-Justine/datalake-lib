@@ -6,8 +6,7 @@ import bio.ferlab.datalake.spark3.implicits.SparkUtils.removeEmptyObjectsIn
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
-class ImportGenesTable()(implicit conf: Configuration)
-  extends ETL()(conf) {
+class ImportGenesTable()(implicit conf: Configuration) extends ETL {
 
   val destination       : DatasetConf = conf.getDataset("genes")
   val omim_gene_set     : DatasetConf = conf.getDataset("omim_gene_set")
@@ -19,12 +18,12 @@ class ImportGenesTable()(implicit conf: Configuration)
 
   override def extract()(implicit spark: SparkSession): Map[String, DataFrame] = {
     Map(
-      omim_gene_set.id      -> spark.read.parquet(omim_gene_set.location),
-      orphanet_gene_set.id  -> spark.read.parquet(orphanet_gene_set.location),
-      hpo_gene_set.id       -> spark.read.parquet(hpo_gene_set.location),
-      human_genes.id        -> spark.read.parquet(human_genes.location),
-      ddd_gene_set.id       -> spark.read.parquet(ddd_gene_set.location),
-      cosmic_gene_set.id    -> spark.read.parquet(cosmic_gene_set.location)
+      omim_gene_set.id     -> omim_gene_set.read,
+      orphanet_gene_set.id -> orphanet_gene_set.read,
+      hpo_gene_set.id      -> hpo_gene_set.read,
+      human_genes.id       -> human_genes.read,
+      ddd_gene_set.id      -> ddd_gene_set.read,
+      cosmic_gene_set.id   -> cosmic_gene_set.read
     )
   }
 

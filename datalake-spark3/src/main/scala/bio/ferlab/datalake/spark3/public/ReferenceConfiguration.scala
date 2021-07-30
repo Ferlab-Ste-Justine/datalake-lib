@@ -18,7 +18,7 @@ object ReferenceConfiguration extends App {
       storages = prod_storage,
       sources = List(
         //raw
-        DatasetConf("clinvar_vcf", kf_alias, "/raw/clinvar/clinvar.vcf.gz", VCF    , OverWrite),
+        DatasetConf("clinvar_vcf", kf_alias, "/raw/clinvar/clinvar.vcf.gz", VCF, OverWrite, readoptions = Map("flattenInfoFields" -> "true", "split_multiallelics" -> "true")),
 
         //public
         DatasetConf("1000_genomes"        , kf_alias, "/public/1000_genomes"                        , PARQUET, OverWrite, List()         , TableConf("variant", "1000_genomes")        , TableConf("variant_live", "1000_genomes")),
