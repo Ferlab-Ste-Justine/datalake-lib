@@ -10,6 +10,9 @@ object GenomicImplicits {
 
   val id: Column = sha1(concat(col("chromosome"), col("start"), col("reference"), col("alternate"))) as "id"
 
+  val locusColumnNames: Seq[String] = Seq("chromosome", "start", "end", "reference")
+  val locus: Seq[Column] = locusColumnNames.map(col)
+
   implicit class GenomicOperations(df: DataFrame) {
 
     def joinAndMerge(other: DataFrame, outputColumnName: String, joinType: String = "inner"): DataFrame = {
@@ -21,15 +24,15 @@ object GenomicImplicits {
     }
 
     def joinByLocus(other: DataFrame, joinType: String): DataFrame = {
-      df.join(other, Seq("chromosome", "start", "reference", "alternate"), joinType)
+      df.join(other, locusColumnNames, joinType)
     }
 
     def groupByLocus(): RelationalGroupedDataset = {
-      df.groupBy(col("chromosome"), col("start"), col("reference"), col("alternate"))
+      df.groupBy(locus:_*)
     }
 
     def selectLocus(cols: Column*): DataFrame = {
-      val allCols = col("chromosome") :: col("start") :: col("reference") :: col("alternate") :: cols.toList
+      val allCols = (locus ++ cols).toList
       df.select(allCols: _*)
     }
 
@@ -249,7 +252,6 @@ object GenomicImplicits {
     val ac: Column = col("INFO_AC")(0) as "ac"
     val af: Column = (col("INFO_AF")(0) as "af").cast(DoubleType)
     val an: Column = col("INFO_AN") as "an"
-
     val afr_af: Column = (col("INFO_AFR_AF")(0) as "afr_af").cast(DoubleType)
     val eur_af: Column = (col("INFO_EUR_AF")(0) as "eur_af").cast(DoubleType)
     val sas_af: Column = (col("INFO_SAS_AF")(0) as "sas_af").cast(DoubleType)
@@ -307,40 +309,46 @@ object GenomicImplicits {
       col("splitFromMultiAllelic"),
       expr("filter(INFO_ANN, ann-> ann.Allele == alternateAlleles[0])")
     ).otherwise(col("INFO_ANN")) as "annotations"
+
     val csq: Column = when(
       col("splitFromMultiAllelic"),
       expr("filter(INFO_CSQ, ann-> ann.Allele == alternateAlleles[0])")
     ).otherwise(col("INFO_CSQ")) as "annotations"
-    val firstAnn: Column        = annotations.getItem(0) as "annotation"
-    val firstCsq: Column        = csq.getItem(0) as "annotation"
-    val consequences: Column    = col("annotation.Consequence") as "consequences"
-    val impact: Column          = col("annotation.IMPACT") as "impact"
-    val symbol: Column          = col("annotation.SYMBOL") as "symbol"
-    val feature_type: Column    = col("annotation.Feature_type") as "feature_type"
+
+    val firstAnn: Column = annotations.getItem(0) as "annotation"
+    val firstCsq: Column = csq.getItem(0) as "annotation"
+    val consequences: Column = col("annotation.Consequence") as "consequences"
+    val impact: Column = col("annotation.IMPACT") as "impact"
+    val symbol: Column = col("annotation.SYMBOL") as "symbol"
+    val feature_type: Column = col("annotation.Feature_type") as "feature_type"
     val ensembl_gene_id: Column = col("annotation.Gene") as "ensembl_gene_id"
+    val ensembl_feature_id: Column = col("annotation.Feature") as "ensembl_feature_id"
+    val pubmed: Column = split(col("annotation.PUBMED"), "&") as "pubmed"
+    val pick: Column = when(col("annotation.PICK") === "1", lit(true)).otherwise(false) as "pick"
     val ensembl_transcript_id: Column =
       when(col("annotation.Feature_type") === "Transcript", col("annotation.Feature"))
         .otherwise(null) as "ensembl_transcript_id"
     val ensembl_regulatory_id: Column =
       when(col("annotation.Feature_type") === "RegulatoryFeature", col("annotation.Feature"))
         .otherwise(null) as "ensembl_regulatory_id"
-    val exon: Column    = col("annotation.EXON") as "exon"
+    val exon: Column = col("annotation.EXON") as "exon"
     val biotype: Column = col("annotation.BIOTYPE") as "biotype"
-    val intron: Column  = col("annotation.INTRON") as "intron"
-    val hgvsc: Column   = col("annotation.HGVSc") as "hgvsc"
-    val hgvsp: Column   = col("annotation.HGVSp") as "hgvsp"
-
-    val strand: Column           = col("annotation.STRAND") as "strand"
-    val cds_position: Column     = col("annotation.CDS_position") as "cds_position"
-    val cdna_position: Column    = col("annotation.cDNA_position") as "cdna_position"
+    val intron: Column = col("annotation.INTRON") as "intron"
+    val hgvsc: Column = col("annotation.HGVSc") as "hgvsc"
+    val hgvsp: Column = col("annotation.HGVSp") as "hgvsp"
+    val formatted_consequence: Column => Column = c => regexp_replace(regexp_replace(c, "_variant", ""), "_", " ")
+    val formatted_consequences: Column = transform(col("consequences"), formatted_consequence)
+    val strand: Column = col("annotation.STRAND") as "strand"
+    val cds_position: Column = col("annotation.CDS_position") as "cds_position"
+    val cdna_position: Column = col("annotation.cDNA_position") as "cdna_position"
     val protein_position: Column = col("annotation.Protein_position") as "protein_position"
-    val amino_acids: Column      = col("annotation.Amino_acids") as "amino_acids"
-    val codons: Column           = col("annotation.Codons") as "codons"
-    val variant_class: Column    = col("annotation.VARIANT_CLASS") as "variant_class"
-    val hgvsg: Column            = col("annotation.HGVSg") as "hgvsg"
+    val amino_acids: Column = col("annotation.Amino_acids") as "amino_acids"
+    val codons: Column = col("annotation.Codons") as "codons"
+    val variant_class: Column = col("annotation.VARIANT_CLASS") as "variant_class"
+    val hgvsg: Column = col("annotation.HGVSg") as "hgvsg"
     val original_canonical: Column = when(col("annotation.CANONICAL") === "YES", lit(true))
       .otherwise(lit(false)) as "original_canonical"
-    val is_multi_allelic: Column  = col("splitFromMultiAllelic") as "is_multi_allelic"
+    val is_multi_allelic: Column = col("splitFromMultiAllelic") as "is_multi_allelic"
     val old_multi_allelic: Column = col("INFO_OLD_MULTIALLELIC") as "old_multi_allelic"
 
     def optional_info(df: DataFrame,

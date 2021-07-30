@@ -2,7 +2,6 @@ package bio.ferlab.datalake.spark3.public
 
 import bio.ferlab.datalake.spark3.config.{Configuration, DatasetConf}
 import bio.ferlab.datalake.spark3.etl.ETLP
-import bio.ferlab.datalake.spark3.implicits.GenomicImplicits._
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns._
 import bio.ferlab.datalake.spark3.implicits.SparkUtils._
 import org.apache.spark.sql._
@@ -18,7 +17,7 @@ class ImportClinvar()(implicit conf: Configuration) extends ETLP {
   val clinvar_vcf: DatasetConf = conf.getDataset("clinvar_vcf")
 
   override def extract()(implicit spark: SparkSession): Map[String, DataFrame] = {
-    Map(clinvar_vcf.id -> vcf(clinvar_vcf.location, None))
+    Map(clinvar_vcf.id -> clinvar_vcf.read)
   }
 
   override def transform(data: Map[String, DataFrame])(implicit spark: SparkSession): DataFrame = {
