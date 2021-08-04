@@ -1,4 +1,4 @@
-package bio.ferlab.datalake.spark3.public
+package bio.ferlab.datalake.spark3.public.enriched
 
 import bio.ferlab.datalake.spark3.config.{Configuration, DatasetConf}
 import bio.ferlab.datalake.spark3.etl.ETL
@@ -6,15 +6,15 @@ import bio.ferlab.datalake.spark3.implicits.SparkUtils.removeEmptyObjectsIn
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
-class ImportGenesTable()(implicit conf: Configuration) extends ETL {
+class Genes()(implicit conf: Configuration) extends ETL {
 
-  val destination       : DatasetConf = conf.getDataset("genes")
-  val omim_gene_set     : DatasetConf = conf.getDataset("omim_gene_set")
-  val orphanet_gene_set : DatasetConf = conf.getDataset("orphanet_gene_set")
-  val hpo_gene_set      : DatasetConf = conf.getDataset("hpo_gene_set")
-  val human_genes       : DatasetConf = conf.getDataset("human_genes")
-  val ddd_gene_set      : DatasetConf = conf.getDataset("ddd_gene_set")
-  val cosmic_gene_set   : DatasetConf = conf.getDataset("cosmic_gene_set")
+  val destination       : DatasetConf = conf.getDataset("enriched_genes")
+  val omim_gene_set     : DatasetConf = conf.getDataset("normalized_omim_gene_set")
+  val orphanet_gene_set : DatasetConf = conf.getDataset("normalized_orphanet_gene_set")
+  val hpo_gene_set      : DatasetConf = conf.getDataset("normalized_hpo_gene_set")
+  val human_genes       : DatasetConf = conf.getDataset("normalized_human_genes")
+  val ddd_gene_set      : DatasetConf = conf.getDataset("normalized_ddd_gene_set")
+  val cosmic_gene_set   : DatasetConf = conf.getDataset("normalized_cosmic_gene_set")
 
   override def extract()(implicit spark: SparkSession): Map[String, DataFrame] = {
     Map(
