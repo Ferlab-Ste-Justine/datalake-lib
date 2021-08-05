@@ -19,6 +19,7 @@ val scalatestVersion = "3.2.9"
 val glowVersion = "1.0.1"
 val zioVersion = "1.0.6"
 val pureconfigVersion = "0.16.0"
+val elasticsearchVersion = "7.12.0"
 
 import ReleaseTransformations._
 val releaseSteps = Seq[ReleaseStep](
@@ -52,7 +53,7 @@ lazy val `datalake-spark3` = (project in file("datalake-spark3"))
     libraryDependencies += "org.apache.spark"      %% "spark-core"             % spark3Version % Provided,
     libraryDependencies += "org.apache.spark"      %% "spark-sql"              % spark3Version % Provided,
     libraryDependencies += "io.delta"              %% "delta-core"             % deltaCoreVersion % Provided,
-    libraryDependencies += "org.elasticsearch"     %% "elasticsearch-spark-30" % "7.12.0" % Provided,
+    libraryDependencies += "org.elasticsearch"     %% "elasticsearch-spark-30" % elasticsearchVersion % Provided,
     libraryDependencies += "com.github.pureconfig" %% "pureconfig"             % pureconfigVersion,
     libraryDependencies += "com.github.pureconfig" %% "pureconfig-enum"        % pureconfigVersion,
     libraryDependencies += "org.typelevel"         %% "cats-core"              % catsVersion,
@@ -62,7 +63,13 @@ lazy val `datalake-spark3` = (project in file("datalake-spark3"))
     libraryDependencies += "dev.zio"               %% "zio-config-typesafe"    % zioVersion,
     libraryDependencies += "dev.zio"               %% "zio-config"             % zioVersion,
     libraryDependencies += "dev.zio"               %% "zio-config-magnolia"    % zioVersion,
-    dependencyOverrides += "org.apache.commons"    % "commons-lang3"           % "3.9")
+    dependencyOverrides ++= Seq(
+      "org.apache.commons"    % "commons-lang3"           % "3.9",
+      "org.antlr"    % "antlr4"           % "4.8",
+      "org.antlr"    % "antlr4-tool"      % "4.8",
+      "org.antlr"    % "antlr4-runtime"   % "4.8"
+    )
+  )
 
 lazy val `datalake-spark2` = (project in file("datalake-spark2"))
   .settings(
