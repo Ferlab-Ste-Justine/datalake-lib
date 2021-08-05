@@ -1,5 +1,8 @@
 package bio.ferlab.datalake.spark3.public
 
+import bio.ferlab.datalake.spark3.public.enriched.Genes
+import bio.ferlab.datalake.spark3.public.normalized.Clinvar
+
 object ImportPublicTable extends SparkApp {
 
   implicit val (conf, spark) = init()
@@ -7,7 +10,7 @@ object ImportPublicTable extends SparkApp {
   val Array(_, tableName) = args
 
   tableName match {
-    case "clinvar" => new ImportClinvar().run()
-    case "genes" => new ImportGenesTable().run()
+    case "clinvar" => new Clinvar().run()
+    case "genes" => new Genes().run()
   }
 }

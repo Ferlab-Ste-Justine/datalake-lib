@@ -1,4 +1,4 @@
-package bio.ferlab.datalake.spark3.public
+package bio.ferlab.datalake.spark3.public.normalized
 
 import bio.ferlab.datalake.spark3.config.{Configuration, DatasetConf}
 import bio.ferlab.datalake.spark3.etl.ETLP
@@ -10,11 +10,11 @@ import org.apache.spark.sql.functions._
 
 import scala.collection.mutable
 
-class ImportClinvar()(implicit conf: Configuration) extends ETLP {
+class Clinvar()(implicit conf: Configuration) extends ETLP {
 
-  override val destination: DatasetConf = conf.getDataset("clinvar")
+  override val destination: DatasetConf = conf.getDataset("normalized_clinvar")
 
-  val clinvar_vcf: DatasetConf = conf.getDataset("clinvar_vcf")
+  val clinvar_vcf: DatasetConf = conf.getDataset("raw_clinvar")
 
   override def extract()(implicit spark: SparkSession): Map[String, DataFrame] = {
     Map(clinvar_vcf.id -> clinvar_vcf.read)

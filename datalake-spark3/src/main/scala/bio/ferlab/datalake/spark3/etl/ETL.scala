@@ -46,9 +46,13 @@ abstract class ETL()(implicit val conf: Configuration) {
    * @param spark an instance of SparkSession
    */
   def load(data: DataFrame)(implicit spark: SparkSession): DataFrame = {
-    LoadResolver
-      .resolve(spark, conf)(destination.format -> destination.loadtype)
-      .apply(destination, data)
+    if(LoadResolver.resolve(spark, conf).isDefinedAt(destination.format -> destination.loadtype)) {
+      LoadResolver
+        .resolve(spark, conf)(destination.format -> destination.loadtype)
+        .apply(destination, data)
+    } else {
+      throw new NotImplementedError(s"Load is not implemented for [${destination.format} / ${destination.loadtype}]")
+    }
     data
   }
 
