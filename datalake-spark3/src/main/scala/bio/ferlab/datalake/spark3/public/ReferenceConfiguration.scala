@@ -2,7 +2,7 @@ package bio.ferlab.datalake.spark3.public
 
 import bio.ferlab.datalake.spark3.config.{DatasetConf, _}
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns.locusColumNames
-import bio.ferlab.datalake.spark3.loader.Format.{CSV, DELTA, PARQUET, VCF}
+import bio.ferlab.datalake.spark3.loader.Format.{CSV, DELTA, PARQUET, VCF, XML}
 import bio.ferlab.datalake.spark3.loader.LoadType.{OverWrite, Upsert}
 
 object ReferenceConfiguration extends App {
@@ -21,7 +21,8 @@ object ReferenceConfiguration extends App {
         DatasetConf("raw_clinvar", alias, "/raw/clinvar/clinvar.vcf.gz", VCF, OverWrite, readoptions = Map("flattenInfoFields" -> "true", "split_multiallelics" -> "true")),
         DatasetConf("raw_dbnsfp_annovar", alias, "/raw/annovar/dbNSFP/hg38_dbnsfp41a.txt", CSV, OverWrite, readoptions = Map("sep"-> "\t", "header" -> "true", "nullValue" -> ".")),
         DatasetConf("raw_omim_genemap", alias, "/raw/omim/genemap2.txt", CSV, OverWrite, readoptions = Map("inferSchema" -> "true", "comment" -> "#", "header" -> "false", "sep" -> "\t")),
-
+        DatasetConf("raw_orphanet_gene_association", alias, "/raw/orphanet/en_product6.xml", XML, OverWrite),
+        DatasetConf("raw_orphanet_disease_history", alias, "/raw/orphanet/en_product9_ages.xml", XML, OverWrite),
         //public
         DatasetConf("normalized_1000_genomes"        , alias, "/public/1000_genomes"                        , DELTA, OverWrite, List()         , TableConf("variant", "1000_genomes")        , TableConf("variant_live", "1000_genomes")),
         DatasetConf("normalized_cancer_hotspots"     , alias, "/public/cancer_hotspots"                     , DELTA, OverWrite, List()         , TableConf("variant", "cancer_hotspots")     , TableConf("variant_live", "cancer_hotspots")),

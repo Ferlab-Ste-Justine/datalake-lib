@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<JDBOR date="2020-03-27 04:17:15" version="1.3.1 / 4.1.7 [2019-11-24] (orientdb version)" copyright="Orphanet (c) 2020">
+    <Availability>
+        <Licence>
+            <FullName lang="en">Creative Commons Attribution 4.0 International</FullName>
+            <ShortIdentifier>CC-BY-4.0</ShortIdentifier>
+            <LegalCode>https://creativecommons.org/licenses/by/4.0/legalcode</LegalCode>
+        </Licence>
+    </Availability>
+    <DisorderList count="3841">
+        <Disorder id="17601">
+            <OrphaNumber>166024</OrphaNumber>
+            <ExpertLink lang="en">http://www.orpha.net/consor/cgi-bin/OC_Exp.php?lng=en&amp;Expert=166024</ExpertLink>
+            <Name lang="en">Multiple epiphyseal dysplasia, Al-Gazali type</Name>
+            <DisorderType id="21394">
+                <Name lang="en">Disease</Name>
+            </DisorderType>
+            <DisorderGroup id="36547">
+                <Name lang="en">Disorder</Name>
+            </DisorderGroup>
+            <DisorderGeneAssociationList count="1">
+                <DisorderGeneAssociation>
+                    <Gene id="20160">
+                        <Name lang="en">kinesin family member 7</Name>
+                        <Symbol>KIF7</Symbol>
+                        <GeneType id="25993">
+                            <Name lang="en">gene with protein product</Name>
+                        </GeneType>
+                        <ExternalReferenceList count="1">
+                            <ExternalReference id="57240">
+                                <Source>Ensembl</Source>
+                                <Reference>ENSG00000166813</Reference>
+                            </ExternalReference>
+                        </ExternalReferenceList>
+                    </Gene>
+                    <DisorderGeneAssociationType id="17949">
+                        <Name lang="en">Disease-causing germline mutation(s) in</Name>
+                    </DisorderGeneAssociationType>
+                    <DisorderGeneAssociationStatus id="17991">
+                        <Name lang="en">Assessed</Name>
+                    </DisorderGeneAssociationStatus>
+                </DisorderGeneAssociation>
+            </DisorderGeneAssociationList>
+        </Disorder>
+
+        <Disorder id="10">
+            <OrphaNumber>206</OrphaNumber>
+            <ExpertLink lang="en">http://www.orpha.net/consor/cgi-bin/OC_Exp.php?lng=en&amp;Expert=206</ExpertLink>
+            <Name lang="en">Crohn disease</Name>
+            <DisorderType id="21394">
+                <Name lang="en">Disease</Name>
+            </DisorderType>
+            <DisorderGroup id="36547">
+                <Name lang="en">Disorder</Name>
+            </DisorderGroup>
+            <DisorderGeneAssociationList count="2">
+                <DisorderGeneAssociation>
+                    <Gene id="16791">
+                        <Name lang="en">interleukin 6</Name>
+                        <Symbol>IL6</Symbol>
+                        <GeneType id="25993">
+                            <Name lang="en">gene with protein product</Name>
+                        </GeneType>
+                        <ExternalReferenceList count="1">
+                            <ExternalReference id="56689">
+                                <Source>Ensembl</Source>
+                                <Reference>ENSG00000136244</Reference>
+                            </ExternalReference>
+                        </ExternalReferenceList>
+                    </Gene>
+                    <DisorderGeneAssociationType id="17967">
+                        <Name lang="en">Modifying germline mutation in</Name>
+                    </DisorderGeneAssociationType>
+                    <DisorderGeneAssociationStatus id="17991">
+                        <Name lang="en">Assessed</Name>
+                    </DisorderGeneAssociationStatus>
+                </DisorderGeneAssociation>
+                <DisorderGeneAssociation>
+                    <Gene id="16256">
+                        <Name lang="en">interleukin 23 receptor</Name>
+                        <Symbol>IL23R</Symbol>
+                        <GeneType id="25993">
+                            <Name lang="en">gene with protein product</Name>
+                        </GeneType>
+                        <ExternalReferenceList count="1">
+                            <ExternalReference id="56688">
+                                <Source>Ensembl</Source>
+                                <Reference>ENSG00000162594</Reference>
+                            </ExternalReference>
+                        </ExternalReferenceList>
+                    </Gene>
+                    <DisorderGeneAssociationType id="17961">
+                        <Name lang="en">Major susceptibility factor in</Name>
+                    </DisorderGeneAssociationType>
+                    <DisorderGeneAssociationStatus id="17991">
+                        <Name lang="en">Assessed</Name>
+                    </DisorderGeneAssociationStatus>
+                </DisorderGeneAssociation>
+            </DisorderGeneAssociationList>
+        </Disorder>
+    </DisorderList>
+</JDBOR>
