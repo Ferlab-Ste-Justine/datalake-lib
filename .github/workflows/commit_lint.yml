@@ -1,0 +1,14 @@
+name: Commit Lint Check
+
+on: [push]
+
+jobs:
+  build:
+    name: Commit Lint Check
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Lint Commits
+        uses: Ferlab-Ste-Justine/action-commit-lint@v2
