@@ -72,7 +72,7 @@ object GenomicImplicits {
     val strictAutosomalTransmissions = List(
       //(proband_calls, father_calls, mother_calls, father_affected, mother_affected, transmission)
       //(“0/1”, “0/0”, “0/0”) -> 	autosomal_dominant (de_novo) [if both parents unaffected]
-      (Array(0, 1), Array(0, 0), Array(0, 0), false, false, "autosomal_dominant (de_novo)"),
+      (Array(0, 1), Array(0, 0), Array(0, 0), false, false, "autosomal_dominant_de_novo"),
       //(“0/1”, “0/0”, “0/1”) -> 	autosomal_dominant [if affected mother and unaffected father]
       (Array(0, 1), Array(0, 0), Array(0, 1), false, true , "autosomal_dominant"),
       //(“0/1”, “0/1”, “0/0”) -> 	autosomal_dominant [if affected father and unaffected mother]
@@ -93,8 +93,8 @@ object GenomicImplicits {
       //(gender, proband_calls, father_calls, mother_calls, father_affected, mother_affected, transmission)
       //(“0/1”, “0/0”, “0/0”) -> 	x_linked_dominant (de_novo) [if female proband with both parents unaffected]
       //			                    x_linked_recessive (de_novo) [if male proband with both parents unaffected]
-      ("Female", Array(0, 1), Array(0, 0), Array(0, 0), false, false, "x_linked_dominant (de_novo)"),
-      ("Male"  , Array(0, 1), Array(0, 0), Array(0, 0), false, false, "x_linked_recessive (de_novo)"),
+      ("Female", Array(0, 1), Array(0, 0), Array(0, 0), false, false, "x_linked_dominant_de_novo"),
+      ("Male"  , Array(0, 1), Array(0, 0), Array(0, 0), false, false, "x_linked_recessive_de_novo"),
       //(“0/1”, “0/0”, “0/1”) -> 	x_linked_dominant [if female proband with affected mother and unaffected father]
       //                          x_linked_recessive [if male proband with both parents unaffected]
       ("Female", Array(0, 1), Array(0, 0), Array(0, 1), false, true , "x_linked_dominant"),
@@ -118,7 +118,7 @@ object GenomicImplicits {
       //(“0/1”, “1/1”, “1/1”) -> 	x_linked_recessive [if male proband with both parents affected]
       ("Male"  , Array(0, 1), Array(1, 1), Array(1, 1), true, true, "x_linked_recessive"),
       //(“1/1”, “0/0”, “0/0”) -> 	x_linked_recessive (de_novo) [if male proband with both parents unaffected]
-      ("Male"  , Array(1, 1), Array(0, 0), Array(0, 0), false, false, "x_linked_recessive (de_novo)"),
+      ("Male"  , Array(1, 1), Array(0, 0), Array(0, 0), false, false, "x_linked_recessive_de_novo"),
       //(“1/1”, “0/0”, “0/1”) ->	x_linked_recessive [if male proband with both parents unaffected]
       ("Male"  , Array(1, 1), Array(0, 0), Array(0, 1), false, false, "x_linked_recessive"),
       //(“1/1”, “0/0”, “1/1”) -> 	x_linked_recessive [if male proband with affected mother and unaffected father]
@@ -143,8 +143,8 @@ object GenomicImplicits {
           .withColumn("norm_mth_calls", normalizeCall(mth_calls))
 
       val static_transmissions =
-        when(col("calls") === Array(0, 0), lit("non carrier proband"))
-          .when(col("calls").isNull or col("calls") === Array(-1, -1), lit("unknown proband genotype"))
+        when(col("calls") === Array(0, 0), lit("non_carrier_proband"))
+          .when(col("calls").isNull or col("calls") === Array(-1, -1), lit("unknown_proband_genotype"))
 
       val autosomal_transmissions: Column = strictAutosomalTransmissions.foldLeft[Column](static_transmissions){
         case (c, (proband_calls, fth_calls, mth_calls, fth_affected_status, mth_affected_status, transmission)) =>
