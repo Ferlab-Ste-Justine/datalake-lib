@@ -4,7 +4,7 @@
  * information regarding copyright ownership.
  */
 
-lazy val scala212 = "2.12.13"
+lazy val scala212 = "2.12.14"
 lazy val scala211 = "2.11.12"
 lazy val supportedScalaVersions = List(scala212, scala211)
 
@@ -59,7 +59,7 @@ lazy val `datalake-spark3` = (project in file("datalake-spark3"))
     libraryDependencies += "org.typelevel"         %% "cats-core"              % catsVersion,
     libraryDependencies += "org.scalatest"         %% "scalatest"              % scalatestVersion % Test,
     libraryDependencies += "org.apache.spark"      %% "spark-hive"             % spark3Version % Test,
-    libraryDependencies += "io.projectglow"        %% "glow-spark3"            % glowVersion  exclude ("org.apache.hadoop", "hadoop-client"),
+    libraryDependencies += "io.projectglow"        %% "glow-spark3"            % glowVersion % Provided exclude ("org.apache.hadoop", "hadoop-client"),
     libraryDependencies += "dev.zio"               %% "zio-config-typesafe"    % zioVersion,
     libraryDependencies += "dev.zio"               %% "zio-config"             % zioVersion,
     libraryDependencies += "dev.zio"               %% "zio-config-magnolia"    % zioVersion,
