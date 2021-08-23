@@ -4,6 +4,7 @@ import bio.ferlab.datalake.spark3.config.{Configuration, DatasetConf}
 import bio.ferlab.datalake.spark3.etl.ETLP
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
+import java.time.LocalDateTime
 import scala.xml.{Elem, Node, XML}
 
 class OrphanetGeneSet()(implicit conf: Configuration) extends ETLP {
@@ -11,7 +12,8 @@ class OrphanetGeneSet()(implicit conf: Configuration) extends ETLP {
   val orphanet_gene_association: DatasetConf  = conf.getDataset("raw_orphanet_gene_association")
   val orphanet_disease_history: DatasetConf  = conf.getDataset("raw_orphanet_disease_history")
 
-  override def extract()(implicit spark: SparkSession): Map[String, DataFrame] = {
+  override def extract(lastRunDateTime: LocalDateTime,
+                       currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): Map[String, DataFrame] = {
     import spark.implicits._
 
     def loadXML: String => Elem = str =>
@@ -28,7 +30,9 @@ class OrphanetGeneSet()(implicit conf: Configuration) extends ETLP {
 
   }
 
-  override def transform(data: Map[String, DataFrame])(implicit spark: SparkSession): DataFrame = {
+  override def transform(data: Map[String, DataFrame],
+                         lastRunDateTime: LocalDateTime,
+                         currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): DataFrame = {
     data(orphanet_gene_association.id)
       .join(
         data(orphanet_disease_history.id).select(
@@ -141,7 +145,9 @@ class OrphanetGeneSet()(implicit conf: Configuration) extends ETLP {
     }
   }
 
-  override def load(data: DataFrame)(implicit spark: SparkSession): DataFrame =
-    super.load(data.coalesce(1))
+  override def load(data: DataFrame,
+                    lastRunDateTime: LocalDateTime,
+                    currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): DataFrame =
+    super.load(data.coalesce(1), lastRunDateTime, currentRunDateTime)
 }
 

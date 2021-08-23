@@ -5,16 +5,21 @@ import bio.ferlab.datalake.spark3.etl.ETLP
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
+import java.time.LocalDateTime
+
 class AnnovarScores()(implicit conf: Configuration) extends ETLP {
 
   override val destination: DatasetConf = conf.getDataset("normalized_dbnsfp_annovar")
   val raw_dbnsfp_annovar: DatasetConf = conf.getDataset("raw_dbnsfp_annovar")
 
-  override def extract()(implicit spark: SparkSession): Map[String, DataFrame] = {
+  override def extract(lastRunDateTime: LocalDateTime,
+                       currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): Map[String, DataFrame] = {
     Map(raw_dbnsfp_annovar.id -> raw_dbnsfp_annovar.read)
   }
 
-  override def transform(data: Map[String, DataFrame])(implicit spark: SparkSession): DataFrame = {
+  override def transform(data: Map[String, DataFrame],
+                         lastRunDateTime: LocalDateTime,
+                         currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): DataFrame = {
     import spark.implicits._
     data(raw_dbnsfp_annovar.id)
       .select(
@@ -77,10 +82,14 @@ class AnnovarScores()(implicit conf: Configuration) extends ETLP {
       )
   }
 
-  override def load(data: DataFrame)(implicit spark: SparkSession): DataFrame = {
+  override def load(data: DataFrame,
+                    lastRunDateTime: LocalDateTime,
+                    currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): DataFrame = {
     super.load(data
       .repartition(col("chromosome"))
-      .sortWithinPartitions("start"))
+      .sortWithinPartitions("start"),
+        lastRunDateTime,
+        currentRunDateTime)
   }
 }
 

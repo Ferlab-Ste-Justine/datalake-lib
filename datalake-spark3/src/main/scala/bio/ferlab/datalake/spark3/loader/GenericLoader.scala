@@ -2,6 +2,8 @@ package bio.ferlab.datalake.spark3.loader
 
 import org.apache.spark.sql.{DataFrame, DataFrameWriter, Row, SaveMode, SparkSession}
 
+import java.time.LocalDate
+
 object GenericLoader extends Loader {
 
   private def getDataFrameWriter(df: DataFrame, format: String, mode: SaveMode, partitioning: List[String]): DataFrameWriter[Row] = {
@@ -53,9 +55,7 @@ object GenericLoader extends Loader {
                       primaryKeys: Seq[String],
                       partitioning: List[String],
                       format: String)
-                     (implicit spark:  SparkSession): DataFrame = {
-    throw NotImplementedException
-  }
+                     (implicit spark:  SparkSession): DataFrame = ???
 
   def insert(location: String,
              databaseName: String,
@@ -76,8 +76,37 @@ object GenericLoader extends Loader {
                     updatedOnName: String,
                     partitioning: List[String],
                     format: String)
-                   (implicit spark:  SparkSession): DataFrame = {
-    throw NotImplementedException
-  }
+                   (implicit spark:  SparkSession): DataFrame = ???
+
+  /**
+   * Update the data only if the data has changed
+   * Insert new data
+   * maintains updatedOn and createdOn timestamps for each record
+   * usually used for dimension table for which keeping the full historic is not required.
+   *
+   * @param location      full path of where the data will be located
+   * @param tableName     the name of the updated/created table
+   * @param updates       new data to be merged with existing data
+   * @param primaryKeys   name of the columns holding the unique id
+   * @param oidName       name of the column holding the hash of the column that can change over time (or version number)
+   * @param createdOnName name of the column holding the creation timestamp
+   * @param updatedOnName name of the column holding the last update timestamp
+   * @param spark         a valid spark session
+   * @return the data as a dataframe
+   */
+  override def scd2(location: String,
+                    databaseName: String,
+                    tableName: String,
+                    updates: DataFrame,
+                    primaryKeys: Seq[String],
+                    oidName: String,
+                    createdOnName: String,
+                    updatedOnName: String,
+                    partitioning: List[String],
+                    format: String,
+                    validFromName: String,
+                    validToName: String,
+                    minValidFromDate: LocalDate,
+                    maxValidToDate: LocalDate)(implicit spark: SparkSession): DataFrame = ???
 }
 

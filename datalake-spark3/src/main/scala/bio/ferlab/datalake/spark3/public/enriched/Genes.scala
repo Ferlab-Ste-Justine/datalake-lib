@@ -6,6 +6,8 @@ import bio.ferlab.datalake.spark3.implicits.SparkUtils.removeEmptyObjectsIn
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
+import java.time.LocalDateTime
+
 class Genes()(implicit conf: Configuration) extends ETL {
 
   val destination       : DatasetConf = conf.getDataset("enriched_genes")
@@ -16,7 +18,8 @@ class Genes()(implicit conf: Configuration) extends ETL {
   val ddd_gene_set      : DatasetConf = conf.getDataset("normalized_ddd_gene_set")
   val cosmic_gene_set   : DatasetConf = conf.getDataset("normalized_cosmic_gene_set")
 
-  override def extract()(implicit spark: SparkSession): Map[String, DataFrame] = {
+  override def extract(lastRunDateTime: LocalDateTime,
+                       currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): Map[String, DataFrame] = {
     Map(
       omim_gene_set.id     -> omim_gene_set.read,
       orphanet_gene_set.id -> orphanet_gene_set.read,
@@ -27,7 +30,9 @@ class Genes()(implicit conf: Configuration) extends ETL {
     )
   }
 
-  override def transform(data: Map[String, DataFrame])(implicit spark: SparkSession): DataFrame = {
+  override def transform(data: Map[String, DataFrame],
+                         lastRunDateTime: LocalDateTime,
+                         currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): DataFrame = {
     import spark.implicits._
 
     val humanGenes = data(human_genes.id)
@@ -85,8 +90,10 @@ class Genes()(implicit conf: Configuration) extends ETL {
     }
   }
 
-  override def load(data: DataFrame)(implicit spark: SparkSession): DataFrame = {
-    super.load(data.repartition(1))
+  override def load(data: DataFrame,
+                    lastRunDateTime: LocalDateTime,
+                    currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): DataFrame = {
+    super.load(data.repartition(1), lastRunDateTime, currentRunDateTime)
   }
 }
 

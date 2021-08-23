@@ -8,6 +8,7 @@ import org.apache.spark.sql._
 import org.apache.spark.sql.expressions.UserDefinedFunction
 import org.apache.spark.sql.functions._
 
+import java.time.LocalDateTime
 import scala.collection.mutable
 
 class Clinvar()(implicit conf: Configuration) extends ETLP {
@@ -16,11 +17,14 @@ class Clinvar()(implicit conf: Configuration) extends ETLP {
 
   val clinvar_vcf: DatasetConf = conf.getDataset("raw_clinvar")
 
-  override def extract()(implicit spark: SparkSession): Map[String, DataFrame] = {
+  override def extract(lastRunDateTime: LocalDateTime,
+                       currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): Map[String, DataFrame] = {
     Map(clinvar_vcf.id -> clinvar_vcf.read)
   }
 
-  override def transform(data: Map[String, DataFrame])(implicit spark: SparkSession): DataFrame = {
+  override def transform(data: Map[String, DataFrame],
+                         lastRunDateTime: LocalDateTime,
+                         currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): DataFrame = {
 
     val df = data(clinvar_vcf.id)
     spark.udf.register("inheritance", inheritance_udf)
@@ -69,8 +73,10 @@ class Clinvar()(implicit conf: Configuration) extends ETLP {
 
   }
 
-  override def load(data: DataFrame)(implicit spark: SparkSession): DataFrame = {
-    super.load(data.coalesce(1))
+  override def load(data: DataFrame,
+                    lastRunDateTime: LocalDateTime,
+                    currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): DataFrame = {
+    super.load(data.coalesce(1), lastRunDateTime, currentRunDateTime)
   }
 
   def inheritance_udf: UserDefinedFunction = udf { array: mutable.WrappedArray[String] =>
