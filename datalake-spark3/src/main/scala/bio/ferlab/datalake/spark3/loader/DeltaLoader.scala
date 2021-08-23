@@ -3,6 +3,7 @@ package bio.ferlab.datalake.spark3.loader
 import io.delta.tables.DeltaTable
 import org.apache.spark.sql.{Column, DataFrame, SaveMode, SparkSession}
 
+import java.time.LocalDate
 import scala.util.{Failure, Success, Try}
 
 object DeltaLoader extends Loader {
@@ -111,4 +112,35 @@ object DeltaLoader extends Loader {
                    (implicit spark: SparkSession): DataFrame = {
     spark.read.format(format).load(location)
   }
+
+  /**
+   * Update the data only if the data has changed
+   * Insert new data
+   * maintains updatedOn and createdOn timestamps for each record
+   * usually used for dimension table for which keeping the full historic is required.
+   *
+   * @param location      full path of where the data will be located
+   * @param tableName     the name of the updated/created table
+   * @param updates       new data to be merged with existing data
+   * @param primaryKeys   name of the columns holding the unique id
+   * @param oidName       name of the column holding the hash of the column that can change over time (or version number)
+   * @param createdOnName name of the column holding the creation timestamp
+   * @param updatedOnName name of the column holding the last update timestamp
+   * @param spark         a valid spark session
+   * @return the data as a dataframe
+   */
+  def scd2(location: String,
+           databaseName: String,
+           tableName: String,
+           updates: DataFrame,
+           primaryKeys: Seq[String],
+           oidName: String,
+           createdOnName: String,
+           updatedOnName: String,
+           partitioning: List[String],
+           format: String,
+           validFromName: String,
+           validToName: String,
+           minValidFromDate: LocalDate,
+           maxValidToDate: LocalDate)(implicit spark: SparkSession): DataFrame = ???
 }

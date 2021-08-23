@@ -5,6 +5,8 @@ import org.apache.spark.sql.functions.{lit, struct}
 import org.apache.spark.sql.types.StringType
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
+import java.time.LocalDate
+
 object VcfLoader extends Loader {
 
   override def read(location: String,
@@ -40,9 +42,7 @@ object VcfLoader extends Loader {
                          partitioning: List[String],
                          format: String,
                          dataChange: Boolean)
-                        (implicit spark:  SparkSession): DataFrame = {
-    throw NotImplementedException
-  }
+                        (implicit spark:  SparkSession): DataFrame = ???
 
   override def upsert(location: String,
                       databaseName: String,
@@ -51,9 +51,7 @@ object VcfLoader extends Loader {
                       primaryKeys: Seq[String],
                       partitioning: List[String],
                       format: String)
-                     (implicit spark:  SparkSession): DataFrame = {
-    throw NotImplementedException
-  }
+                     (implicit spark:  SparkSession): DataFrame = ???
 
   override def scd1(location: String,
                     databaseName: String,
@@ -65,16 +63,27 @@ object VcfLoader extends Loader {
                     updatedOnName: String,
                     partitioning: List[String],
                     format: String)
-                   (implicit spark:  SparkSession): DataFrame = {
-    throw NotImplementedException
-  }
+                   (implicit spark:  SparkSession): DataFrame = ???
 
   override def insert(location: String,
                       databaseName: String,
                       tableName: String,
                       updates: DataFrame,
                       partitioning: List[String],
-                      format: String)(implicit spark: SparkSession): DataFrame = {
-    throw NotImplementedException
-  }
+                      format: String)(implicit spark: SparkSession): DataFrame = ???
+
+  override def scd2(location: String,
+                    databaseName: String,
+                    tableName: String,
+                    updates: DataFrame,
+                    primaryKeys: Seq[String],
+                    oidName: String,
+                    createdOnName: String,
+                    updatedOnName: String,
+                    partitioning: List[String],
+                    format: String,
+                    validFromName: String,
+                    validToName: String,
+                    minValidFromDate: LocalDate,
+                    maxValidToDate: LocalDate)(implicit spark: SparkSession): DataFrame = ???
 }

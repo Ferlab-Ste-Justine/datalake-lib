@@ -6,16 +6,21 @@ import bio.ferlab.datalake.spark3.public.normalized.OmimPhenotype.parse_pheno
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
+import java.time.LocalDateTime
+
 class OmimGeneSet()(implicit conf: Configuration) extends ETLP {
 
   override val destination: DatasetConf = conf.getDataset("normalized_omim_gene_set")
   val raw_omim_genemap: DatasetConf = conf.getDataset("raw_omim_genemap")
 
-  override def extract()(implicit spark: SparkSession): Map[String, DataFrame] = {
+  override def extract(lastRunDateTime: LocalDateTime,
+                       currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): Map[String, DataFrame] = {
     Map(raw_omim_genemap.id -> raw_omim_genemap.read)
   }
 
-  override def transform(data: Map[String, DataFrame])(implicit spark: SparkSession): DataFrame = {
+  override def transform(data: Map[String, DataFrame],
+                         lastRunDateTime: LocalDateTime,
+                         currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): DataFrame = {
     val intermediateDf =
       data(raw_omim_genemap.id)
         .select(
@@ -53,8 +58,10 @@ class OmimGeneSet()(implicit conf: Configuration) extends ETLP {
       .unionByName(nullPhenotypes)
   }
 
-  override def load(data: DataFrame)(implicit spark: SparkSession): DataFrame =
-    super.load(data.coalesce(1))
+  override def load(data: DataFrame,
+                    lastRunDateTime: LocalDateTime,
+                    currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): DataFrame =
+    super.load(data.coalesce(1), lastRunDateTime, currentRunDateTime)
 }
 
 

@@ -7,6 +7,7 @@ import org.apache.spark.sql.functions.input_file_name
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.slf4j.{Logger, LoggerFactory}
 
+import java.time.LocalDateTime
 import scala.util.{Failure, Success, Try}
 
 class RawToNormalizedETL(val source: DatasetConf,
@@ -18,7 +19,8 @@ class RawToNormalizedETL(val source: DatasetConf,
 
   private var processedFiles: List[String] = List()
 
-  override def extract()(implicit spark: SparkSession): Map[String, DataFrame] = {
+  override def extract(lastRunDateTime: LocalDateTime,
+                       currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): Map[String, DataFrame] = {
     log.info(s"extracting: ${source.location}")
     Map(source.id -> spark.read.format(source.format.sparkFormat).options(source.readoptions).load(source.location))
   }
@@ -31,7 +33,9 @@ class RawToNormalizedETL(val source: DatasetConf,
    * @param spark an instance of SparkSession
    * @return
    */
-  override def transform(data: Map[String, DataFrame])(implicit spark: SparkSession): DataFrame = {
+  override def transform(data: Map[String, DataFrame],
+                         lastRunDateTime: LocalDateTime,
+                         currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): DataFrame = {
     import spark.implicits._
     log.info(s"transforming: ${source.id} to ${destination.id}")
     //keep in memory which files are being processed
@@ -52,7 +56,9 @@ class RawToNormalizedETL(val source: DatasetConf,
    * @param data  output data produced by the transform method.
    * @param spark an instance of SparkSession
    */
-  override def load(data: DataFrame)(implicit spark: SparkSession): DataFrame = {
+  override def load(data: DataFrame,
+                    lastRunDateTime: LocalDateTime,
+                    currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): DataFrame = {
     log.info(s"loading: ${destination.id}")
     Try(
       destination.table.foreach(table => spark.sql(s"CREATE DATABASE IF NOT EXISTS ${table.database}"))

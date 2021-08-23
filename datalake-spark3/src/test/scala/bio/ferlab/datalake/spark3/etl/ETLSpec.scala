@@ -5,10 +5,12 @@ import bio.ferlab.datalake.spark3.loader.Format.{CSV, DELTA}
 import bio.ferlab.datalake.spark3.loader.LoadType._
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.LongType
-import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
+import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.scalatest.GivenWhenThen
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+
+import java.time.LocalDateTime
 
 class ETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
 
@@ -35,11 +37,14 @@ class ETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
 
     override val destination: DatasetConf = destConf
 
-    override def extract()(implicit spark: SparkSession): Map[String, DataFrame] = {
+    override def extract(lastRunDateTime: LocalDateTime = minDateTime,
+                         currentRunDateTime: LocalDateTime = LocalDateTime.now())(implicit spark: SparkSession): Map[String, DataFrame] = {
       Map(srcConf.id -> spark.read.format(srcConf.format.sparkFormat).options(srcConf.readoptions).load(srcConf.location))
     }
 
-    override def transform(data: Map[String, DataFrame])(implicit spark: SparkSession): DataFrame = {
+    override def transform(data: Map[String, DataFrame],
+                           lastRunDateTime: LocalDateTime = minDateTime,
+                           currentRunDateTime: LocalDateTime = LocalDateTime.now())(implicit spark: SparkSession): DataFrame = {
       data(srcConf.id)
         .select(
           col("id").cast(LongType) as "airport_id",
