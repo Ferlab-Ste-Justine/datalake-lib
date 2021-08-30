@@ -67,7 +67,7 @@ object DeltaLoader extends Loader {
     require(updates.columns.exists(_.equals(updatedOnName)), s"requires column [$updatedOnName]")
 
     Try(DeltaTable.forName(s"$databaseName.$tableName")) match {
-      case Failure(_) => writeOnce(location, databaseName, tableName, spark.table(tableName), partitioning, format)
+      case Failure(_) => writeOnce(location, databaseName, tableName, updates, partitioning, format)
       case Success(existing) =>
         val existingDf = existing.toDF
         val mergeCondition: Column =

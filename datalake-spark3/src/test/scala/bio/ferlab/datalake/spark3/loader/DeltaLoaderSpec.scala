@@ -76,7 +76,19 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers {
       TestData("aaa", "aaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1)
     ).toDF
 
-    DeltaLoader.writeOnce(output, "default", "testtable", existing, List(), "delta")
+    DeltaLoader
+      .scd1(
+        output,
+        "default",
+        "testtable",
+        existing,
+        Seq("uid"),
+        "oid",
+        "createdOn",
+        "updatedOn",
+        List(),
+        "delta"
+      )
 
     val updates: DataFrame = Seq(
       TestData("a", "b", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),
