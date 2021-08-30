@@ -9,7 +9,7 @@ object UpdateTableComments {
 
   def run(ds: DatasetConf)(implicit spark: SparkSession): Unit = {
     if(ds.table.nonEmpty)
-      run(ds.table.get.database, ds.table.get.name, ds.documentationpath)
+      run(ds.table.get.database, ds.table.get.name, ds.documentationpath.get)
   }
 
   def run(database: String, table: String, metadata_file: String)(implicit spark: SparkSession): Unit = {
