@@ -13,7 +13,7 @@ abstract class ETLP()(implicit conf: Configuration) extends ETL {
 
     if (destination.documentationpath.nonEmpty && destination.table.nonEmpty) {
       val t = destination.table.get
-      UpdateTableComments.run(t.database, t.name, destination.documentationpath)
+      UpdateTableComments.run(t.database, t.name, destination.documentationpath.get)
     }
 
     if (destination.view.nonEmpty && destination.table.nonEmpty) {
