@@ -3,9 +3,14 @@ package bio.ferlab.datalake.spark3.etl
 import bio.ferlab.datalake.spark3.config.{Configuration, DatasetConf}
 import bio.ferlab.datalake.spark3.file.{FileSystem, HadoopFileSystem}
 import bio.ferlab.datalake.spark3.loader.LoadResolver
+import bio.ferlab.datalake.spark3.loader.LoadType.{Scd1, Scd2}
+import bio.ferlab.datalake.spark3.loader.WriteOptions.{UPDATED_ON_COLUMN_NAME, VALID_FROM_COLUMN_NAME}
+import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
+import java.sql.{Date, Timestamp}
 import java.time.LocalDateTime
+import scala.util.Try
 
 
 /**
@@ -75,7 +80,7 @@ abstract class ETL()(implicit val conf: Configuration) {
   }
 
   /**
-   * Entry point of the etl - execute this method in order to run the whole ETL
+   * Entry point of the etl - execute this method in order to run the whole ETL for a specific date
    * @param lastRunDateTime the last time this etl was run. default is [[minDateTime]]
    * @param currentRunDateTime the time at which the etl needs to be ran, usually now().
    * @param spark an instance of SparkSession
@@ -87,6 +92,47 @@ abstract class ETL()(implicit val conf: Configuration) {
     val finalDf = load(output, lastRunDateTime, currentRunDateTime)
     publish()
     finalDf
+  }
+
+  /**
+   * Entry point of the etl - execute this method in order to run the whole ETL
+   * @param spark an instance of SparkSession
+   */
+  def run()(implicit spark: SparkSession): DataFrame = {
+    val lastRunDateTime = getLastRunDateFor(destination)
+    val currentRunDateTime = LocalDateTime.now()
+    run(lastRunDateTime, currentRunDateTime)
+  }
+
+  /**
+   * If possible, fetch the last run date time from the dataset passed in argument
+   * @param ds dataset
+   * @param spark a spark session
+   * @return the last run date or the [[minDateTime]]
+   */
+  def getLastRunDateFor(ds: DatasetConf)(implicit spark: SparkSession): LocalDateTime = {
+    import spark.implicits._
+    ds.loadtype match {
+      case Scd1 =>
+        Try(
+          ds.read.select(max(col(ds.writeoptions(UPDATED_ON_COLUMN_NAME.value)))).limit(1).as[Timestamp].head().toLocalDateTime
+        ).getOrElse(minDateTime)
+
+      case Scd2 =>
+        Try(
+          ds.read.select(max(col(ds.writeoptions(VALID_FROM_COLUMN_NAME.value)))).limit(1).as[Date].head().toLocalDate.atStartOfDay()
+        ).getOrElse(minDateTime)
+
+      case _ => minDateTime
+
+    }
+  }
+
+  /**
+   * Reset the ETL by removing the destination dataset.
+   */
+  def reset(): Unit = {
+    fs.remove(destination.location)
   }
 
 }

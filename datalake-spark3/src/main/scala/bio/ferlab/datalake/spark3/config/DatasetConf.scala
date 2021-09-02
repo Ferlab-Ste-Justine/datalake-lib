@@ -1,6 +1,6 @@
 package bio.ferlab.datalake.spark3.config
 
-import bio.ferlab.datalake.spark3.loader.{Format, LoadType}
+import bio.ferlab.datalake.spark3.loader.{Format, LoadType, WriteOptions}
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
 /**
@@ -25,7 +25,7 @@ case class DatasetConf(id: String,
                        keys: List[String] = List(),
                        partitionby: List[String] = List(),
                        readoptions: Map[String, String] = Map(),
-                       writeoptions: Map[String, String] = Map(),
+                       writeoptions: Map[String, String] = WriteOptions.DEFAULT_OPTIONS,
                        documentationpath: Option[String] = None,
                        view: Option[TableConf] = None) {
 

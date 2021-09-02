@@ -6,13 +6,14 @@ import bio.ferlab.datalake.spark3.loader.LoadType._
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.LongType
 import org.apache.spark.sql.{DataFrame, SparkSession}
-import org.scalatest.GivenWhenThen
+import org.scalatest.{BeforeAndAfterAll, GivenWhenThen}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-import java.time.LocalDateTime
+import java.sql.{Date, Timestamp}
+import java.time.{LocalDate, LocalDateTime}
 
-class ETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
+class ETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers with BeforeAndAfterAll {
 
   implicit lazy val spark: SparkSession = SparkSession.builder()
     .config("spark.ui.enabled", value = false)
@@ -60,6 +61,12 @@ class ETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
 
   val job: ETL = TestETL()
 
+  override def beforeAll(): Unit = {
+    spark.sql("CREATE DATABASE IF NOT EXISTS raw_db")
+    spark.sql("CREATE DATABASE IF NOT EXISTS normalized_db")
+    job.reset()
+  }
+
   "extract" should "return the expected format" in {
     import spark.implicits._
 
@@ -87,6 +94,56 @@ class ETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
     val table = spark.table(s"${destConf.table.get.fullName}")
     table.show(false)
     table.as[AirportOutput].collect().head shouldBe AirportOutput()
+  }
+
+  "lastRunDate" should "return minDateTime when destination is empty" in {
+    val scd1Conf = destConf.copy(loadtype = Scd1)
+    val scd2Conf = destConf.copy(loadtype = Scd2)
+    job.getLastRunDateFor(destConf) shouldBe job.minDateTime
+    job.getLastRunDateFor(scd1Conf) shouldBe job.minDateTime
+    job.getLastRunDateFor(scd2Conf) shouldBe job.minDateTime
+  }
+
+  "lastRunDate" should "return max update_on for scd1" in {
+    import spark.implicits._
+    val scd1Conf = destConf.copy(loadtype = Scd1)
+    val date1 = Timestamp.valueOf(LocalDateTime.of(1900, 1, 2, 1, 1, 1))
+    val date2 = Timestamp.valueOf(LocalDateTime.of(1900, 1, 3, 1, 1, 1))
+    val infinity = Timestamp.valueOf(job.maxDateTime)
+    val df = Seq(
+      ("1", date1, date1),
+      ("2", date1, date2),
+      ("3", date1, date1)
+    ).toDF("id", "created_on", "updated_on")
+
+    df.write.format("delta").mode("overwrite")
+      .option("mergeSchema", "true")
+      .option("path", scd1Conf.location)
+      .saveAsTable("normalized_db.airport")
+
+
+    job.getLastRunDateFor(scd1Conf) shouldBe date2.toLocalDateTime
+  }
+
+  "lastRunDate" should "return max valid_from as LocalDateTime for scd2" in {
+    import spark.implicits._
+    val scd2Conf = destConf.copy(loadtype = Scd2)
+    val date1 = Date.valueOf(LocalDate.of(1900, 1, 2))
+    val date2 = Date.valueOf(LocalDate.of(1900, 1, 3))
+    val infinity = Date.valueOf(job.maxDateTime.toLocalDate)
+    val df = Seq(
+      ("1", date1, infinity),
+      ("1", date2, infinity),
+      ("2", date1, infinity)
+    ).toDF("id", "valid_from", "valid_to")
+
+    df.write.format("delta").mode("overwrite")
+      .option("mergeSchema", "true")
+      .option("path", scd2Conf.location)
+      .saveAsTable("normalized_db.airport")
+
+
+    job.getLastRunDateFor(scd2Conf) shouldBe date2.toLocalDate.atStartOfDay()
   }
 
 }
