@@ -32,7 +32,6 @@ class ConfigurationWriterSpec extends AnyFlatSpec with GivenWhenThen with Matche
          |]
          |sources=[
          |    {
-         |        documentationpath=""
          |        format=PARQUET
          |        id="name_a"
          |        keys=[
@@ -54,7 +53,6 @@ class ConfigurationWriterSpec extends AnyFlatSpec with GivenWhenThen with Matche
          |        }
          |    },
          |    {
-         |        documentationpath=""
          |        format=PARQUET
          |        id="name_b"
          |        keys=[

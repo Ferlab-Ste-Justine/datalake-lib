@@ -15,8 +15,8 @@ object WriteOptions {
 
   final val DEFAULT_CREATED_ON: (String, String) = CREATED_ON_COLUMN_NAME.value -> "created_on"
   final val DEFAULT_UPDATED_ON: (String, String) = UPDATED_ON_COLUMN_NAME.value -> "updated_on"
-  final val DEFAULT_VALID_FROM: (String, String) = UPDATED_ON_COLUMN_NAME.value -> "valid_from"
-  final val DEFAULT_VALID_TO: (String, String) = UPDATED_ON_COLUMN_NAME.value -> "valid_to"
+  final val DEFAULT_VALID_FROM: (String, String) = VALID_FROM_COLUMN_NAME.value -> "valid_from"
+  final val DEFAULT_VALID_TO: (String, String) = VALID_TO_COLUMN_NAME.value -> "valid_to"
 
   final val DEFAULT_OPTIONS: Map[String, String] =
     List(
