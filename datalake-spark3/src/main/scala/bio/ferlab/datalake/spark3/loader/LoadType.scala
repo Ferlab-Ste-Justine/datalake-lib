@@ -8,6 +8,7 @@ sealed trait LoadType
  * List of all LoadTypes supported
  */
 object LoadType {
+  case object Read extends LoadType
   case object Compact extends LoadType
   case object OverWrite extends LoadType
   case object Insert extends LoadType
