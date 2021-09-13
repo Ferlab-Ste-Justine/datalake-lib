@@ -70,6 +70,12 @@ object Format {
    */
   case object ICEBERG extends Format {override val sparkFormat = "iceberg"; override val fileExtension: String = ".parquet"}
 
+  /**
+   * Apache Iceberg
+   * https://iceberg.apache.org/
+   */
+  case object JDBC extends Format {override val sparkFormat = "jdbc"; override val fileExtension: String = ""}
+
   implicit val EnumInstance: Enum[Format] = Enum.derived[Format]
 }
 

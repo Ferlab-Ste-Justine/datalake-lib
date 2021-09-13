@@ -10,8 +10,10 @@ import java.time.LocalDate
 object VcfLoader extends Loader {
 
   override def read(location: String,
-                    format: String = "vcf",
-                    readOptions: Map[String, String] = Map())(implicit spark: SparkSession): DataFrame = {
+                    format: String,
+                    readOptions: Map[String, String],
+                    databaseName: Option[String],
+                    tableName: Option[String])(implicit spark: SparkSession): DataFrame = {
 
     val df = spark.read.format(format)
       .option("flattenInfoFields", readOptions.getOrElse("flattenInfoFields", "true"))

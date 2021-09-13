@@ -33,8 +33,20 @@ object GenericLoader extends Loader {
     df
   }
 
-  override def read(location: String, format: String, readOptions: Map[String, String])(implicit spark: SparkSession): DataFrame = {
-    spark.read.options(readOptions).format(format).load(location)
+  override def read(location: String,
+                    format: String,
+                    readOptions: Map[String, String],
+                    databaseName: Option[String],
+                    tableName: Option[String])(implicit spark: SparkSession): DataFrame = {
+    (databaseName, tableName) match {
+      case (None, Some(name)) =>
+        spark.table(name)
+      case (Some(db), Some(name)) =>
+        spark.table(s"$db.$name")
+      case (_, _) =>
+        spark.read.options(readOptions).format(format).load(location)
+    }
+
   }
 
   override def writeOnce(location: String,

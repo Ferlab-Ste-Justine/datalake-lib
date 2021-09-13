@@ -11,12 +11,16 @@ trait Loader {
    * @param location absolute path of where the data is
    * @param format string representing the format
    * @param readOptions read options
+   * @param databaseName Optional database name
+   * @param tableName Optional table name
    * @param spark spark session
    * @return the data as a dataframe
    */
   def read(location: String,
            format: String,
-           readOptions: Map[String, String])(implicit spark: SparkSession): DataFrame
+           readOptions: Map[String, String],
+           databaseName: Option[String],
+           tableName: Option[String])(implicit spark: SparkSession): DataFrame
 
   /**
    * Overwrites the data located in output/tableName
@@ -101,16 +105,16 @@ trait Loader {
    * Update the data only if the data has changed
    * Insert new data
    * maintains updatedOn and createdOn timestamps for each record
-   * usually used for dimension table for which keeping the full historic is not required.
+   * usually used for dimension table for which keeping the full historic is required.
    *
-   * @param location full path of where the data will be located
-   * @param tableName the name of the updated/created table
-   * @param updates new data to be merged with existing data
-   * @param primaryKeys name of the columns holding the unique id
-   * @param oidName name of the column holding the hash of the column that can change over time (or version number)
+   * @param location      full path of where the data will be located
+   * @param tableName     the name of the updated/created table
+   * @param updates       new data to be merged with existing data
+   * @param primaryKeys   name of the columns holding the unique id
+   * @param oidName       name of the column holding the hash of the column that can change over time (or version number)
    * @param createdOnName name of the column holding the creation timestamp
    * @param updatedOnName name of the column holding the last update timestamp
-   * @param spark a valid spark session
+   * @param spark         a valid spark session
    * @return the data as a dataframe
    */
   def scd2(location: String,
