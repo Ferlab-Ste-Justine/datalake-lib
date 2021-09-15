@@ -14,6 +14,7 @@ object ClassGenerator {
     case StringType                           => "String"
     case FloatType                            => "Float"
     case IntegerType                          => "Int"
+    case ShortType                            => "Short"
     case BooleanType                          => "Boolean"
     case DoubleType                           => "Double"
     case LongType                             => "Long"
@@ -23,6 +24,7 @@ object ClassGenerator {
     case ArrayType(StringType, _)             => "List[String]"
     case ArrayType(FloatType, _)              => "List[Float]"
     case ArrayType(IntegerType, _)            => "List[Int]"
+    case ArrayType(ShortType, _)              => "List[Short]"
     case ArrayType(BooleanType, _)            => "List[Boolean]"
     case ArrayType(DoubleType, _)             => "List[Double]"
     case ArrayType(LongType, _)               => "List[Long]"
@@ -34,12 +36,6 @@ object ClassGenerator {
 
   def getValue: PartialFunction[(String, Row, DataType), String] = {
     case (name, values, StringType)                                    => "\"" + values.getAs(name) + "\""
-    case (name, values, FloatType)                                     => values.getAs(name)
-    case (name, values, IntegerType)                                   => values.getAs(name)
-    case (name, values, BooleanType)                                   => values.getAs(name)
-    case (name, values, DoubleType)                                    => values.getAs(name)
-    case (name, values, LongType)                                      => values.getAs(name)
-    case (name, values, DecimalType())                                 => values.getAs(name)
     case (name, values, DateType)                                      => s"""Date.valueOf("${values.getAs(name)}")"""
     case (name, values, TimestampType)                                 => s"""Timestamp.valueOf("${values.getAs(name)}")"""
     case (name, values, ArrayType(StringType,_))                       => values.getAs[List[String]](name).mkString("List(\"", "\", \"", "\")")
@@ -52,6 +48,7 @@ object ClassGenerator {
     case (name, values, MapType(StringType,LongType, _))               => values.getAs[Map[String, Long]](name).mkString("Map(", ", ", ")")
     case (name, values, MapType(StringType,DecimalType(), _))          => values.getAs[Map[String, BigDecimal]](name).mkString("Map(", ", ", ")")
     case (name, values, MapType(StringType,ArrayType(StringType,_),_)) => values.getAs[Map[String, List[String]]](name).mkString("Map(", ", ", ")")
+    case (name, values, _)                                             => values.getAs(name)
   }
 
   def oneClassString(className: String, df: DataFrame): String = {

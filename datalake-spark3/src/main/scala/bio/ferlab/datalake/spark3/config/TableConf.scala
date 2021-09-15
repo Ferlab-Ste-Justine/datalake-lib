@@ -7,5 +7,11 @@ package bio.ferlab.datalake.spark3.config
  */
 case class TableConf(database: String,
                      name: String) {
-  def fullName: String = s"${database}.${name}"
+  def fullName: String = {
+    if(database == "") {
+      name
+    } else {
+      s"${database}.${name}"
+    }
+  }
 }
