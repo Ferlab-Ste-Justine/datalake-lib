@@ -1,6 +1,7 @@
 package bio.ferlab.datalake.spark3.config
 
-import bio.ferlab.datalake.spark3.loader.{Format, LoadType, WriteOptions}
+import bio.ferlab.datalake.spark3.loader.LoadType.Read
+import bio.ferlab.datalake.spark3.loader.{Format, LoadResolver, LoadType, WriteOptions}
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
 /**
@@ -27,7 +28,7 @@ case class DatasetConf(id: String,
                        readoptions: Map[String, String] = Map(),
                        writeoptions: Map[String, String] = WriteOptions.DEFAULT_OPTIONS,
                        documentationpath: Option[String] = None,
-                       view: Option[TableConf] = None) {
+                       view: Option[TableConf] = None) { self =>
 
 
   /**
@@ -78,10 +79,12 @@ case class DatasetConf(id: String,
    * @return
    */
   def read(implicit config: Configuration, spark: SparkSession): DataFrame = {
-    table.fold {
-      spark.read.format(format.sparkFormat).options(readoptions).load(location)
-    }{t =>
-      spark.table(t.fullName)
+    if(LoadResolver.resolve(spark, config).isDefinedAt(format -> Read)) {
+      LoadResolver
+        .resolve(spark, config)(format -> Read)
+        .apply(self, spark.emptyDataFrame)
+    } else {
+      throw new NotImplementedError(s"Load is not implemented for [${format} / ${loadtype}]")
     }
   }
 }
