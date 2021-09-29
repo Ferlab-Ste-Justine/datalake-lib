@@ -71,10 +71,16 @@ object Format {
   case object ICEBERG extends Format {override val sparkFormat = "iceberg"; override val fileExtension: String = ".parquet"}
 
   /**
-   * Apache Iceberg
-   * https://iceberg.apache.org/
+   * Generic JDBC sources like PostgreSQL
+   * https://spark.apache.org/docs/latest/sql-data-sources-jdbc.html
    */
   case object JDBC extends Format {override val sparkFormat = "jdbc"; override val fileExtension: String = ""}
+
+  /**
+   * SQL Server or Azure SQL
+   * https://github.com/microsoft/sql-spark-connector
+   */
+  case object SQL_SERVER extends Format {override val sparkFormat = "com.microsoft.sqlserver.jdbc.spark"; override val fileExtension: String = ""}
 
   implicit val EnumInstance: Enum[Format] = Enum.derived[Format]
 }
