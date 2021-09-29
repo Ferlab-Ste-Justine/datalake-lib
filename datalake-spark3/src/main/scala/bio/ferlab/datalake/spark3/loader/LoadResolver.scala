@@ -1,7 +1,7 @@
 package bio.ferlab.datalake.spark3.loader
 
 import bio.ferlab.datalake.spark3.config.{Configuration, DatasetConf}
-import bio.ferlab.datalake.spark3.loader.Format.{DELTA, JDBC}
+import bio.ferlab.datalake.spark3.loader.Format.{DELTA, JDBC, SQL_SERVER}
 import bio.ferlab.datalake.spark3.loader.LoadType._
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
@@ -24,7 +24,10 @@ object LoadResolver {
     case (DELTA, Compact)   => (ds: DatasetConf, df: DataFrame) =>
       DeltaLoader.writeOnce(ds.location, ds.table.map(_.database).getOrElse(""), ds.table.map(_.name).getOrElse(""), df, ds.partitionby, ds.format.sparkFormat, dataChange = false)
 
-    case (JDBC, Read)       => (ds: DatasetConf, df: DataFrame) =>
+    case (JDBC, Read)       => (ds: DatasetConf, _: DataFrame) =>
+      JdbcLoader.read(ds.location, ds.format.sparkFormat, ds.readoptions, ds.table.map(_.database), ds.table.map(_.name))
+
+    case (SQL_SERVER, Read) => (ds: DatasetConf, _: DataFrame) =>
       JdbcLoader.read(ds.location, ds.format.sparkFormat, ds.readoptions, ds.table.map(_.database), ds.table.map(_.name))
 
     //generic fallback behaviours
