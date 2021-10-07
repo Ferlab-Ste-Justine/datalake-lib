@@ -52,7 +52,11 @@ object ClassGenerator {
   }
 
   def oneClassString(className: String, df: DataFrame): String = {
-    val values: Row = df.collect().headOption.getOrElse(throw new IllegalArgumentException("input dataframe empty."))
+    if(df.head(1).isEmpty)
+      throw new IllegalArgumentException("input dataframe empty.")
+
+    val countNulls: Column = df.schema.fieldNames.map(c => functions.when(col(c).isNull, 1).otherwise(0)).reduce((a, b) => a + b)
+    val values: Row = df.withColumn("countNulls", countNulls).orderBy(asc("countNulls")).drop("countNulls").head()
     val fields: Array[String] = {
       df.schema.fields.map {
         case StructField(name, dataType, _, _) if getValue.isDefinedAt(name, values, dataType) && getType.isDefinedAt(dataType)=>
