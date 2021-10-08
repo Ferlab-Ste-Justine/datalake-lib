@@ -52,7 +52,7 @@ object ClassGenerator {
   }
 
   def oneClassString(className: String, df: DataFrame): String = {
-    if(df.head(1).isEmpty)
+    if(df.isEmpty)
       throw new IllegalArgumentException("input dataframe empty.")
 
     val countNulls: Column = df.schema.fieldNames.map(c => functions.when(col(c).isNull, 1).otherwise(0)).reduce((a, b) => a + b)
