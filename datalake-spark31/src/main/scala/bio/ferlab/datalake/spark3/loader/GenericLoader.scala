@@ -1,8 +1,9 @@
 package bio.ferlab.datalake.spark3.loader
 
-import org.apache.spark.sql.{DataFrame, DataFrameWriter, Row, SaveMode, SparkSession}
+import org.apache.spark.sql._
 
 import java.time.LocalDate
+import scala.util.{Failure, Success, Try}
 
 object GenericLoader extends Loader {
 
@@ -67,7 +68,28 @@ object GenericLoader extends Loader {
                       primaryKeys: Seq[String],
                       partitioning: List[String],
                       format: String)
-                     (implicit spark:  SparkSession): DataFrame = ???
+                     (implicit spark:  SparkSession): DataFrame = {
+    require(primaryKeys.forall(updates.columns.contains), s"requires column [${primaryKeys.mkString(", ")}]")
+
+    val fullName = s"$databaseName.$tableName"
+    val writtenData = Try(spark.read.option("format", format).load(location)) match {
+      case Failure(_) => writeOnce(location, databaseName, tableName, updates, partitioning, format)
+      case Success(existing) =>
+        val data = existing
+          .join(updates, primaryKeys, "left_anti")
+          .unionByName(updates)
+          .persist()
+
+        data.limit(1).count() //triggers transformations in order to write at the same location as we read data
+
+        val result = writeOnce(location, databaseName, tableName, data, partitioning, format)
+        if (fullName.nonEmpty) {
+          spark.sql(s"REFRESH TABLE $fullName")
+        }
+        result
+    }
+    writtenData
+  }
 
   def insert(location: String,
              databaseName: String,

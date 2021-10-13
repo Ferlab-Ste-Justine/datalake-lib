@@ -1,6 +1,6 @@
 package bio.ferlab.datalake.spark3.loader
 
-import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -50,7 +50,46 @@ class GenericLoaderSpec extends AnyFlatSpec with Matchers {
       databaseName,
       tableName,
       updatedDF,
+      List(),
+      "parquet"
+    )
+
+    spark.read.parquet(output).as[TestData].collect() should contain allElementsOf expectedResult
+
+  }
+
+  "upsert" should "insert or update data" in {
+
+    import spark.implicits._
+
+    val day1 = LocalDateTime.of(2020, 1, 1, 1, 1, 1)
+    val day2 = day1.plusDays(1)
+
+    val existing: DataFrame = Seq(
+      TestData("a", "a", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1),
+      TestData("aaa", "aaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1)
+    ).toDF
+
+    GenericLoader.upsert(output, databaseName, tableName, existing, List("uid"), List(), "parquet")
+
+    val updatesDf: DataFrame = Seq(
+      TestData("a", "b", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),
+      TestData("aa", "bb", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2)
+    ).toDF
+
+    val expectedResult: Seq[TestData] = Seq(
+      TestData("a", "b", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),
+      TestData("aa", "bb", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),
+      TestData("aaa", "aaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1)
+    )
+
+    GenericLoader.upsert(
+      output,
+      databaseName,
+      tableName,
+      updatesDf,
       List("uid"),
+      List(),
       "parquet"
     )
 
