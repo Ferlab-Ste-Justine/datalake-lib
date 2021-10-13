@@ -5,8 +5,7 @@
  */
 
 lazy val scala212 = "2.12.14"
-lazy val scala211 = "2.11.12"
-lazy val supportedScalaVersions = List(scala212, scala211)
+lazy val supportedScalaVersions = List(scala212)
 
 scalacOptions ++= Seq("-deprecation", "-Ypartial-unification")
 javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
@@ -69,15 +68,4 @@ lazy val `datalake-spark3` = (project in file("datalake-spark3"))
       "org.antlr"    % "antlr4-tool"      % "4.8",
       "org.antlr"    % "antlr4-runtime"   % "4.8"
     )
-  )
-
-lazy val `datalake-spark2` = (project in file("datalake-spark2"))
-  .settings(
-    scalaVersion := scala211,
-    libraryDependencies += "org.apache.spark"          %% "spark-sql"              % spark2Version % Provided,
-    libraryDependencies += "org.elasticsearch"         %% "elasticsearch-spark-20" % "7.9.1" % Provided,
-    libraryDependencies += "org.scalatest"             %% "scalatest"              % scalatestVersion % Test,
-    libraryDependencies += "org.apache.spark"          %% "spark-hive"             % spark2Version % Test,
-    libraryDependencies += "org.apache.httpcomponents" %  "httpclient"             % "4.5.13",
-    dependencyOverrides += "org.apache.commons"        % "commons-lang3"           % "3.9"
   )

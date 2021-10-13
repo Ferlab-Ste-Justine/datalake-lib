@@ -29,9 +29,7 @@ import scala.util.Try
  */
 class Indexer(jobType: String,
               templateFilePath: String,
-              alias: String,
-              currentIndex: String,
-              previousIndex: Option[String] = None)
+              currentIndex: String)
              (implicit val spark: SparkSession) {
 
   spark.sparkContext.setLogLevel("ERROR")
@@ -42,6 +40,11 @@ class Indexer(jobType: String,
     if (jobType == "index") setupIndex(currentIndex, templateFilePath)
 
     df.saveToEs(s"$currentIndex/_doc", ES_config)
+  }
+
+  def publish(alias: String,
+              currentIndex: String,
+              previousIndex: Option[String] = None)(implicit esClient: ElasticSearchClient): Unit = {
     Try(esClient.setAlias(add = List(currentIndex), remove = List(), alias))
       .foreach(_ => println(s"${currentIndex} added to $alias"))
     Try(esClient.setAlias(add = List(), remove = previousIndex.toList, alias))
