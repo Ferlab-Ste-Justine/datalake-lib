@@ -16,6 +16,23 @@ class ClassGeneratorSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
 
   import spark.implicits._
 
+  "class generator" should "create a case class for empty list" in {
+
+    val outputClass = "TestClassOutput"
+
+    val outputStr = ClassGenerator.oneClassString(outputClass, Seq(TestInput(d = List())).toDF)
+
+    val expectedResult =
+      """
+case class TestClassOutput(`a`: String = "a",
+                           `b`: Long = 0,
+                           `c`: String = "c",
+                           `d`: List[String] = List())"""
+
+    outputStr shouldBe expectedResult
+
+  }
+
   "class generator" should "create a case class for any non-empty dataframe" in {
 
     val outputClass = "TestClassOutput"

@@ -105,9 +105,9 @@ lazy val `datalake-spark31` = (project in file("datalake-spark31"))
     libraryDependencies += "dev.zio"               %% "zio-config-magnolia"    % zioVersion,
     dependencyOverrides ++= Seq(
       "org.apache.commons"    % "commons-lang3"           % "3.9",
-      "org.antlr"    % "antlr4"           % "4.8",
-      "org.antlr"    % "antlr4-tool"      % "4.8",
-      "org.antlr"    % "antlr4-runtime"   % "4.8"
+      //"org.antlr" % "antlr4"           % "4.8",
+      "org.antlr" % "antlr4-runtime" % "4.8",
+      "org.antlr" % "antlr4-tool"    % "4.7.1"
     )
   )
   .dependsOn(`datalake-commons`)

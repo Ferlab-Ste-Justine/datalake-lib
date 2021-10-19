@@ -38,6 +38,7 @@ object ClassGenerator {
     case (name, values, StringType)                                    => "\"" + values.getAs(name) + "\""
     case (name, values, DateType)                                      => s"""Date.valueOf("${values.getAs(name)}")"""
     case (name, values, TimestampType)                                 => s"""Timestamp.valueOf("${values.getAs(name)}")"""
+    case (name, values, ArrayType(StringType,_)) if values.getAs[List[String]](name).isEmpty => "List()"
     case (name, values, ArrayType(StringType,_))                       => values.getAs[List[String]](name).mkString("List(\"", "\", \"", "\")")
     case (name, values, ArrayType(FloatType,_))                        => values.getAs[List[Float]](name).mkString("List(", ", ", ")")
     case (name, values, ArrayType(IntegerType,_))                      => values.getAs[List[Int]](name).mkString("List(", ", ", ")")
