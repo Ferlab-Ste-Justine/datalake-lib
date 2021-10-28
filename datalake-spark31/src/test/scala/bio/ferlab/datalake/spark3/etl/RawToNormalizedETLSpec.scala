@@ -4,6 +4,8 @@ import bio.ferlab.datalake.commons.config.DatasetConf
 import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf, StorageConf, TableConf}
 import bio.ferlab.datalake.commons.config.Format.{CSV, DELTA}
 import bio.ferlab.datalake.commons.config.LoadType.OverWrite
+import bio.ferlab.datalake.commons.file.FileSystemType.S3
+import bio.ferlab.datalake.spark3.file.FileSystemResolver
 import bio.ferlab.datalake.spark3.transformation.Custom
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions._
@@ -25,8 +27,8 @@ class RawToNormalizedETLSpec extends AnyFlatSpec with GivenWhenThen with Matcher
 
 
   implicit val conf: Configuration = Configuration(storages = List(
-    StorageConf("raw", getClass.getClassLoader.getResource("raw/landing").getFile),
-    StorageConf("normalized", getClass.getClassLoader.getResource("normalized/").getFile)
+    StorageConf("raw", getClass.getClassLoader.getResource("raw/landing").getFile, S3),
+    StorageConf("normalized", getClass.getClassLoader.getResource("normalized/").getFile, S3)
   ))
 
   val srcConf: DatasetConf =  DatasetConf("raw_airports", "raw"       , "/airports.csv", CSV  , OverWrite, Some(TableConf("raw_db" , "raw_airports")), readoptions = Map("header" -> "true", "delimiter" -> "|"))
@@ -56,7 +58,8 @@ class RawToNormalizedETLSpec extends AnyFlatSpec with GivenWhenThen with Matcher
     output.as[AirportOutput]
 
     job.publish()
-    val files = job.fs.list(srcConf.location.replace("landing", "archive"), true)
+    val files = FileSystemResolver.resolve(conf.getStorage(srcConf.storageid).filesystem)
+      .list(srcConf.location.replace("landing", "archive"), true)
     files.foreach(f => println(f.path))
     files.head.name shouldBe "airports.csv"
   }

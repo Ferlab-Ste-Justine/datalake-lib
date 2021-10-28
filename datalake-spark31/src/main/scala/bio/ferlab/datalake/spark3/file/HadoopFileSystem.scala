@@ -1,12 +1,14 @@
 package bio.ferlab.datalake.spark3.file
 
+import bio.ferlab.datalake.commons.file
+import bio.ferlab.datalake.commons.file.File
 import org.apache.hadoop
 import org.apache.hadoop.fs._
 import org.apache.spark.sql.SparkSession
 
 import scala.language.implicitConversions
 
-object HadoopFileSystem extends FileSystem {
+object HadoopFileSystem extends file.FileSystem {
 
   private def getFileSystem(path: String): hadoop.fs.FileSystem = {
     val folderPath = new Path(path)

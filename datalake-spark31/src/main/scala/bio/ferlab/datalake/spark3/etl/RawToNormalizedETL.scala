@@ -1,6 +1,8 @@
 package bio.ferlab.datalake.spark3.etl
 
 import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf}
+import bio.ferlab.datalake.commons.file.FileSystemType
+import bio.ferlab.datalake.spark3.file.FileSystemResolver
 import bio.ferlab.datalake.spark3.loader.LoadResolver
 import bio.ferlab.datalake.spark3.transformation.Transformation
 import org.apache.spark.sql.functions.input_file_name
@@ -65,7 +67,7 @@ class RawToNormalizedETL(val source: DatasetConf,
     )
 
     LoadResolver
-      .resolve(spark, conf)(destination.format -> destination.loadtype)
+      .write(spark, conf)(destination.format -> destination.loadtype)
       .apply(destination, data)
   }
 
@@ -80,7 +82,9 @@ class RawToNormalizedETL(val source: DatasetConf,
     val files = processedFiles
     Try {
       files.foreach(file =>
-        fs.move(file, file.replace("landing", "archive"), overwrite = true)
+        FileSystemResolver
+          .resolve(conf.getStorage(source.storageid).filesystem)
+          .move(file, file.replace("landing", "archive"), overwrite = true)
       )
       processedFiles = List.empty[String]
     } match {

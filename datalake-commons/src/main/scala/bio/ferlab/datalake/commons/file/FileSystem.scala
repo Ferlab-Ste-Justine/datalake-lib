@@ -1,4 +1,4 @@
-package bio.ferlab.datalake.spark3.file
+package bio.ferlab.datalake.commons.file
 
 import org.slf4j.{Logger, LoggerFactory}
 
@@ -9,7 +9,7 @@ trait FileSystem {
   /**
    * List all files within a folder.
    *
-   * @param path where to list the files
+   * @param path      where to list the files
    * @param recursive if true, list files in a recursive manner
    * @return a list of Files
    */
@@ -18,19 +18,20 @@ trait FileSystem {
   /**
    * Copy the content of a folder or a single file to a destination.
    *
-   * @param source the path to the source folder or file
+   * @param source      the path to the source folder or file
    * @param destination the path to the destination folder or file
-   * @param overwrite If true, the destination path will be overwritten.
-   *                  If false and the destination is not empty then the method will fail.
+   * @param overwrite   If true, the destination path will be overwritten.
+   *                    If false and the destination is not empty then the method will fail.
    */
   def copy(source: String, destination: String, overwrite: Boolean): Unit
 
   /**
    * Move the content of a folder of a single file to a destination.
-   * @param source the path to the source folder or file
+   *
+   * @param source      the path to the source folder or file
    * @param destination the path to the destination folder or file
-   * @param overwrite If true, the destination path will be overwritten.
-   *                  If false and the destination is not empty then the method will fail.
+   * @param overwrite   If true, the destination path will be overwritten.
+   *                    If false and the destination is not empty then the method will fail.
    */
   def move(source: String, destination: String, overwrite: Boolean): Unit
 
@@ -44,9 +45,9 @@ trait FileSystem {
   /**
    * Extract file with a specific extension from a folder
    *
-   * @param folder path to the folder containing the file
+   * @param folder           path to the folder containing the file
    * @param currentExtention extension of the file to look for
-   * @param newExtension extension to set to the file after extraction
+   * @param newExtension     extension to set to the file after extraction
    * @return true if the file was extracted, false if the folder does not contain any file with the extension.
    */
   def extractPart(folder: String,
@@ -55,7 +56,7 @@ trait FileSystem {
 
     list(folder, recursive = true)
       .find(_.path.endsWith(s".$currentExtention"))
-      .fold(false){partFile =>
+      .fold(false) { partFile =>
 
         log.info(s"${partFile.path}")
         log.info(s"-> $folder.$newExtension")
