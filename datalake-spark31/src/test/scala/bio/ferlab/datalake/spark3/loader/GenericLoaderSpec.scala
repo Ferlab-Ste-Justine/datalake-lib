@@ -1,13 +1,15 @@
 package bio.ferlab.datalake.spark3.loader
 
 import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
+import java.io.File
 import java.sql.Timestamp
 import java.time.LocalDateTime
 
-class GenericLoaderSpec extends AnyFlatSpec with Matchers {
+class GenericLoaderSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
 
   implicit lazy val spark: SparkSession = SparkSession.builder()
     .master("local")
@@ -19,6 +21,14 @@ class GenericLoaderSpec extends AnyFlatSpec with Matchers {
 
   val tableName = "test_generic"
   val databaseName = "default"
+
+  override def beforeAll(): Unit = {
+    try {
+      spark.sql(s"CREATE DATABASE IF NOT EXISTS ${databaseName}")
+      spark.sql(s"DROP TABLE IF EXISTS ${tableName}")
+      new File(output).delete()
+    }
+  }
 
   "insert" should "add new data" in {
 
@@ -50,7 +60,7 @@ class GenericLoaderSpec extends AnyFlatSpec with Matchers {
       databaseName,
       tableName,
       updatedDF,
-      List(),
+      List("uid"),
       "parquet"
     )
 
