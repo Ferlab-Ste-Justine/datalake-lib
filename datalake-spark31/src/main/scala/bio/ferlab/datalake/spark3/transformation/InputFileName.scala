@@ -8,7 +8,7 @@ case class InputFileName(columnName: String, regex: Option[String] = None) exten
     regex.fold(
       df.withColumn(columnName, input_file_name())
     )(rg =>
-      df.withColumn(columnName, regexp_extract(input_file_name(), rg, 0))
+      df.withColumn(columnName, regexp_extract(input_file_name(), rg, 1))
     )
   }
 }

@@ -1,7 +1,7 @@
 package bio.ferlab.datalake.spark3.etl
 
 import bio.ferlab.datalake.commons.config.LoadType.{Scd1, Scd2}
-import bio.ferlab.datalake.commons.config.RunType.{INCREMENTAL_LOAD, FIRST_LOAD, SAMPLE_LOAD}
+import bio.ferlab.datalake.commons.config.RunType.{FIRST_LOAD, INCREMENTAL_LOAD, SAMPLE_LOAD}
 import bio.ferlab.datalake.commons.config.WriteOptions.{UPDATED_ON_COLUMN_NAME, VALID_FROM_COLUMN_NAME}
 import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf, RunType}
 import bio.ferlab.datalake.spark3.datastore.SqlBinderResolver
@@ -10,6 +10,7 @@ import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import bio.ferlab.datalake.spark3.loader.LoadResolver
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.slf4j.{Logger, LoggerFactory}
 
 import java.sql.{Date, Timestamp}
 import java.time.LocalDateTime
@@ -26,6 +27,8 @@ abstract class ETL()(implicit val conf: Configuration) {
   val minDateTime: LocalDateTime = LocalDateTime.of(1900, 1, 1, 0, 0, 0)
   val maxDateTime: LocalDateTime = LocalDateTime.of(9999, 12, 31, 23, 59, 55)
   val destination: DatasetConf
+
+  val log: Logger = LoggerFactory.getLogger(getClass.getCanonicalName)
 
   /**
    * Reads data from a file system and produce a Map[DatasetConf, DataFrame].
@@ -58,7 +61,11 @@ abstract class ETL()(implicit val conf: Configuration) {
   def load(data: DataFrame,
            lastRunDateTime: LocalDateTime = minDateTime,
            currentRunDateTime: LocalDateTime = LocalDateTime.now())(implicit spark: SparkSession): DataFrame = {
+    log.info(s"loading: ${destination.id}")
     if(LoadResolver.write(spark, conf).isDefinedAt(destination.format -> destination.loadtype)) {
+      Try(
+        destination.table.foreach(table => spark.sql(s"CREATE DATABASE IF NOT EXISTS ${table.database}"))
+      )
       LoadResolver
         .write(spark, conf)(destination.format -> destination.loadtype)
         .apply(destination, data)

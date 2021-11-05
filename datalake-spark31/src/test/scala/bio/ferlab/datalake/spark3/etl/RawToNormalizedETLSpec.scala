@@ -1,15 +1,12 @@
 package bio.ferlab.datalake.spark3.etl
 
-import bio.ferlab.datalake.commons.config.DatasetConf
-import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf, StorageConf, TableConf}
 import bio.ferlab.datalake.commons.config.Format.{CSV, DELTA}
 import bio.ferlab.datalake.commons.config.LoadType.OverWrite
+import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf, StorageConf, TableConf}
 import bio.ferlab.datalake.commons.file.FileSystemType.S3
 import bio.ferlab.datalake.spark3.file.FileSystemResolver
-import bio.ferlab.datalake.spark3.transformation.Custom
+import bio.ferlab.datalake.spark3.transformation._
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.sql.functions._
-import org.apache.spark.sql.types.LongType
 import org.scalatest.GivenWhenThen
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -34,14 +31,21 @@ class RawToNormalizedETLSpec extends AnyFlatSpec with GivenWhenThen with Matcher
   val srcConf: DatasetConf =  DatasetConf("raw_airports", "raw"       , "/airports.csv", CSV  , OverWrite, Some(TableConf("raw_db" , "raw_airports")), readoptions = Map("header" -> "true", "delimiter" -> "|"))
   val destConf: DatasetConf = DatasetConf("airport"     , "normalized", "/airports"    , DELTA, OverWrite, Some(TableConf("normalized_db", "airport")), keys = List("airport_id"))
 
-  val job: RawToNormalizedETL = new RawToNormalizedETL(srcConf, destConf, List(Custom(_.select(
-    col("id").cast(LongType) as "airport_id",
-    trim(col("CODE")) as "airport_cd",
-    trim(col("description")) as "description_EN",
-    sha1(col("id")) as "hash_id",
-    input_file_name() as "input_file_name",
-    current_timestamp() as "createdOn"
-  ))))
+  val job: RawFileToNormalizedETL = new RawFileToNormalizedETL(srcConf, destConf,
+    List(
+      Copy("id", "hash_id"),
+      SHA1("hash_id"),
+      ToLong("id"),
+      Trim("CODE", "description"),
+      InputFileName("input_file_name"),
+      Now("createdOn"),
+      Rename(Map(
+        "id" -> "airport_id",
+        "CODE" -> "airport_cd",
+        "description" -> "description_EN"
+      ))
+    )
+  )
 
   "RawToNormalizedETL extract" should "return the expected format" in {
     import spark.implicits._
