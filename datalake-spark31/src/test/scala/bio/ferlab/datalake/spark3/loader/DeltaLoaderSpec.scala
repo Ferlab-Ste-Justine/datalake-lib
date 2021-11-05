@@ -32,7 +32,8 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers {
 
     val existing: DataFrame = Seq(
       TestData("a", "a", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1),
-      TestData("aaa", "aaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1)
+      TestData("aaa", "aaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1),
+      TestData("aaaa", "aaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1)
     ).toDF
 
     DeltaLoader.writeOnce(output, "default", "testtable", existing, List(), "delta")
@@ -44,7 +45,7 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers {
     )
     val updatedDF = updates.toDF
 
-    val expectedResult: Seq[TestData] = updates
+    val expectedResult: Seq[TestData] = updates ++ Seq(TestData("aaaa", "aaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1))
 
     DeltaLoader.upsert(
       output,

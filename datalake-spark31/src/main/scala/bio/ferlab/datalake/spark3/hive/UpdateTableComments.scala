@@ -1,9 +1,10 @@
 package bio.ferlab.datalake.spark3.hive
 
 import bio.ferlab.datalake.commons.config.DatasetConf
+import bio.ferlab.datalake.spark3.datastore.HiveSqlBinder
 import org.apache.spark.sql.SparkSession
 
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 
 object UpdateTableComments {
 
@@ -29,13 +30,7 @@ object UpdateTableComments {
 
   def setComments(comments: Array[HiveFieldComment], database: String, table: String)(implicit spark: SparkSession): Unit = {
     comments.foreach {
-      case HiveFieldComment(name, _type, comment) =>
-        val stmt = s"""ALTER TABLE $database.$table CHANGE $name $name ${_type} COMMENT '${comment.take(255)}' """
-        Try(spark.sql(stmt)) match {
-          case Failure(_) => println(s"[ERROR] sql statement failed: $stmt")
-          case Success(_) => println(s"[INFO] updating comment: $stmt")
-        }
-
+      case HiveFieldComment(name, _type, comment) => HiveSqlBinder.setComment(name, _type, comment, database, table)
     }
   }
 

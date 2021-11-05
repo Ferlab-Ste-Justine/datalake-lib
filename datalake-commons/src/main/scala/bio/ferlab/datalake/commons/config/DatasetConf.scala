@@ -55,7 +55,7 @@ case class DatasetConf(id: String,
    * @return
    */
   def rootPath(implicit config: Configuration): String = {
-    config.getStorage(storageid)
+    config.getStorage(storageid).path
   }
 
   /**

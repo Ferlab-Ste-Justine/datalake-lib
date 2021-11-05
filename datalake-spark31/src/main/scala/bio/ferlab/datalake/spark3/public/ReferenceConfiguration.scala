@@ -5,13 +5,14 @@ import bio.ferlab.datalake.commons.config.{Configuration, ConfigurationWriter, D
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns.locusColumNames
 import bio.ferlab.datalake.commons.config.Format.{CSV, DELTA, PARQUET, VCF, XML}
 import bio.ferlab.datalake.commons.config.LoadType.{OverWrite, Upsert}
+import bio.ferlab.datalake.commons.file.FileSystemType.S3
 
 object ReferenceConfiguration extends App {
 
   val alias = "public_database"
 
   val prod_storage = List(
-    StorageConf(alias, "s3a://kf-strides-variant-parquet-prd")
+    StorageConf(alias, "s3a://kf-strides-variant-parquet-prd", S3)
   )
 
   val kf_conf =

@@ -1,9 +1,11 @@
 package bio.ferlab.datalake.spark3.etl
 
 import bio.ferlab.datalake.commons.config.LoadType.{Scd1, Scd2}
+import bio.ferlab.datalake.commons.config.RunType.{INCREMENTAL_LOAD, FIRST_LOAD, SAMPLE_LOAD}
 import bio.ferlab.datalake.commons.config.WriteOptions.{UPDATED_ON_COLUMN_NAME, VALID_FROM_COLUMN_NAME}
-import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf}
-import bio.ferlab.datalake.spark3.file.{FileSystem, HadoopFileSystem}
+import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf, RunType}
+import bio.ferlab.datalake.spark3.datastore.SqlBinderResolver
+import bio.ferlab.datalake.spark3.file.FileSystemResolver
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import bio.ferlab.datalake.spark3.loader.LoadResolver
 import org.apache.spark.sql.functions._
@@ -24,11 +26,6 @@ abstract class ETL()(implicit val conf: Configuration) {
   val minDateTime: LocalDateTime = LocalDateTime.of(1900, 1, 1, 0, 0, 0)
   val maxDateTime: LocalDateTime = LocalDateTime.of(9999, 12, 31, 23, 59, 55)
   val destination: DatasetConf
-
-  /**
-   * Default file system
-   */
-  val fs: FileSystem = HadoopFileSystem
 
   /**
    * Reads data from a file system and produce a Map[DatasetConf, DataFrame].
@@ -61,14 +58,13 @@ abstract class ETL()(implicit val conf: Configuration) {
   def load(data: DataFrame,
            lastRunDateTime: LocalDateTime = minDateTime,
            currentRunDateTime: LocalDateTime = LocalDateTime.now())(implicit spark: SparkSession): DataFrame = {
-    if(LoadResolver.resolve(spark, conf).isDefinedAt(destination.format -> destination.loadtype)) {
+    if(LoadResolver.write(spark, conf).isDefinedAt(destination.format -> destination.loadtype)) {
       LoadResolver
-        .resolve(spark, conf)(destination.format -> destination.loadtype)
+        .write(spark, conf)(destination.format -> destination.loadtype)
         .apply(destination, data)
     } else {
       throw new NotImplementedError(s"Load is not implemented for [${destination.format} / ${destination.loadtype}]")
     }
-    data
   }
 
   /**
@@ -99,10 +95,23 @@ abstract class ETL()(implicit val conf: Configuration) {
    * Entry point of the etl - execute this method in order to run the whole ETL
    * @param spark an instance of SparkSession
    */
-  def run()(implicit spark: SparkSession): DataFrame = {
-    val lastRunDateTime = getLastRunDateFor(destination)
-    val currentRunDateTime = LocalDateTime.now()
-    run(lastRunDateTime, currentRunDateTime)
+  def run(runtype: RunType)(implicit spark: SparkSession): DataFrame = {
+    runtype match {
+      case FIRST_LOAD =>
+        this.reset()
+        run(minDateTime, LocalDateTime.now())
+
+      case INCREMENTAL_LOAD =>
+        run(getLastRunDateFor(destination), LocalDateTime.now())
+
+      case SAMPLE_LOAD =>
+        this.reset()
+        val inputs: Map[String, DataFrame] = extract().map { case (ds, df) => ds -> sampling(ds).apply(df) }
+        val output = transform(inputs)
+        val finalDf = load(output)
+        publish()
+        finalDf
+    }
   }
 
   /**
@@ -132,8 +141,23 @@ abstract class ETL()(implicit val conf: Configuration) {
   /**
    * Reset the ETL by removing the destination dataset.
    */
-  def reset(): Unit = {
-    fs.remove(destination.location)
+  def reset()(implicit spark: SparkSession): Unit = {
+    FileSystemResolver
+      .resolve(conf.getStorage(destination.storageid).filesystem)
+      .remove(destination.path)
+
+    SqlBinderResolver.drop(spark, conf)(destination.format).apply(destination)
+
+  }
+
+  /**
+   * Logic used when the ETL is run as a [[SAMPLE_LOAD]]
+   * @return
+   */
+  def sampling: PartialFunction[String, DataFrame => DataFrame] = defaultSampling
+
+  def defaultSampling: PartialFunction[String, DataFrame => DataFrame] = {
+    case _ => df => df.sample(0.05)
   }
 
 }

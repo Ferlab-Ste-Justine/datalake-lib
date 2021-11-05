@@ -20,9 +20,8 @@ case class Configuration(storages: List[StorageConf] = List(),
     sources.find(_.id.equalsIgnoreCase(id))
       .getOrElse(throw new Exception(s"""Dataset [$id] not found in ${sources.map(_.id).mkString("[", ", ", "]")}."""))
 
-  def getStorage(alias: String): String = {
+  def getStorage(alias: String): StorageConf = {
     storages.find(_.id.equalsIgnoreCase(alias))
-      .map(_.path)
       .getOrElse(throw new IllegalArgumentException(s"storage with alias [$alias] not found"))
   }
 

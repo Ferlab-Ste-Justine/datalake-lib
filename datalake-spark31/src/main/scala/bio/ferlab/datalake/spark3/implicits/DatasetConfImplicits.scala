@@ -5,6 +5,8 @@ import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf}
 import bio.ferlab.datalake.spark3.loader.LoadResolver
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
+import java.time.LocalDateTime
+
 object DatasetConfImplicits {
 
   implicit class DatasetConfOperations(ds: DatasetConf) {
@@ -17,13 +19,24 @@ object DatasetConfImplicits {
      * @return
      */
     def read(implicit config: Configuration, spark: SparkSession): DataFrame = {
-      if(LoadResolver.resolve(spark, config).isDefinedAt(ds.format -> Read)) {
+      if(LoadResolver.read(spark, config).isDefinedAt(ds.format)) {
         LoadResolver
-          .resolve(spark, config)(ds.format -> Read)
-          .apply(ds, spark.emptyDataFrame)
+          .read(spark, config)(ds.format)
+          .apply(ds)
       } else {
-        throw new NotImplementedError(s"Load is not implemented for [${ds.format} / ${Read}]")
+        throw new NotImplementedError(s"Read is not implemented for [${ds.format}]")
       }
+    }
+
+    def resetTo(dateTime: LocalDateTime)(implicit config: Configuration, spark: SparkSession): Unit = {
+      if(LoadResolver.resetTo(spark, config).isDefinedAt(ds.format, ds.loadtype)) {
+        LoadResolver
+          .resetTo(spark, config)(ds.format, ds.loadtype)
+          .apply(dateTime, ds)
+      } else {
+        throw new NotImplementedError(s"Reset is not implemented for [${ds.format} / ${ds.loadtype}]")
+      }
+
     }
   }
 

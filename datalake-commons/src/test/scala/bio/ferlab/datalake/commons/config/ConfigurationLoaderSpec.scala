@@ -1,5 +1,6 @@
 package bio.ferlab.datalake.commons.config
 
+import bio.ferlab.datalake.commons.file.FileSystemType.S3
 import org.scalatest.GivenWhenThen
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -10,21 +11,21 @@ class ConfigurationLoaderSpec extends AnyFlatSpec with GivenWhenThen with Matche
 
     val parsedConf = ConfigurationLoader.loadFromPath(getClass.getClassLoader.getResource("config/application.conf").getFile)
 
-    parsedConf shouldBe Configuration(storages = List(StorageConf("default", "spark-local")))
+    parsedConf shouldBe Configuration(storages = List(StorageConf("default", "spark-local", S3)))
   }
 
   "loadEtlConfiguration" should "not throw an exception but use default config when config file not found" in {
 
     val parsedConf = ConfigurationLoader.loadFromPath("config/application.conf")
 
-    parsedConf shouldBe Configuration(storages = List(StorageConf("default", "spark-fallback")))
+    parsedConf shouldBe Configuration(storages = List(StorageConf("default", "spark-fallback", S3)))
   }
 
   "loadEtlConfiguration" should "load config from resources" in {
 
     val parsedConf = ConfigurationLoader.loadFromResources("config/application.conf")
 
-    parsedConf shouldBe Configuration(storages = List(StorageConf("default", "spark-local")))
+    parsedConf shouldBe Configuration(storages = List(StorageConf("default", "spark-local", S3)))
   }
 
   "loadEtlConfiguration" should "load config from string" in {
@@ -41,7 +42,7 @@ class ConfigurationLoaderSpec extends AnyFlatSpec with GivenWhenThen with Matche
 
     val parsedConf = ConfigurationLoader.loadFromString(conf)
 
-    parsedConf shouldBe Configuration(storages = List(StorageConf("default", "spark-local")))
+    parsedConf shouldBe Configuration(storages = List(StorageConf("default", "spark-local", S3)))
   }
 
   it should "load config with env variable" in {

@@ -19,12 +19,12 @@ object DeltaLoader extends Loader {
     require(primaryKeys.forall(updates.columns.contains), s"requires column [${primaryKeys.mkString(", ")}]")
 
     Try(DeltaTable.forName(s"$databaseName.$tableName")) match {
-      case Failure(_) => writeOnce(location, databaseName, tableName, updates, partitioning, format)
+      case Failure(_) =>
+        writeOnce(location, databaseName, tableName, updates, partitioning, format)
       case Success(existing) =>
 
         val existingDf = existing.toDF
         val mergeCondition: Column = primaryKeys.map(c => updates(c) === existingDf(c)).reduce((a, b) => a && b)
-
         /** Merge */
         existing.as("existing")
           .merge(

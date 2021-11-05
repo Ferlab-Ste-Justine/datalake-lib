@@ -2,6 +2,7 @@ package bio.ferlab.datalake.commons.config
 
 import bio.ferlab.datalake.commons.config.Format.PARQUET
 import bio.ferlab.datalake.commons.config.LoadType._
+import bio.ferlab.datalake.commons.file.FileSystemType.S3
 import org.scalatest.GivenWhenThen
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -13,7 +14,7 @@ class ConfigurationWriterSpec extends AnyFlatSpec with GivenWhenThen with Matche
 
   val conf: Configuration = Configuration(
     args = List("arg1", "arg2"),
-    storages = List(StorageConf("a", "s3://a")),
+    storages = List(StorageConf("a", "s3://a", S3)),
     sources = List(
       DatasetConf("name_a", "a" ,"/path/a", PARQUET, OverWrite, Some(TableConf("db", "name_a")), List("id"), List(), Map("key" -> "value"), Map("key2" -> "value")),
       DatasetConf("name_b", "b" ,"/path/b", PARQUET, OverWrite, Some(TableConf("db", "name_b")), List("id"), List(), Map("key" -> "value"), Map("key2" -> "value"))),
