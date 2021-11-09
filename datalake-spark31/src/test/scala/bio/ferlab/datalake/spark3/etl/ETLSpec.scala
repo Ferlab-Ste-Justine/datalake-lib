@@ -4,7 +4,8 @@ import bio.ferlab.datalake.commons.config.Format.{CSV, DELTA}
 import bio.ferlab.datalake.commons.config.LoadType._
 import bio.ferlab.datalake.commons.config.RunType.{FIRST_LOAD, INCREMENTAL_LOAD, SAMPLE_LOAD}
 import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf, StorageConf, TableConf}
-import bio.ferlab.datalake.commons.file.FileSystemType.S3
+import bio.ferlab.datalake.commons.file.FileSystemType.{LOCAL, S3}
+import bio.ferlab.datalake.spark3.file.FileSystemResolver
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.LongType
@@ -15,6 +16,7 @@ import org.scalatest.{BeforeAndAfterAll, GivenWhenThen}
 
 import java.sql.{Date, Timestamp}
 import java.time.{LocalDate, LocalDateTime}
+import scala.util.Try
 
 class ETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers with BeforeAndAfterAll {
 
@@ -29,8 +31,8 @@ class ETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers with BeforeAn
 
 
   implicit val conf: Configuration = Configuration(storages = List(
-    StorageConf("raw", getClass.getClassLoader.getResource("raw/landing").getFile, S3),
-    StorageConf("normalized", getClass.getClassLoader.getResource("normalized/").getFile, S3)),
+    StorageConf("raw", getClass.getClassLoader.getResource("raw/landing").getFile, LOCAL),
+    StorageConf("normalized", getClass.getClassLoader.getResource("normalized/").getFile, LOCAL)),
     sources = List()
   )
 
@@ -64,6 +66,19 @@ class ETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers with BeforeAn
     override def sampling: PartialFunction[String, DataFrame => DataFrame] = {
       case "raw_airports" => {df => df.limit(1)}
     }
+
+    override def reset()(implicit spark: SparkSession): Unit = {
+      Try {
+        val fs = FileSystemResolver.resolve(conf.getStorage(srcConf.storageid).filesystem)       // get source dataset file system
+        val files = fs.list(srcConf.location.replace("landing", "archive"), recursive = true)    // list all archived files
+        files.foreach(f => {
+          log.info(s"Moving ${f.path} to ${f.path.replace("archive", "landing")}")
+          fs.move(f.path, f.path.replace("archive", "landing"), overwrite = true)
+        })
+      }                                                                                          // move archived files to landing zone
+      super.reset()                                                                              // call parent's method to reset destination
+    }
+
   }
 
   val job: ETL = TestETL()
