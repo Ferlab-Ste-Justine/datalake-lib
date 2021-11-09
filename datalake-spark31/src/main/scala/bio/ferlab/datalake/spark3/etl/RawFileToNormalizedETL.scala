@@ -60,7 +60,16 @@ class RawFileToNormalizedETL(override val source: DatasetConf,
       case Success(_) => log.info("SUCCESS")
       case Failure(exception) => log.error(s"FAILURE: ${exception.getLocalizedMessage}")
     }
+  }
 
+  override def reset()(implicit spark: SparkSession): Unit = {
+    val fs = FileSystemResolver.resolve(conf.getStorage(source.storageid).filesystem)          // get source dataset file system
+    val files = fs.list(source.location.replace("landing", "archive"), recursive = true)       // list all archived files
+    files.foreach(f => {
+      log.info(s"Moving ${f.path} to ${f.path.replace("archive", "landing")}")
+      fs.move(f.path, f.path.replace("archive", "landing"), overwrite = true)
+    })                                                                                         // move archived files to landing zone
+    super.reset()                                                                              // call parent's method to reset destination
   }
 }
 

@@ -3,15 +3,17 @@ package bio.ferlab.datalake.spark3.etl
 import bio.ferlab.datalake.commons.config.Format.{CSV, DELTA}
 import bio.ferlab.datalake.commons.config.LoadType.OverWrite
 import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf, StorageConf, TableConf}
-import bio.ferlab.datalake.commons.file.FileSystemType.S3
+import bio.ferlab.datalake.commons.file.FileSystemType.LOCAL
 import bio.ferlab.datalake.spark3.file.FileSystemResolver
 import bio.ferlab.datalake.spark3.transformation._
 import org.apache.spark.sql.SparkSession
-import org.scalatest.GivenWhenThen
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.{BeforeAndAfterAll, GivenWhenThen}
 
-class RawToNormalizedETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
+import scala.util.Try
+
+class RawToNormalizedETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers with BeforeAndAfterAll {
 
   implicit lazy val spark: SparkSession = SparkSession.builder()
     .config("spark.ui.enabled", value = false)
@@ -24,8 +26,8 @@ class RawToNormalizedETLSpec extends AnyFlatSpec with GivenWhenThen with Matcher
 
 
   implicit val conf: Configuration = Configuration(storages = List(
-    StorageConf("raw", getClass.getClassLoader.getResource("raw/landing").getFile, S3),
-    StorageConf("normalized", getClass.getClassLoader.getResource("normalized/").getFile, S3)
+    StorageConf("raw", getClass.getClassLoader.getResource("raw/landing").getFile, LOCAL),
+    StorageConf("normalized", getClass.getClassLoader.getResource("normalized/").getFile, LOCAL)
   ))
 
   val srcConf: DatasetConf =  DatasetConf("raw_airports", "raw"       , "/airports.csv", CSV  , OverWrite, Some(TableConf("raw_db" , "raw_airports")), readoptions = Map("header" -> "true", "delimiter" -> "|"))
@@ -33,8 +35,7 @@ class RawToNormalizedETLSpec extends AnyFlatSpec with GivenWhenThen with Matcher
 
   val job: RawFileToNormalizedETL = new RawFileToNormalizedETL(srcConf, destConf,
     List(
-      Copy("id", "hash_id"),
-      SHA1("hash_id"),
+      Copy("id", "hash_id") -> SHA1("hash_id"),
       ToLong("id"),
       Trim("CODE", "description"),
       InputFileName("input_file_name"),
@@ -46,6 +47,10 @@ class RawToNormalizedETLSpec extends AnyFlatSpec with GivenWhenThen with Matcher
       ))
     )
   )
+
+  override def beforeAll(): Unit = {
+    Try(job.reset())
+  }
 
   "RawToNormalizedETL extract" should "return the expected format" in {
     import spark.implicits._
