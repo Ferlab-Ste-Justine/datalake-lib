@@ -55,6 +55,7 @@ lazy val `datalake-commons` = (project in file("datalake-commons"))
     libraryDependencies += "dev.zio"               %% "zio-config-typesafe"    % zioVersion,
     libraryDependencies += "dev.zio"               %% "zio-config"             % zioVersion,
     libraryDependencies += "dev.zio"               %% "zio-config-magnolia"    % zioVersion,
+    libraryDependencies += "com.outr"              %% "hasher"                 % "1.2.2",
     dependencyOverrides ++= Seq(
       "org.apache.commons"    % "commons-lang3"           % "3.9",
       "org.antlr"    % "antlr4"           % "4.8",
