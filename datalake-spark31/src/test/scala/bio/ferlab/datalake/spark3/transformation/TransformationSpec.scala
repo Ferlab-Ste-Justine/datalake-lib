@@ -1,7 +1,8 @@
 package bio.ferlab.datalake.spark3.transformation
 
+import bio.ferlab.datalake.spark3.model.TestTransformationPBKDF2
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.sql.functions.col
+import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.IntegerType
 import org.scalatest.GivenWhenThen
 import org.scalatest.flatspec.AnyFlatSpec
@@ -100,5 +101,21 @@ class TransformationSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
   }
 
 
+  "PBKDF2" should "hash value" in {
+
+    val testData = Seq(
+      ("universinformationnel", "456123789")
+    ).toDF("SIN", "NAM")
+
+    val expectedResult = Seq(TestTransformationPBKDF2())
+
+    val job = new PBKDF2("coda19", 10000, 512, "SIN", "NAM")
+    val result = job.transform(testData)
+    result.show(false)
+
+    result.count shouldBe 1
+    result.as[TestTransformationPBKDF2].collect should contain allElementsOf expectedResult
+
+  }
 
 }
