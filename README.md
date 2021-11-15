@@ -1,14 +1,16 @@
 # datalake-lib
-Library built on top of Apache Spark to speed-up data lakes development. 
+Library built on top of Apache Spark to speed-up data lakes development.
 
-## datalake-spark3
+## datalake-commons
 
-Unit tests requirements
-- Java 11
+Common classes between all modules.
 
+## Version Matrix
 
-## datalake-spark2
+The following table lists the versions supported of the main dependencies
 
-Unit tests requirements
-- An instance of Elasticsearh 7.8.1+ running on http://localhost:9200
-- Java 8
+| module | Spark Version | Delta Version | Glow Version | Scala version | Zio Version|
+| ------ | ------------- | ------------- | ------------ | ------------- | ---------- |
+| datalake-spark30 | `3.0.3` | `0.8.0` | `1.0.1` | `2.12` | `1.0.6`|
+| datalake-spark31 | `3.1.2` | `1.0.0` | `1.0.1` | `2.12` | `1.0.6`|
+| datalake-spark32 | `3.2.0` | `TBD` | `TBD` | `2.12` `2.13` | `TBD`|
