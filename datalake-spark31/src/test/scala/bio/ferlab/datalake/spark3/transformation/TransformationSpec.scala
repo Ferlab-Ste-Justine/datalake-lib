@@ -109,12 +109,28 @@ class TransformationSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
 
     val expectedResult = Seq(TestTransformationPBKDF2())
 
-    val job = new PBKDF2("coda19", 10000, 512, "SIN", "NAM")
+    val job = PBKDF2("coda19", 10000, 512, "SIN", "NAM")
     val result = job.transform(testData)
     result.show(false)
 
     result.count shouldBe 1
     result.as[TestTransformationPBKDF2].collect should contain allElementsOf expectedResult
+
+  }
+
+  "PBKDF2" should "return null if input column is null" in {
+
+    val testData = Seq(
+      null,
+      "universinformationnel"
+    ).toDF("SIN")
+
+    val job = PBKDF2("coda19", 10000, 512, "SIN")
+    val result = job.transform(testData)
+    result.show(false)
+
+    result.count shouldBe 2
+    result.as[String].collect should contain allElementsOf Seq(null, "72245ae61da8e920c321e0bf57f9a1c9aae59b9806bfc3e7344e794a05dfa27dab0e7c03ba2ba64b2deeb310b996e5f7e984a4e51dab13b59026c339e6fc2a5b")
 
   }
 

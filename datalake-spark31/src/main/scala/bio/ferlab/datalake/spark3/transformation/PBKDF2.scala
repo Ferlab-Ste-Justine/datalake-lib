@@ -3,6 +3,8 @@ package bio.ferlab.datalake.spark3.transformation
 import com.roundeights.hasher.Implicits._
 import org.apache.spark.sql._
 import org.apache.spark.sql.functions._
+import org.apache.spark.sql.types.StringType
+
 import scala.language.postfixOps
 
 /**
@@ -33,7 +35,8 @@ case class PBKDF2(salt: String, iteration: Int, keyLength: Int, columns: String*
     spark.udf.register("pbkdf2Udf", pbkdf2Udf)
 
     columns.foldLeft(df) { case (d, column) =>
-      d.withColumn(column, callUDF("pbkdf2Udf", col(column), lit(salt)))
+      d.withColumn(column,
+        when(col(column).isNull, lit(null).cast(StringType)).otherwise(callUDF("pbkdf2Udf", col(column), lit(salt))))
 
     }
 
