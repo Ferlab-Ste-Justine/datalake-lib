@@ -5,7 +5,6 @@ import org.slf4j.{Logger, LoggerFactory}
 trait FileSystem {
 
   val log: Logger = LoggerFactory.getLogger(getClass.getCanonicalName)
-
   /**
    * List all files within a folder.
    *
