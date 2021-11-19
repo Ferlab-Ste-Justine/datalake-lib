@@ -103,11 +103,20 @@ lazy val `datalake-spark31` = (project in file("datalake-spark31"))
     libraryDependencies += "dev.zio"               %% "zio-config-typesafe"    % zioVersion,
     libraryDependencies += "dev.zio"               %% "zio-config"             % zioVersion,
     libraryDependencies += "dev.zio"               %% "zio-config-magnolia"    % zioVersion,
-    dependencyOverrides ++= Seq(
+    libraryDependencies += "software.amazon.awssdk" % "s3" % "2.17.71"         % Provided,
+    libraryDependencies += "com.dimafeng"          %% "testcontainers-scala-scalatest" % "0.38.8" % Test,
+    libraryDependencies += "org.testcontainers"     % "localstack" % "1.15.2"  % Test,
+
+
+      dependencyOverrides ++= Seq(
       "org.apache.commons"    % "commons-lang3"           % "3.9",
       //"org.antlr" % "antlr4"           % "4.8",
       "org.antlr" % "antlr4-runtime" % "4.8",
-      "org.antlr" % "antlr4-tool"    % "4.7.1"
-    )
+      "org.antlr" % "antlr4-tool"    % "4.7.1",
+    ),
+
+
   )
   .dependsOn(`datalake-commons`)
+
+Test / fork := true
