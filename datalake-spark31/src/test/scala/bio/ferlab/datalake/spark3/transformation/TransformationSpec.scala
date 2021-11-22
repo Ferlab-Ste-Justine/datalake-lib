@@ -1,9 +1,9 @@
 package bio.ferlab.datalake.spark3.transformation
 
-import bio.ferlab.datalake.spark3.model.{TestTransformationCamel2Case, TestTransformationPBKDF2}
+import bio.ferlab.datalake.spark3.model.{TestTransformationCamel2Case, TestTransformationPBKDF2, TestTransformationRename}
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.types.IntegerType
+import org.apache.spark.sql.types._
 import org.scalatest.GivenWhenThen
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -39,7 +39,6 @@ class TransformationSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
 
     Transformation.applyTransformations(df, transformations).as[(Int, Int, String)].collect() should contain allElementsOf
       Seq((1, 2, "test"), (3, 4, "test"))
-
 
 
   }
@@ -140,11 +139,11 @@ class TransformationSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
 
   "Whens" should "use when function many times as per user needs" in {
 
-    val testData = Seq("Y","N", "INVALID").toDF("a")
+    val testData = Seq("Y", "N", "INVALID").toDF("a")
     testData.show(false)
 
     val job = Whens("a2", List(
-      (col("a") === "Y", lit("a is Yes")),
+      (col("a") === "Y", lit(null).cast(StringType)),
       (col("a") === "N", lit("a is No"))
     ), "a is invalid")
 
@@ -154,7 +153,7 @@ class TransformationSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
     result.count shouldBe 3
     result
       .select("a", "a2")
-      .as[(String, String)].collect() should contain allElementsOf Seq(("Y", "a is Yes"),("N", "a is No"), ("INVALID", "a is invalid"))
+      .as[(String, String)].collect() should contain allElementsOf Seq(("Y", null), ("N", "a is No"), ("INVALID", "a is invalid"))
 
   }
 
@@ -162,7 +161,7 @@ class TransformationSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
 
     val expectedResult = Seq(TestTransformationCamel2Case())
 
-    val testData = Seq(("test1","test2", "test3")).toDF("FORMULA","PanelType", "MAP_TO")
+    val testData = Seq(("test1", "test2", "test3")).toDF("FORMULA", "PanelType", "MAP_TO")
     testData.show(false)
 
     val job = CamelToSnake("FORMULA", "PanelType", "MAP_TO")
@@ -172,6 +171,23 @@ class TransformationSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
     result.count shouldBe 1
     result.as[TestTransformationCamel2Case].collect should contain allElementsOf expectedResult
 
+  }
+
+  "Rename" should "rename the name of the column" in {
+
+    val expectedResult = Seq(TestTransformationRename())
+
+    val testData = Seq("test").toDF("LOINC")
+    testData.show(false)
+
+    val job = Rename(Map("LOINC" -> "loinc_num"))
+    val result = job.transform(testData)
+    result.show(false)
+    result.printSchema()
+
+    result.count shouldBe 1
+    result
+      .as[TestTransformationRename].collect should contain allElementsOf expectedResult
 
   }
 
