@@ -1,6 +1,6 @@
 package bio.ferlab.datalake.spark3.transformation
 
-import bio.ferlab.datalake.spark3.model.TestTransformationPBKDF2
+import bio.ferlab.datalake.spark3.model.{TestTransformationCamel2Case, TestTransformationPBKDF2}
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.IntegerType
@@ -32,11 +32,15 @@ class TransformationSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
     val df =
       Seq(("1", "2", "test"), ("3", "4", "test"))
         .toDF("a", "b", "c")
+    df.show(false)
+    df.printSchema()
 
     val transformations = List(Cast(IntegerType, "a", "b"))
 
     Transformation.applyTransformations(df, transformations).as[(Int, Int, String)].collect() should contain allElementsOf
       Seq((1, 2, "test"), (3, 4, "test"))
+
+
 
   }
 
@@ -131,6 +135,43 @@ class TransformationSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
 
     result.count shouldBe 2
     result.as[String].collect should contain allElementsOf Seq(null, "72245ae61da8e920c321e0bf57f9a1c9aae59b9806bfc3e7344e794a05dfa27dab0e7c03ba2ba64b2deeb310b996e5f7e984a4e51dab13b59026c339e6fc2a5b")
+
+  }
+
+  "Whens" should "use when function many times as per user needs" in {
+
+    val testData = Seq("Y","N", "INVALID").toDF("a")
+    testData.show(false)
+
+    val job = Whens("a2", List(
+      (col("a") === "Y", lit("a is Yes")),
+      (col("a") === "N", lit("a is No"))
+    ), "a is invalid")
+
+    val result = job.transform(testData)
+    result.show(false)
+
+    result.count shouldBe 3
+    result
+      .select("a", "a2")
+      .as[(String, String)].collect() should contain allElementsOf Seq(("Y", "a is Yes"),("N", "a is No"), ("INVALID", "a is invalid"))
+
+  }
+
+  "CamelToSnake" should "return the columns names from CamelCase in snake_case" in {
+
+    val expectedResult = Seq(TestTransformationCamel2Case())
+
+    val testData = Seq(("test1","test2", "test3")).toDF("FORMULA","PanelType", "MAP_TO")
+    testData.show(false)
+
+    val job = CamelToSnake("FORMULA", "PanelType", "MAP_TO")
+    val result = job.transform(testData)
+    result.show(false)
+
+    result.count shouldBe 1
+    result.as[TestTransformationCamel2Case].collect should contain allElementsOf expectedResult
+
 
   }
 
