@@ -142,9 +142,11 @@ object GenomicImplicits {
         df.withColumn("norm_fth_calls", normalizeCall(fth_calls))
           .withColumn("norm_mth_calls", normalizeCall(mth_calls))
 
-      val static_transmissions =
-        when(col("calls") === Array(0, 0), lit("non_carrier_proband"))
+      val static_transmissions = {
+        when(col("norm_fth_calls").isNull or col("norm_mth_calls").isNull, lit(null))
+          .when(col("calls") === Array(0, 0), lit("non_carrier_proband"))
           .when(col("calls").isNull or col("calls") === Array(-1, -1), lit("unknown_proband_genotype"))
+      }
 
       val autosomal_transmissions: Column = strictAutosomalTransmissions.foldLeft[Column](static_transmissions){
         case (c, (proband_calls, fth_calls, mth_calls, fth_affected_status, mth_affected_status, transmission)) =>
