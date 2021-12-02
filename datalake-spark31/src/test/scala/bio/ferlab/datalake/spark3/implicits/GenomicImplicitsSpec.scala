@@ -100,6 +100,8 @@ class GenomicImplicitsSpec extends AnyFlatSpec with WithSparkSession with Matche
       ("X", "Female", false, Array(0, 1)  , Array(0, 0), null       , true, false, false, "unknown_mother_genotype"),
       ("1", "Male"  , false, Array(1, 1)  , null       , Array(0, 0), true, false, false, "unknown_father_genotype"),
       ("X", "Female", false, Array(1, 1)  , Array(0, 0), null       , true, false, false, "unknown_mother_genotype"),
+      ("1", "Male"  , false, Array(0, 0)  , null       , Array(0, 0), false, false, false, null),
+      ("1", "Male"  , false, Array(0, 0)  , Array(0, 0), null       , false, false, false, null),
       ("1", "Male"  , false, Array(0, 0)  , Array(0, 0), Array(0, 0), false, false, false, "non_carrier_proband"),
       ("X", "Female", false, Array(0, 0)  , Array(0, 0), Array(0, 0), false, false, false, "non_carrier_proband"),
       ("1", "Female", false, null         , Array(0, 0), Array(0, 0), false, false, false, "unknown_proband_genotype"),
