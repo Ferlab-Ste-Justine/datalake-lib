@@ -142,13 +142,21 @@ case class $className(${fields.mkString("", s",\n${spacing.mkString}" , ")")}"""
                      rootFolder: String = getClass.getResource(".").getFile): Unit = {
 
     val classContent = getCaseClassFileContent(packageName, className, df)
-    val path: String = (rootFolder + packageName.replace(".", "/")+ s"/$className.scala")
+    val folder = s"""$rootFolder${packageName.replace(".", "/")}"""
+    val path: String = s"$folder/$className.scala"
 
     println(
       s"""writting file: $path :
          |$classContent
          |""".stripMargin)
     val file = new File(path)
+
+    val directory = new File(folder)
+
+    if (!directory.exists) {
+      directory.mkdirs()
+    }
+
     file.createNewFile()
     val pw = new PrintWriter(file)
     pw.write(classContent)

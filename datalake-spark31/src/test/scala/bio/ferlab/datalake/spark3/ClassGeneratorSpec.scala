@@ -1,5 +1,6 @@
 package bio.ferlab.datalake.spark3
 
+import bio.ferlab.datalake.spark3.ClassGenerator.getClass
 import org.apache.spark.sql.SparkSession
 import org.scalatest.GivenWhenThen
 import org.scalatest.flatspec.AnyFlatSpec
@@ -7,6 +8,7 @@ import org.scalatest.matchers.should.Matchers
 
 import java.sql.Timestamp
 import java.time.LocalDateTime
+import java.util.UUID
 
 
 case class TestInput(a: String = "a", b: Long = 0, c: String = "c", d: List[String] = List("c", "d"), e: Timestamp = Timestamp.valueOf("1900-01-01 00:00:00"))
@@ -115,6 +117,11 @@ case class TestClassOutput(`a`: Option[String] = None,
     assertThrows[IllegalArgumentException] {
       ClassGenerator.getCaseClassFileContent("ca.test", "test", spark.emptyDataFrame)
     }
+  }
+
+  "class generator" should "create folder if not exists" in {
+    val path = this.getClass.getClassLoader.getResource(".").getFile + UUID.randomUUID().toString
+    ClassGenerator.writeCLassFile("ca.test", "test", Seq(TestInput()).toDF(), path)
   }
 
   "class generator" should "add import for Timestamps" in {
