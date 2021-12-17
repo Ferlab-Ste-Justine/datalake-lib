@@ -1,6 +1,7 @@
 package bio.ferlab.datalake.spark3.testutils.containers
 
 import com.dimafeng.testcontainers.GenericContainer
+
 import scala.collection.JavaConverters._
 
 trait OurContainer {

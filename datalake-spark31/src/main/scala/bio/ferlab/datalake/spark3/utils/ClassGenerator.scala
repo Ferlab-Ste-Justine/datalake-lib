@@ -1,4 +1,4 @@
-package bio.ferlab.datalake.spark3
+package bio.ferlab.datalake.spark3.utils
 
 import org.apache.spark.sql._
 import org.apache.spark.sql.functions._
