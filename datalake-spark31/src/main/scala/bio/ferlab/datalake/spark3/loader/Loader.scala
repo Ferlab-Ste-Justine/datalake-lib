@@ -23,14 +23,39 @@ trait Loader {
            tableName: Option[String])(implicit spark: SparkSession): DataFrame
 
   /**
+   * Keeps old partition and overwrite new partitions.
+   *
+   * @param location where to write the data
+   * @param databaseName database name
+   * @param tableName table name
+   * @param df new data to write into the table
+   * @param partitioning how the data is partitionned
+   * @param format format
+   * @param options write options
+   * @param spark a spark session
+   * @return updated data
+   */
+  def overwritePartition(location: String,
+                         databaseName: String,
+                         tableName: String,
+                         df: DataFrame,
+                         partitioning: List[String],
+                         format: String,
+                         options: Map[String, String] = Map("dataChange" -> "true"))(implicit spark: SparkSession): DataFrame
+
+  /**
    * Overwrites the data located in output/tableName
    * usually used for small/test tables.
-   * @param df the data to write
-   * @param tableName the name of the table
-   * @param location full path of where the data will be located
-   * @param dataChange if the data is expected to be different from the data already written
-   * @param spark a valid spark session
-   * @return the data as a dataframe
+   *
+   * @param location where to write the data
+   * @param databaseName database name
+   * @param tableName table name
+   * @param df new data to write into the table
+   * @param partitioning how the data is partitionned
+   * @param format format
+   * @param options write options
+   * @param spark a spark session
+   * @return updated data
    */
   def writeOnce(location: String,
                 databaseName: String,
@@ -38,7 +63,7 @@ trait Loader {
                 df: DataFrame,
                 partitioning: List[String],
                 format: String,
-                dataChange: Boolean = true)(implicit spark: SparkSession): DataFrame
+                options: Map[String, String])(implicit spark: SparkSession): DataFrame
 
   /**
    * Insert or append data into a table

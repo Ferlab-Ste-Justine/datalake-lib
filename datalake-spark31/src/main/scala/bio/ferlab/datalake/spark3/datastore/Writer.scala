@@ -25,7 +25,7 @@ trait Writer {
                 df: DataFrame,
                 partitioning: List[String],
                 format: String,
-                dataChange: Boolean = true)(implicit spark: SparkSession): DataFrame
+                options: Map[String, String])(implicit spark: SparkSession): DataFrame
 
   /**
    * Insert or append data into a table

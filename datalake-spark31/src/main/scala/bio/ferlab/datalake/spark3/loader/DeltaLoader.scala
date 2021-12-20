@@ -1,6 +1,7 @@
 package bio.ferlab.datalake.spark3.loader
 
 import io.delta.tables.DeltaTable
+import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.{Column, DataFrame, SaveMode, SparkSession}
 
 import java.time.LocalDate
@@ -95,17 +96,34 @@ object DeltaLoader extends Loader {
                          df: DataFrame,
                          partitioning: List[String],
                          format: String,
-                         dataChange: Boolean)(implicit spark: SparkSession): DataFrame = {
+                         options: Map[String, String] = Map("dataChange" -> "true"))(implicit spark: SparkSession): DataFrame = {
+
     spark.sql(s"CREATE DATABASE IF NOT EXISTS $databaseName")
     df
       .write
-      .option("dataChange", dataChange)
+      .options(options)
       .mode(SaveMode.Overwrite)
       .partitionBy(partitioning: _*)
       .format("delta")
       .option("path", s"$location")
       .saveAsTable(s"$databaseName.$tableName")
     df
+  }
+
+  override def overwritePartition(location: String,
+                                  databaseName: String,
+                                  tableName: String,
+                                  df: DataFrame,
+                                  partitioning: List[String],
+                                  format: String,
+                                  options: Map[String, String] = Map("dataChange" -> "true"))(implicit spark: SparkSession): DataFrame = {
+    if (partitioning.isEmpty)
+      throw new IllegalArgumentException(s"Cannot use loadType 'OverWritePartition' without partitions.")
+
+    val partitionValues = df.select(partitioning.head).distinct.collect().map(_.get(0))
+    val replaceWhereClause = s"ingested_on in ('${partitionValues.mkString("', '")}')"
+
+    writeOnce(location, databaseName, tableName, df, partitioning, format, options + ("replaceWhere" -> replaceWhereClause))
   }
 
   override def read(location: String,
