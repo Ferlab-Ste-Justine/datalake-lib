@@ -1,14 +1,14 @@
 package bio.ferlab.datalake.spark3.testutils
 
+import bio.ferlab.datalake.spark3.file.{S3ClientBuilder, S3FileSystem}
+import bio.ferlab.datalake.spark3.testutils.containers.MinioContainer
 import org.scalatest.{BeforeAndAfterAll, TestSuite}
 import org.slf4j.{Logger, LoggerFactory}
 import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.model.{CreateBucketRequest, DeleteObjectRequest, ListObjectsRequest, PutObjectRequest}
+
 import java.io.File
-
-import bio.ferlab.datalake.spark3.file.{S3ClientBuilder, S3FileSystem}
-
 import scala.collection.JavaConverters._
 import scala.util.Random
 

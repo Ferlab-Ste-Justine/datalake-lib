@@ -25,7 +25,7 @@ class GenericLoaderSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll
   override def beforeAll(): Unit = {
     try {
       spark.sql(s"CREATE DATABASE IF NOT EXISTS ${databaseName}")
-      spark.sql(s"DROP TABLE IF EXISTS ${tableName}")
+      spark.sql(s"DROP TABLE IF EXISTS ${tableName}").na
       new File(output).delete()
     }
   }

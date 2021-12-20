@@ -1,6 +1,5 @@
-package bio.ferlab.datalake.spark3.testutils
+package bio.ferlab.datalake.spark3.testutils.containers
 
-import bio.ferlab.datalake.spark3.testutils.containers.OurContainer
 import com.dimafeng.testcontainers.GenericContainer
 
 case object MinioContainer extends OurContainer {

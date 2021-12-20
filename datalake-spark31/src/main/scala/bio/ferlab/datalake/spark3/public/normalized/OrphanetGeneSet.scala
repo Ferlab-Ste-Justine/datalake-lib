@@ -1,6 +1,5 @@
 package bio.ferlab.datalake.spark3.public.normalized
 
-import bio.ferlab.datalake.commons.config.DatasetConf
 import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf}
 import bio.ferlab.datalake.spark3.etl.ETLP
 import org.apache.spark.sql.{DataFrame, SparkSession}

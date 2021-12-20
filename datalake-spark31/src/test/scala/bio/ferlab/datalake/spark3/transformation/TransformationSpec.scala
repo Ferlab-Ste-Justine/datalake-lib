@@ -1,6 +1,5 @@
 package bio.ferlab.datalake.spark3.transformation
 
-import bio.ferlab.datalake.spark3.model.{TestTransformationCamel2Case, TestTransformationPBKDF2, TestTransformationRename}
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
