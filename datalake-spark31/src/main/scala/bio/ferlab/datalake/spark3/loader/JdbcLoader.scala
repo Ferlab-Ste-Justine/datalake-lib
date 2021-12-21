@@ -46,7 +46,7 @@ object JdbcLoader extends Loader {
    * @param spark      a valid spark session
    * @return the data as a dataframe
    */
-  override def writeOnce(location: String, databaseName: String, tableName: String, df: DataFrame, partitioning: List[String], format: String, dataChange: Boolean)(implicit spark: SparkSession): DataFrame = ???
+  override def writeOnce(location: String, databaseName: String, tableName: String, df: DataFrame, partitioning: List[String], format: String, options: Map[String, String])(implicit spark: SparkSession): DataFrame = ???
 
   /**
    * Insert or append data into a table
@@ -107,5 +107,39 @@ override def insert(location: String, databaseName: String, tableName: String, u
    * @param spark         a valid spark session
    * @return the data as a dataframe
    */
-  override def scd2(location: String, databaseName: String, tableName: String, updates: DataFrame, primaryKeys: Seq[String], oidName: String, createdOnName: String, updatedOnName: String, partitioning: List[String], format: String, validFromName: String, validToName: String, minValidFromDate: LocalDate, maxValidToDate: LocalDate)(implicit spark: SparkSession): DataFrame = ???
+  override def scd2(location: String,
+                    databaseName: String,
+                    tableName: String,
+                    updates: DataFrame,
+                    primaryKeys: Seq[String],
+                    oidName: String,
+                    createdOnName: String,
+                    updatedOnName: String,
+                    partitioning: List[String],
+                    format: String,
+                    validFromName: String,
+                    validToName: String,
+                    minValidFromDate: LocalDate,
+                    maxValidToDate: LocalDate)(implicit spark: SparkSession): DataFrame = ???
+
+  /**
+   * Keeps old partition and overwrite new partitions.
+   *
+   * @param location     where to write the data
+   * @param databaseName database name
+   * @param tableName    table name
+   * @param df           new data to write into the table
+   * @param partitioning how the data is partitionned
+   * @param format       format
+   * @param options      write options
+   * @param spark        a spark session
+   * @return updated data
+   */
+  override def overwritePartition(location: String,
+                                  databaseName: String,
+                                  tableName: String,
+                                  df: DataFrame,
+                                  partitioning: List[String],
+                                  format: String,
+                                  options: Map[String, String])(implicit spark: SparkSession): DataFrame = ???
 }

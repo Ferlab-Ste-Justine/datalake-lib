@@ -21,15 +21,19 @@ object LoadResolver {
       DeltaLoader.upsert(ds.location, ds.table.map(_.database).getOrElse(""), ds.table.map(_.name).getOrElse(""), df, ds.keys, ds.partitionby, ds.format.sparkFormat)
 
     case (DELTA, OverWrite) => (ds: DatasetConf, df: DataFrame) =>
-      DeltaLoader.writeOnce(ds.location, ds.table.map(_.database).getOrElse(""), ds.table.map(_.name).getOrElse(""), df, ds.partitionby, ds.format.sparkFormat, dataChange = true)
+      DeltaLoader.writeOnce(ds.location, ds.table.map(_.database).getOrElse(""), ds.table.map(_.name).getOrElse(""), df, ds.partitionby, ds.format.sparkFormat, ds.writeoptions)
+
+    case (DELTA, OverWritePartition) => (ds: DatasetConf, df: DataFrame) =>
+      DeltaLoader.overwritePartition(ds.location, ds.table.map(_.database).getOrElse(""), ds.table.map(_.name).getOrElse(""), df, ds.partitionby, ds.format.sparkFormat, ds.writeoptions)
+
 
     case (DELTA, Compact)   => (ds: DatasetConf, df: DataFrame) =>
-      DeltaLoader.writeOnce(ds.location, ds.table.map(_.database).getOrElse(""), ds.table.map(_.name).getOrElse(""), df, ds.partitionby, ds.format.sparkFormat, dataChange = false)
+      DeltaLoader.writeOnce(ds.location, ds.table.map(_.database).getOrElse(""), ds.table.map(_.name).getOrElse(""), df, ds.partitionby, ds.format.sparkFormat, ds.writeoptions)
 
 
     //generic fallback behaviours
     case (f, OverWrite)   => (ds: DatasetConf, df: DataFrame) =>
-      GenericLoader.writeOnce(ds.location, ds.table.map(_.database).getOrElse(""), ds.table.map(_.name).getOrElse(""), df, ds.partitionby, f.sparkFormat)
+      GenericLoader.writeOnce(ds.location, ds.table.map(_.database).getOrElse(""), ds.table.map(_.name).getOrElse(""), df, ds.partitionby, f.sparkFormat, ds.writeoptions)
     case (f, Insert)      => (ds: DatasetConf, df: DataFrame) =>
       GenericLoader.insert(ds.location, ds.table.map(_.database).getOrElse(""), ds.table.map(_.name).getOrElse(""), df, ds.partitionby, f.sparkFormat)
 

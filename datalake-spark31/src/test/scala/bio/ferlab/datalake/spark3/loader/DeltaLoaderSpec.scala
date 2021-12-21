@@ -5,7 +5,7 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-import java.sql.Timestamp
+import java.sql.{Date, Timestamp}
 import java.time.LocalDateTime
 
 class DeltaLoaderSpec extends AnyFlatSpec with Matchers {
@@ -19,7 +19,77 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers {
 
   spark.sparkContext.setLogLevel("ERROR")
 
+  val testtableoverwite: String = getClass.getClassLoader.getResource("normalized/").getFile + "testtableoverwite"
   val output: String = getClass.getClassLoader.getResource("normalized/").getFile + "testtable"
+
+  "overwrite" should "replace all data" in {
+
+    spark.sql("DROP TABLE IF EXISTS default.testtable")
+
+    import spark.implicits._
+
+    val day1 = Date.valueOf("1900-01-01")
+    val day2 = Date.valueOf("1900-01-02")
+    val day3 = Date.valueOf("1900-01-03")
+
+    val existing: DataFrame = Seq(
+      ("1", day1),
+      ("2", day2)
+    ).toDF("id", "ingested_on")
+
+    val updates: DataFrame = Seq(
+      ("3", day2),
+      ("4", day2),
+      ("5", day3)
+    ).toDF("id", "ingested_on")
+
+    DeltaLoader.writeOnce(testtableoverwite, "default", "testtableoverwite", existing, List("ingested_on"), "delta")
+    spark.table("testtableoverwite").show(false)
+
+    DeltaLoader.overwritePartition(testtableoverwite, "default", "testtableoverwite", updates, List("ingested_on"), "delta")
+
+    spark.table("testtableoverwite").as[(String, Date)].collect() should contain allElementsOf Seq(
+      ("3", day2),
+      ("4", day2),
+      ("5", day3)
+    )
+
+  }
+
+  "overwrite partition" should "replace partition" in {
+
+    spark.sql("DROP TABLE IF EXISTS default.testtable")
+
+    import spark.implicits._
+
+    val day1 = Date.valueOf("1900-01-01")
+    val day2 = Date.valueOf("1900-01-02")
+    val day3 = Date.valueOf("1900-01-03")
+
+    val existing: DataFrame = Seq(
+      ("1", day1),
+      ("2", day2)
+    ).toDF("id", "ingested_on")
+
+    val updates: DataFrame = Seq(
+      ("3", day2),
+      ("4", day2),
+      ("5", day3)
+    ).toDF("id", "ingested_on")
+
+    DeltaLoader.writeOnce(testtableoverwite, "default", "testtableoverwite", existing, List("ingested_on"), "delta")
+    spark.table("testtableoverwite").show(false)
+
+    DeltaLoader.overwritePartition(testtableoverwite, "default", "testtableoverwite", updates, List("ingested_on"), "delta")
+
+    spark.table("testtableoverwite").as[(String, Date)].collect() should contain allElementsOf Seq(
+      ("1", day1),
+      ("3", day2),
+      ("4", day2),
+      ("5", day3)
+    )
+
+  }
 
   "upsert" should "update existing data and insert new data" in {
 

@@ -44,7 +44,7 @@ class GenericLoaderSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll
 
 
 
-    GenericLoader.writeOnce(output, databaseName, tableName, existing.toDF, List("uid"), "parquet")
+    GenericLoader.writeOnce(output, databaseName, tableName, existing.toDF, List("uid"), "parquet", Map())
 
     val updates: Seq[TestData] = Seq(
       TestData("a", "b", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),

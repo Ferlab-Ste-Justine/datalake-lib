@@ -11,6 +11,7 @@ object LoadType {
   case object Read extends LoadType
   case object Compact extends LoadType
   case object OverWrite extends LoadType
+  case object OverWritePartition extends LoadType
   case object Insert extends LoadType
   case object Upsert extends LoadType
   case object Scd1 extends LoadType

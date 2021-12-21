@@ -56,7 +56,7 @@ object GenericLoader extends Loader {
                          df: DataFrame,
                          partitioning: List[String],
                          format: String,
-                         dataChange: Boolean)
+                         options: Map[String, String])
                         (implicit spark: SparkSession): DataFrame = {
     write(df, format, SaveMode.Overwrite, partitioning, databaseName, tableName, location)
   }
@@ -73,7 +73,7 @@ object GenericLoader extends Loader {
 
     val fullName = s"$databaseName.$tableName"
     val writtenData = Try(spark.read.option("format", format).load(location)) match {
-      case Failure(_) => writeOnce(location, databaseName, tableName, updates, partitioning, format)
+      case Failure(_) => writeOnce(location, databaseName, tableName, updates, partitioning, format, Map())
       case Success(existing) =>
         val data = existing
           .join(updates, primaryKeys, "left_anti")
@@ -82,7 +82,7 @@ object GenericLoader extends Loader {
 
         data.limit(1).count() //triggers transformations in order to write at the same location as we read data
 
-        val result = writeOnce(location, databaseName, tableName, data, partitioning, format)
+        val result = writeOnce(location, databaseName, tableName, data, partitioning, format, Map())
         if (fullName.nonEmpty) {
           spark.sql(s"REFRESH TABLE $fullName")
         }
@@ -142,5 +142,26 @@ object GenericLoader extends Loader {
                     validToName: String,
                     minValidFromDate: LocalDate,
                     maxValidToDate: LocalDate)(implicit spark: SparkSession): DataFrame = ???
+
+  /**
+   * Keeps old partition and overwrite new partitions.
+   *
+   * @param location     where to write the data
+   * @param databaseName database name
+   * @param tableName    table name
+   * @param df           new data to write into the table
+   * @param partitioning how the data is partitionned
+   * @param format       format
+   * @param options      write options
+   * @param spark        a spark session
+   * @return updated data
+   */
+  override def overwritePartition(location: String,
+                                  databaseName: String,
+                                  tableName: String,
+                                  df: DataFrame,
+                                  partitioning: List[String],
+                                  format: String,
+                                  options: Map[String, String])(implicit spark: SparkSession): DataFrame = ???
 }
 
