@@ -8,6 +8,7 @@ import org.scalatest.matchers.should.Matchers
 import java.io.File
 import java.sql.Timestamp
 import java.time.LocalDateTime
+import scala.util.Try
 
 class GenericLoaderSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
 
@@ -23,7 +24,7 @@ class GenericLoaderSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll
   val databaseName = "default"
 
   override def beforeAll(): Unit = {
-    try {
+    Try {
       spark.sql(s"CREATE DATABASE IF NOT EXISTS ${databaseName}")
       spark.sql(s"DROP TABLE IF EXISTS ${tableName}").na
       new File(output).delete()

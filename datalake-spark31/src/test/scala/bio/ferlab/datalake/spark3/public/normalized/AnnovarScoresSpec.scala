@@ -9,6 +9,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.{BeforeAndAfterAll, GivenWhenThen}
 
 import java.io.File
+import scala.util.Try
 
 class AnnovarScoresSpec extends AnyFlatSpec with GivenWhenThen with WithSparkSession with Matchers with BeforeAndAfterAll {
 
@@ -19,7 +20,7 @@ class AnnovarScoresSpec extends AnyFlatSpec with GivenWhenThen with WithSparkSes
   val job = new AnnovarScores()
 
   override def beforeAll(): Unit = {
-    try {
+    Try {
       spark.sql(s"CREATE DATABASE IF NOT EXISTS ${destination.table.map(_.database).getOrElse("variant")}")
       new File(destination.location).delete()
     }

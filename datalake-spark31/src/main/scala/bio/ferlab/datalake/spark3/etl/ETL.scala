@@ -1,9 +1,8 @@
 package bio.ferlab.datalake.spark3.etl
 
 import bio.ferlab.datalake.commons.config.LoadType.{Scd1, Scd2}
-import bio.ferlab.datalake.commons.config.RunType.{FIRST_LOAD, INCREMENTAL_LOAD, SAMPLE_LOAD}
 import bio.ferlab.datalake.commons.config.WriteOptions.{UPDATED_ON_COLUMN_NAME, VALID_FROM_COLUMN_NAME}
-import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf, RunType}
+import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf, RunStep}
 import bio.ferlab.datalake.spark3.datastore.SqlBinderResolver
 import bio.ferlab.datalake.spark3.file.FileSystemResolver
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
@@ -61,7 +60,7 @@ abstract class ETL()(implicit val conf: Configuration) {
   def load(data: DataFrame,
            lastRunDateTime: LocalDateTime = minDateTime,
            currentRunDateTime: LocalDateTime = LocalDateTime.now())(implicit spark: SparkSession): DataFrame = {
-    log.info(s"loading: ${destination.id}")
+    println(s"LOADING: ${destination.id}")
     if(LoadResolver.write(spark, conf).isDefinedAt(destination.format -> destination.loadtype)) {
       Try(
         destination.table.foreach(table => spark.sql(s"CREATE DATABASE IF NOT EXISTS ${table.database}"))
@@ -84,41 +83,48 @@ abstract class ETL()(implicit val conf: Configuration) {
   }
 
   /**
-   * Entry point of the etl - execute this method in order to run the whole ETL for a specific date
-   * @param lastRunDateTime the last time this etl was run. default is [[minDateTime]]
-   * @param currentRunDateTime the time at which the etl needs to be ran, usually now().
-   * @param spark an instance of SparkSession
-   */
-  def run(lastRunDateTime: LocalDateTime = minDateTime,
-          currentRunDateTime: LocalDateTime = LocalDateTime.now())(implicit spark: SparkSession): DataFrame = {
-    val inputs = extract(lastRunDateTime, currentRunDateTime)
-    val output = transform(inputs, lastRunDateTime, currentRunDateTime)
-    val finalDf = load(output, lastRunDateTime, currentRunDateTime)
-    publish()
-    finalDf
-  }
-
-  /**
    * Entry point of the etl - execute this method in order to run the whole ETL
    * @param spark an instance of SparkSession
    */
-  def run(runtype: RunType)(implicit spark: SparkSession): DataFrame = {
-    runtype match {
-      case FIRST_LOAD =>
-        this.reset()
-        run(minDateTime, LocalDateTime.now())
+  def run(runSteps: Seq[RunStep] = RunStep.default_load,
+          lastRunDateTime: Option[LocalDateTime] = None,
+          currentRunDateTime: Option[LocalDateTime] = None)(implicit spark: SparkSession): DataFrame = {
 
-      case INCREMENTAL_LOAD =>
-        run(getLastRunDateFor(destination), LocalDateTime.now())
+    val lastRunDate = lastRunDateTime.getOrElse(if (runSteps.contains(RunStep.reset)) minDateTime else getLastRunDateFor(destination))
+    val currentRunDate = currentRunDateTime.getOrElse(LocalDateTime.now())
 
-      case SAMPLE_LOAD =>
-        this.reset()
-        val inputs: Map[String, DataFrame] = extract().map { case (ds, df) => ds -> sampling(ds).apply(df) }
-        val output = transform(inputs)
-        val finalDf = load(output)
-        publish()
-        finalDf
+    println(s"RUN steps: \t\t ${runSteps.mkString(" -> ")}")
+    println(s"RUN lastRunDate: \t $lastRunDate")
+    println(s"RUN currentRunDate: \t $currentRunDate")
+
+    if (runSteps.contains(RunStep.reset)) this.reset()
+
+    val data: Map[String, DataFrame] =
+      if (runSteps.contains(RunStep.extract) && runSteps.contains(RunStep.sample)) {
+        extract(lastRunDate, currentRunDate).map { case (ds, df) => ds -> sampling(ds).apply(df) }
+      } else if (runSteps.contains(RunStep.extract)) {
+        extract(lastRunDate, currentRunDate)
+      } else {
+        Map()
+      }
+
+    val output: DataFrame =
+      if (runSteps.contains(RunStep.transform)) {
+        transform(data, lastRunDate, currentRunDate)
+      } else {
+        spark.emptyDataFrame
+      }
+
+    if (runSteps.contains(RunStep.load)) {
+      load(output)
+    } else {
+      output.show(false) //triggers extract and transform method in case load method is not called
     }
+
+    if (runSteps.contains(RunStep.publish)) {
+      publish()
+    }
+    destination.read
   }
 
   /**
