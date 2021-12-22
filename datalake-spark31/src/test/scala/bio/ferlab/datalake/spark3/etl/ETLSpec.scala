@@ -2,9 +2,8 @@ package bio.ferlab.datalake.spark3.etl
 
 import bio.ferlab.datalake.commons.config.Format.{CSV, DELTA}
 import bio.ferlab.datalake.commons.config.LoadType._
-import bio.ferlab.datalake.commons.config.RunType.{FIRST_LOAD, INCREMENTAL_LOAD, SAMPLE_LOAD}
-import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf, StorageConf, TableConf}
-import bio.ferlab.datalake.commons.file.FileSystemType.{LOCAL, S3}
+import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf, RunStep, StorageConf, TableConf}
+import bio.ferlab.datalake.commons.file.FileSystemType.LOCAL
 import bio.ferlab.datalake.spark3.file.FileSystemResolver
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import org.apache.spark.sql.functions._
@@ -172,7 +171,7 @@ class ETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers with BeforeAn
 
     job.load(Seq(AirportOutput(11)).toDF())
 
-    val finalDf = job.run(FIRST_LOAD)
+    val finalDf = job.run(RunStep.initial_load)
     finalDf.show(false)
     finalDf.count() shouldBe 2
     finalDf.where("airport_id=11").count() shouldBe 0
@@ -183,7 +182,7 @@ class ETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers with BeforeAn
 
     job.load(Seq(AirportOutput(11)).toDF())
 
-    val finalDf = job.run(SAMPLE_LOAD)
+    val finalDf = job.run(RunStep.allSteps)
     finalDf.show(false)
     finalDf.count() shouldBe 1
     finalDf.where("airport_id=11").count() shouldBe 0
@@ -192,12 +191,12 @@ class ETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers with BeforeAn
   "incremental_load" should "run the ETL taking into account the past loads" in {
     import spark.implicits._
 
+    job.reset()
     val firstLoad = job.load(Seq(AirportOutput(999, "test", "test2", "hash", "file")).toDF())
-    println()
     firstLoad.show(false)
     job.destination.read.show(false)
 
-    val finalDf = job.run(INCREMENTAL_LOAD)
+    val finalDf = job.run(RunStep.default_load)
     finalDf.show(false)
     finalDf.count() shouldBe 3
     finalDf.where("airport_id=999").count() shouldBe 1

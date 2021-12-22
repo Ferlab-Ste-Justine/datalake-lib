@@ -131,7 +131,8 @@ object DeltaLoader extends Loader {
                     readOptions: Map[String, String],
                     databaseName: Option[String],
                     tableName: Option[String])(implicit spark: SparkSession): DataFrame = {
-    GenericLoader.read(location, format, readOptions, databaseName, tableName)
+    Try(GenericLoader.read(location, format, readOptions, databaseName, tableName))
+      .getOrElse(DeltaTable.forPath(location).toDF)
   }
 
   def scd2(location: String,

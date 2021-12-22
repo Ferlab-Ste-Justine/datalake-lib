@@ -1,19 +1,22 @@
 package bio.ferlab.datalake.spark3.public
 
-import bio.ferlab.datalake.commons.config.ConfigurationLoader
-import bio.ferlab.datalake.commons.config.{Configuration, ConfigurationLoader}
+import bio.ferlab.datalake.commons.config.{Configuration, ConfigurationLoader, RunStep}
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.SparkSession
 
 trait SparkApp extends App {
 
-  def init(): (Configuration, SparkSession) = {
+  def init(): (Configuration, Seq[RunStep], SparkSession) = init(args(0), args(1))
 
-    println(s"Loading config file: [${args(0)}]")
+  def init(configurationPath: String, runSteps: String): (Configuration, Seq[RunStep], SparkSession) = {
 
-    val conf: Configuration = ConfigurationLoader.loadFromResources(args(0))
+    println(s"Loading config file: [${configurationPath}]")
+
+    val conf: Configuration = ConfigurationLoader.loadFromResources(configurationPath)
 
     val sparkConf: SparkConf = conf.sparkconf.foldLeft(new SparkConf()){ case (c, (k, v)) => c.set(k, v) }
+
+    val rt = RunStep.getSteps(runSteps)
 
     val spark: SparkSession =
       SparkSession
@@ -22,7 +25,10 @@ trait SparkApp extends App {
         .enableHiveSupport()
         .appName("SparkApp")
         .getOrCreate()
-    (conf, spark)
+
+    spark.sparkContext.setLogLevel("ERROR")
+
+    (conf, rt, spark)
   }
 
 }

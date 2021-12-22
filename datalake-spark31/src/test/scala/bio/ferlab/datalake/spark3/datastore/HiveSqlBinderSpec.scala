@@ -7,6 +7,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 import java.io.File
+import scala.util.Try
 
 class HiveSqlBinderSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
 
@@ -23,7 +24,7 @@ class HiveSqlBinderSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll
   import spark.implicits._
 
   override def beforeAll(): Unit = {
-    try {
+    Try {
       spark.sql(s"CREATE DATABASE IF NOT EXISTS ${databaseName}")
       spark.sql(s"DROP TABLE IF EXISTS $databaseName.$tableName")
       new File(output).delete()
