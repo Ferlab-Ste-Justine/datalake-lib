@@ -44,6 +44,9 @@ object LoadResolver {
     case format if format == JDBC || format == SQL_SERVER => ds: DatasetConf =>
       JdbcLoader.read(ds.location, format.sparkFormat, ds.readoptions, ds.table.map(_.database), ds.table.map(_.name))
 
+    case DELTA => ds: DatasetConf =>
+      DeltaLoader.read(ds.location, DELTA.sparkFormat, ds.readoptions, ds.table.map(_.database), ds.table.map(_.name))
+
     case format => ds: DatasetConf =>
       GenericLoader.read(ds.location, format.sparkFormat, ds.readoptions, ds.table.map(_.database), ds.table.map(_.name))
   }
