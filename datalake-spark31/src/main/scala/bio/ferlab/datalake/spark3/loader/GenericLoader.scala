@@ -7,9 +7,14 @@ import scala.util.{Failure, Success, Try}
 
 object GenericLoader extends Loader {
 
-  private def getDataFrameWriter(df: DataFrame, format: String, mode: SaveMode, partitioning: List[String]): DataFrameWriter[Row] = {
+  private def getDataFrameWriter(df: DataFrame,
+                                 format: String,
+                                 mode: SaveMode,
+                                 partitioning: List[String],
+                                 options: Map[String, String]): DataFrameWriter[Row] = {
       df
         .write
+        .options(options)
         .format(format)
         .mode(mode)
         .partitionBy(partitioning:_*)
@@ -21,8 +26,9 @@ object GenericLoader extends Loader {
             partitioning: List[String],
             databaseName: String,
             tableName: String,
-            location: String): DataFrame = {
-    val dataFrameWriter = getDataFrameWriter(df, format, mode, partitioning)
+            location: String,
+            options: Map[String, String]): DataFrame = {
+    val dataFrameWriter = getDataFrameWriter(df, format, mode, partitioning, options)
 
     tableName match {
       case "" =>
@@ -58,7 +64,7 @@ object GenericLoader extends Loader {
                          format: String,
                          options: Map[String, String])
                         (implicit spark: SparkSession): DataFrame = {
-    write(df, format, SaveMode.Overwrite, partitioning, databaseName, tableName, location)
+    write(df, format, SaveMode.Overwrite, partitioning, databaseName, tableName, location, options)
   }
 
   override def upsert(location: String,
@@ -67,13 +73,14 @@ object GenericLoader extends Loader {
                       updates:  DataFrame,
                       primaryKeys: Seq[String],
                       partitioning: List[String],
-                      format: String)
+                      format: String,
+                      options: Map[String, String])
                      (implicit spark:  SparkSession): DataFrame = {
     require(primaryKeys.forall(updates.columns.contains), s"requires column [${primaryKeys.mkString(", ")}]")
 
     val fullName = s"$databaseName.$tableName"
     val writtenData = Try(spark.read.option("format", format).load(location)) match {
-      case Failure(_) => writeOnce(location, databaseName, tableName, updates, partitioning, format, Map())
+      case Failure(_) => writeOnce(location, databaseName, tableName, updates, partitioning, format, options)
       case Success(existing) =>
         val data = existing
           .join(updates, primaryKeys, "left_anti")
@@ -82,7 +89,7 @@ object GenericLoader extends Loader {
 
         data.limit(1).count() //triggers transformations in order to write at the same location as we read data
 
-        val result = writeOnce(location, databaseName, tableName, data, partitioning, format, Map())
+        val result = writeOnce(location, databaseName, tableName, data, partitioning, format, options)
         if (fullName.nonEmpty) {
           spark.sql(s"REFRESH TABLE $fullName")
         }
@@ -96,8 +103,9 @@ object GenericLoader extends Loader {
              tableName: String,
              updates: DataFrame,
              partitioning: List[String],
-             format: String)(implicit spark: SparkSession): DataFrame = {
-    write(updates, format, SaveMode.Append, partitioning, databaseName, tableName, location)
+             format: String,
+             options: Map[String, String])(implicit spark: SparkSession): DataFrame = {
+    write(updates, format, SaveMode.Append, partitioning, databaseName, tableName, location, options)
   }
 
   override def scd1(location: String,

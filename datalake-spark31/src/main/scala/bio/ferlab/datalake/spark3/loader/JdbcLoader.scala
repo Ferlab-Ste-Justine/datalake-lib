@@ -1,5 +1,5 @@
 package bio.ferlab.datalake.spark3.loader
-import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 
 import java.time.LocalDate
 
@@ -36,17 +36,31 @@ object JdbcLoader extends Loader {
   }
 
   /**
-   * Overwrites the data located in output/tableName
-   * usually used for small/test tables.
-   *
-   * @param df         the data to write
-   * @param tableName  the name of the table
-   * @param location   full path of where the data will be located
-   * @param dataChange if the data is expected to be different from the data already written
-   * @param spark      a valid spark session
-   * @return the data as a dataframe
+   * @param location where to write the data
+   * @param databaseName database name
+   * @param tableName table name
+   * @param df new data to write into the table
+   * @param partitioning how the data is partitionned
+   * @param format format
+   * @param options write options
+   * @param spark a spark session
+   *  @return updated data
    */
-  override def writeOnce(location: String, databaseName: String, tableName: String, df: DataFrame, partitioning: List[String], format: String, options: Map[String, String])(implicit spark: SparkSession): DataFrame = ???
+  override def writeOnce(location: String,
+                         databaseName: String,
+                         tableName: String,
+                         df: DataFrame,
+                         partitioning: List[String],
+                         format: String,
+                         options: Map[String, String])(implicit spark: SparkSession): DataFrame = {
+    df
+      .write
+      .format(format)
+      .mode(SaveMode.Overwrite)
+      .options(options + ("dbtable" -> s"$databaseName.$tableName"))
+      .save()
+    df
+  }
 
   /**
    * Insert or append data into a table
@@ -58,20 +72,40 @@ object JdbcLoader extends Loader {
    * @param spark     a valid spark session
    * @return the data as a dataframe
    */
-override def insert(location: String, databaseName: String, tableName: String, updates: DataFrame, partitioning: List[String], format: String)(implicit spark: SparkSession): DataFrame = ???
+  override def insert(location: String,
+                      databaseName: String,
+                      tableName: String,
+                      updates: DataFrame,
+                      partitioning: List[String],
+                      format: String,
+                      options: Map[String, String])(implicit spark: SparkSession): DataFrame = {
+    updates
+      .write
+      .format(format)
+      .mode(SaveMode.Append)
+      .options(options + ("dbtable" -> s"$databaseName.$tableName"))
+      .save()
+    updates
+  }
 
   /**
    * Update or insert data into a table
    * Resolves duplicates by using the list of primary key passed as argument
-   *
-   * @param location    full path of where the data will be located
-   * @param tableName   the name of the updated/created table
-   * @param updates     new data to be merged with existing data
+   * @param location full path of where the data will be located
+   * @param tableName the name of the updated/created table
+   * @param updates new data to be merged with existing data
    * @param primaryKeys name of the columns holding the unique id
-   * @param spark       a valid spark session
+   * @param spark a valid spark session
    * @return the data as a dataframe
    */
-  override def upsert(location: String, databaseName: String, tableName: String, updates: DataFrame, primaryKeys: Seq[String], partitioning: List[String], format: String)(implicit spark: SparkSession): DataFrame = ???
+  override def upsert(location: String,
+                      databaseName: String,
+                      tableName: String,
+                      updates: DataFrame,
+                      primaryKeys: Seq[String],
+                      partitioning: List[String],
+                      format: String,
+                      options: Map[String, String])(implicit spark: SparkSession): DataFrame = ???
 
   /**
    * Update the data only if the data has changed

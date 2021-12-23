@@ -69,8 +69,12 @@ trait Loader {
    * Insert or append data into a table
    * Does not resolve duplicates
    * @param location full path of where the data will be located
+   * @param databaseName database name
    * @param tableName the name of the updated/created table
    * @param updates new data to be merged with existing data
+   * @param partitioning how the data should be partitioned
+   * @param format spark form
+   * @param options write options
    * @param spark a valid spark session
    * @return the data as a dataframe
    */
@@ -79,7 +83,8 @@ trait Loader {
              tableName: String,
              updates: DataFrame,
              partitioning: List[String],
-             format: String)(implicit spark: SparkSession): DataFrame
+             format: String,
+             options: Map[String, String])(implicit spark: SparkSession): DataFrame
 
   /**
    * Update or insert data into a table
@@ -97,7 +102,8 @@ trait Loader {
              updates: DataFrame,
              primaryKeys: Seq[String],
              partitioning: List[String],
-             format: String)(implicit spark: SparkSession): DataFrame
+             format: String,
+             options: Map[String, String])(implicit spark: SparkSession): DataFrame
 
   /**
    * Update the data only if the data has changed

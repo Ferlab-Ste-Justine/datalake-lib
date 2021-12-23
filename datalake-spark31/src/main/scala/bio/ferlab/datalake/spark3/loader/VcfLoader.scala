@@ -52,7 +52,8 @@ object VcfLoader extends Loader {
                       updates:  DataFrame,
                       primaryKeys: Seq[String],
                       partitioning: List[String],
-                      format: String)
+                      format: String,
+                      options: Map[String, String])
                      (implicit spark:  SparkSession): DataFrame = ???
 
   override def scd1(location: String,
@@ -72,7 +73,8 @@ object VcfLoader extends Loader {
                       tableName: String,
                       updates: DataFrame,
                       partitioning: List[String],
-                      format: String)(implicit spark: SparkSession): DataFrame = ???
+                      format: String,
+                      options: Map[String, String])(implicit spark: SparkSession): DataFrame = ???
 
   override def scd2(location: String,
                     databaseName: String,
