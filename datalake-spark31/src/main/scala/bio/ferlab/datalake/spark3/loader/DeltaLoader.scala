@@ -1,7 +1,7 @@
 package bio.ferlab.datalake.spark3.loader
 
+import bio.ferlab.datalake.commons.config.Format.DELTA
 import io.delta.tables.DeltaTable
-import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.{Column, DataFrame, SaveMode, SparkSession}
 
 import java.time.LocalDate
@@ -15,7 +15,8 @@ object DeltaLoader extends Loader {
                       updates: DataFrame,
                       primaryKeys: Seq[String],
                       partitioning: List[String],
-                      format: String)(implicit spark: SparkSession): DataFrame = {
+                      format: String,
+                      options: Map[String, String])(implicit spark: SparkSession): DataFrame = {
 
     require(primaryKeys.forall(updates.columns.contains), s"requires column [${primaryKeys.mkString(", ")}]")
 
@@ -47,8 +48,9 @@ object DeltaLoader extends Loader {
              tableName: String,
              updates: DataFrame,
              partitioning: List[String],
-             format: String)(implicit spark: SparkSession): DataFrame = {
-    GenericLoader.insert(location, databaseName, tableName, updates, partitioning, "delta")
+             format: String,
+             options: Map[String, String])(implicit spark: SparkSession): DataFrame = {
+    GenericLoader.insert(location, databaseName, tableName, updates, partitioning, DELTA.sparkFormat, options)
   }
 
   def scd1(location: String,

@@ -62,7 +62,8 @@ class GenericLoaderSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll
       tableName,
       updatedDF,
       List("uid"),
-      "parquet"
+      "parquet",
+      Map()
     )
 
     spark.read.parquet(output).as[TestData].collect() should contain allElementsOf expectedResult
@@ -81,7 +82,7 @@ class GenericLoaderSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll
       TestData("aaa", "aaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1)
     ).toDF
 
-    GenericLoader.upsert(output, databaseName, tableName, existing, List("uid"), List(), "parquet")
+    GenericLoader.upsert(output, databaseName, tableName, existing, List("uid"), List(), "parquet", Map())
 
     val updatesDf: DataFrame = Seq(
       TestData("a", "b", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),
@@ -101,7 +102,8 @@ class GenericLoaderSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll
       updatesDf,
       List("uid"),
       List(),
-      "parquet"
+      "parquet",
+      Map()
     )
 
     spark.read.parquet(output).as[TestData].collect() should contain allElementsOf expectedResult

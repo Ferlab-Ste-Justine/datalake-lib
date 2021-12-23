@@ -124,7 +124,8 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers {
       updatedDF,
       Seq("uid"),
       List(),
-      "delta"
+      "delta",
+      Map()
     )
 
     DeltaTable
