@@ -9,6 +9,13 @@ import scala.util.{Failure, Success, Try}
 
 object DeltaLoader extends Loader {
 
+  private def readTableAsDelta(location: String,
+                               databaseName: String,
+                               tableName: String): Try[DeltaTable] = {
+    Try(DeltaTable.forName(s"$databaseName.$tableName"))
+      .orElse(Try(DeltaTable.forPath(location)))
+  }
+
   override def upsert(location: String,
                       databaseName: String,
                       tableName: String,
@@ -20,7 +27,7 @@ object DeltaLoader extends Loader {
 
     require(primaryKeys.forall(updates.columns.contains), s"requires column [${primaryKeys.mkString(", ")}]")
 
-    Try(DeltaTable.forName(s"$databaseName.$tableName")) match {
+    readTableAsDelta(location, databaseName, tableName) match {
       case Failure(_) =>
         writeOnce(location, databaseName, tableName, updates, partitioning, format)
       case Success(existing) =>
@@ -40,7 +47,7 @@ object DeltaLoader extends Loader {
           .execute()
     }
 
-    DeltaTable.forName(s"$databaseName.$tableName").toDF
+    read(location, DELTA.sparkFormat, options, Some(databaseName), Some(tableName))
   }
 
   def insert(location: String,
@@ -50,7 +57,8 @@ object DeltaLoader extends Loader {
              partitioning: List[String],
              format: String,
              options: Map[String, String])(implicit spark: SparkSession): DataFrame = {
-    GenericLoader.insert(location, databaseName, tableName, updates, partitioning, DELTA.sparkFormat, options)
+    GenericLoader.insert(location, databaseName, tableName, updates, partitioning, format, options)
+    read(location, DELTA.sparkFormat, options, Some(databaseName), Some(tableName))
   }
 
   def scd1(location: String,
@@ -69,7 +77,7 @@ object DeltaLoader extends Loader {
     require(updates.columns.exists(_.equals(createdOnName)), s"requires column [$createdOnName]")
     require(updates.columns.exists(_.equals(updatedOnName)), s"requires column [$updatedOnName]")
 
-    Try(DeltaTable.forName(s"$databaseName.$tableName")) match {
+    readTableAsDelta(location, databaseName, tableName) match {
       case Failure(_) => writeOnce(location, databaseName, tableName, updates, partitioning, format)
       case Success(existing) =>
         val existingDf = existing.toDF
@@ -89,7 +97,7 @@ object DeltaLoader extends Loader {
           .insertAll()
           .execute()
     }
-    DeltaTable.forName(s"$databaseName.$tableName").toDF
+    read(location, DELTA.sparkFormat, Map(), Some(databaseName), Some(tableName))
   }
 
   override def writeOnce(location: String,

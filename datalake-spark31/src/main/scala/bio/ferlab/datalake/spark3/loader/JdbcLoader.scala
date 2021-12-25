@@ -123,7 +123,16 @@ object JdbcLoader extends Loader {
    * @param spark         a valid spark session
    * @return the data as a dataframe
    */
-  override def scd1(location: String, databaseName: String, tableName: String, updates: DataFrame, primaryKeys: Seq[String], oidName: String, createdOnName: String, updatedOnName: String, partitioning: List[String], format: String)(implicit spark: SparkSession): DataFrame = ???
+  override def scd1(location: String,
+                    databaseName: String,
+                    tableName: String,
+                    updates: DataFrame,
+                    primaryKeys: Seq[String],
+                    oidName: String,
+                    createdOnName: String,
+                    updatedOnName: String,
+                    partitioning: List[String],
+                    format: String)(implicit spark: SparkSession): DataFrame = ???
 
   /**
    * Update the data only if the data has changed
