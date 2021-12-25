@@ -45,14 +45,17 @@ object GenericLoader extends Loader {
                     readOptions: Map[String, String],
                     databaseName: Option[String],
                     tableName: Option[String])(implicit spark: SparkSession): DataFrame = {
-    (databaseName, tableName) match {
-      case (None, Some(name)) =>
-        spark.table(name)
-      case (Some(db), Some(name)) =>
-        spark.table(s"$db.$name")
-      case (_, _) =>
-        spark.read.options(readOptions).format(format).load(location)
-    }
+    Try {
+      (databaseName, tableName) match {
+        case (None, Some(name)) =>
+          spark.table(name)
+        case (Some(db), Some(name)) =>
+          spark.table(s"$db.$name")
+        case (_, _) =>
+          spark.read.options(readOptions).format(format).load(location)
+      }
+    }.getOrElse(spark.read.options(readOptions).format(format).load(location))
+
 
   }
 
@@ -79,7 +82,7 @@ object GenericLoader extends Loader {
     require(primaryKeys.forall(updates.columns.contains), s"requires column [${primaryKeys.mkString(", ")}]")
 
     val fullName = s"$databaseName.$tableName"
-    val writtenData = Try(spark.read.option("format", format).load(location)) match {
+    val writtenData = Try(read(location, format, options, Some(tableName), Some(databaseName))) match {
       case Failure(_) => writeOnce(location, databaseName, tableName, updates, partitioning, format, options)
       case Success(existing) =>
         val data = existing

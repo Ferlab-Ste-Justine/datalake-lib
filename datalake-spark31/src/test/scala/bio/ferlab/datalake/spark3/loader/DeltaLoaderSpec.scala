@@ -1,14 +1,17 @@
 package bio.ferlab.datalake.spark3.loader
 
+import bio.ferlab.datalake.commons.config.Format.DELTA
+import bio.ferlab.datalake.spark3.file.HadoopFileSystem
 import io.delta.tables.DeltaTable
 import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 import java.sql.{Date, Timestamp}
 import java.time.LocalDateTime
 
-class DeltaLoaderSpec extends AnyFlatSpec with Matchers {
+class DeltaLoaderSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
 
   implicit lazy val spark: SparkSession = SparkSession.builder()
     .config("spark.ui.enabled", value = false)
@@ -21,10 +24,75 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers {
 
   val testtableoverwite: String = getClass.getClassLoader.getResource("normalized/").getFile + "testtableoverwite"
   val output: String = getClass.getClassLoader.getResource("normalized/").getFile + "testtable"
+  val scd1Output: String = getClass.getClassLoader.getResource("normalized/").getFile + "scd1table"
+
+  override def beforeAll(): Unit = {
+    spark.sql("DROP TABLE IF EXISTS default.testtable")
+    HadoopFileSystem.remove(output)
+    spark.sql("DROP TABLE IF EXISTS default.scd1table")
+    HadoopFileSystem.remove(scd1Output)
+  }
+
+
+  "scd1" should "update existing data and insert new data" in {
+    import spark.implicits._
+
+    val tableName = "scd1Table"
+
+    val day1 = LocalDateTime.of(2020, 1, 1, 1, 1, 1)
+    val day2 = day1.plusDays(1)
+
+    val existing: DataFrame = Seq(
+      TestData("a", "a", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1),
+      TestData("aaa", "aaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1)
+    ).toDF
+
+    DeltaLoader
+      .scd1(
+        output,
+        "default",
+        tableName,
+        existing,
+        Seq("uid"),
+        "oid",
+        "createdOn",
+        "updatedOn",
+        List(),
+        "delta"
+      )
+
+    val updates: DataFrame = Seq(
+      TestData("a", "b", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),
+      TestData("aa", "bb", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),
+      TestData("aaa", "aaa", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2)
+    ).toDF
+
+    val expectedResult: Seq[TestData] = Seq(
+      TestData("a", "b", Timestamp.valueOf(day1), Timestamp.valueOf(day2), 2),   //updated only will be updated
+      TestData("aa", "bb", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2), //will be inserted
+      TestData("aaa", "aaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1)//will stay the same
+    )
+
+    DeltaLoader.scd1(
+      output,
+      "default",
+      tableName,
+      updates,
+      Seq("uid"),
+      "oid",
+      "createdOn",
+      "updatedOn",
+      List(),
+      "delta"
+    )
+
+
+    DeltaLoader.read(output, DELTA.sparkFormat, Map(), Some("default"), Some(tableName))
+      .as[TestData].collect() should contain allElementsOf expectedResult
+
+  }
 
   "overwrite" should "replace all data" in {
-
-    spark.sql("DROP TABLE IF EXISTS default.testtable")
 
     import spark.implicits._
 
@@ -58,8 +126,6 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers {
 
   "overwrite partition" should "replace partition" in {
 
-    spark.sql("DROP TABLE IF EXISTS default.testtable")
-
     import spark.implicits._
 
     val day1 = Date.valueOf("1900-01-01")
@@ -91,9 +157,47 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers {
 
   }
 
-  "upsert" should "update existing data and insert new data" in {
+  "insert" should "add rows to existing rows" in {
 
-    spark.sql("DROP TABLE IF EXISTS default.testtable")
+    import spark.implicits._
+
+    val day1 = LocalDateTime.of(2020, 1, 1, 1, 1, 1)
+    val day2 = day1.plusDays(1)
+
+    val existing = Seq(
+      TestData("a", "a", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1),
+      TestData("aaa", "aaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1),
+      TestData("aaaa", "aaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1)
+    )
+
+    DeltaLoader.writeOnce(output, "default", "testtable", existing.toDF(), List(), "delta")
+
+    val updates: Seq[TestData] = Seq(
+      TestData("a", "b", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),
+      TestData("aa", "bb", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),
+      TestData("aaa", "aaa", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2)
+    )
+    val updatedDF = updates.toDF
+
+    val expectedResult: Seq[TestData] = existing ++ updates
+
+    DeltaLoader.insert(
+      output,
+      "default",
+      "testtable",
+      updatedDF,
+      List(),
+      "delta",
+      Map()
+    )
+
+    DeltaTable
+      .forName("testtable")
+      .toDF.as[TestData].collect() should contain allElementsOf expectedResult
+
+  }
+
+  "upsert" should "update existing data and insert new data" in {
 
     import spark.implicits._
 
@@ -126,65 +230,6 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers {
       List(),
       "delta",
       Map()
-    )
-
-    DeltaTable
-      .forName("testtable")
-      .toDF.as[TestData].collect() should contain allElementsOf expectedResult
-
-  }
-
-  "scd1" should "update existing data and insert new data" in {
-
-    spark.sql("DROP TABLE IF EXISTS default.testtable")
-
-    import spark.implicits._
-
-    val day1 = LocalDateTime.of(2020, 1, 1, 1, 1, 1)
-    val day2 = day1.plusDays(1)
-
-    val existing: DataFrame = Seq(
-      TestData("a", "a", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1),
-      TestData("aaa", "aaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1)
-    ).toDF
-
-    DeltaLoader
-      .scd1(
-        output,
-        "default",
-        "testtable",
-        existing,
-        Seq("uid"),
-        "oid",
-        "createdOn",
-        "updatedOn",
-        List(),
-        "delta"
-      )
-
-    val updates: DataFrame = Seq(
-      TestData("a", "b", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),
-      TestData("aa", "bb", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),
-      TestData("aaa", "aaa", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2)
-    ).toDF
-
-    val expectedResult: Seq[TestData] = Seq(
-      TestData("a", "b", Timestamp.valueOf(day1), Timestamp.valueOf(day2), 2),   //updated only will be updated
-      TestData("aa", "bb", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2), //will be inserted
-      TestData("aaa", "aaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1)//will stay the same
-    )
-
-    DeltaLoader.scd1(
-      output,
-      "default",
-      "testtable",
-      updates,
-      Seq("uid"),
-      "oid",
-      "createdOn",
-      "updatedOn",
-      List(),
-      "delta"
     )
 
     DeltaTable
