@@ -28,6 +28,10 @@ object GenericLoader extends Loader {
             tableName: String,
             location: String,
             options: Map[String, String]): DataFrame = {
+
+    if (databaseName.nonEmpty)
+      df.sparkSession.sql(s"CREATE DATABASE IF NOT EXISTS $databaseName")
+
     val dataFrameWriter = getDataFrameWriter(df, format, mode, partitioning, options)
 
     tableName match {
