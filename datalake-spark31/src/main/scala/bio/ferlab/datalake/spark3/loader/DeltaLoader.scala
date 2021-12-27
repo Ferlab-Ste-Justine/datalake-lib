@@ -2,7 +2,7 @@ package bio.ferlab.datalake.spark3.loader
 
 import bio.ferlab.datalake.commons.config.Format.DELTA
 import io.delta.tables.DeltaTable
-import org.apache.spark.sql.{Column, DataFrame, SaveMode, SparkSession}
+import org.apache.spark.sql.{Column, DataFrame, SparkSession}
 
 import java.time.LocalDate
 import scala.util.{Failure, Success, Try}
@@ -107,17 +107,7 @@ object DeltaLoader extends Loader {
                          partitioning: List[String],
                          format: String,
                          options: Map[String, String] = Map("dataChange" -> "true"))(implicit spark: SparkSession): DataFrame = {
-
-    spark.sql(s"CREATE DATABASE IF NOT EXISTS $databaseName")
-    df
-      .write
-      .options(options)
-      .mode(SaveMode.Overwrite)
-      .partitionBy(partitioning: _*)
-      .format("delta")
-      .option("path", s"$location")
-      .saveAsTable(s"$databaseName.$tableName")
-    df
+    GenericLoader.writeOnce(location, databaseName, tableName, df, partitioning, format, options)
   }
 
   override def overwritePartition(location: String,
