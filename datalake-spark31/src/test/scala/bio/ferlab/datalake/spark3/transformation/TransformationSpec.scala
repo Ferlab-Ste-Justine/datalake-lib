@@ -6,6 +6,7 @@ import org.apache.spark.sql.types._
 import org.scalatest.GivenWhenThen
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import bio.ferlab.datalake.spark3.transformation
 
 import java.sql
 import java.time.LocalDate
@@ -136,12 +137,12 @@ class TransformationSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
 
   }
 
-  "Whens" should "use when function many times as per user needs" in {
+  "When" should "use when function many times as per user needs" in {
 
     val testData = Seq("Y", "N", "INVALID").toDF("a")
     testData.show(false)
 
-    val job = Whens("a2", List(
+    val job = transformation.When("a2", List(
       (col("a") === "Y", lit(null).cast(StringType)),
       (col("a") === "N", lit("a is No"))
     ), "a is invalid")
@@ -170,6 +171,18 @@ class TransformationSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
     result.count shouldBe 1
     result.as[TestTransformationCamel2Case].collect should contain allElementsOf expectedResult
 
+  }
+
+  "NormalizeColumnName" should "replace spaces by underscores" in {
+    val expectedResult = Seq("A_a", "b_b")
+
+    val input = Seq(
+      ("test", "test"),
+      ("test", "test")
+    ).toDF("A a", "b$b")
+
+    NormalizeColumnName().transform(input).columns should contain allElementsOf expectedResult
+    NormalizeColumnName("A a", "b$b").transform(input).columns should contain allElementsOf expectedResult
   }
 
   "Rename" should "rename the name of the column" in {

@@ -2,9 +2,9 @@ package bio.ferlab.datalake.spark3.etl
 
 import bio.ferlab.datalake.commons.config.Format.{CSV, DELTA}
 import bio.ferlab.datalake.commons.config.LoadType._
-import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf, RunStep, StorageConf, TableConf}
+import bio.ferlab.datalake.commons.config._
 import bio.ferlab.datalake.commons.file.FileSystemType.LOCAL
-import bio.ferlab.datalake.spark3.file.FileSystemResolver
+import bio.ferlab.datalake.spark3.file.{FileSystemResolver, HadoopFileSystem}
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.LongType
@@ -164,6 +164,13 @@ class ETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers with BeforeAn
 
 
     job.getLastRunDateFor(scd2Conf) shouldBe date2.toLocalDate.atStartOfDay()
+  }
+
+  "skip" should "not run the etl" in {
+    HadoopFileSystem.remove(job.destination.location)
+    val finalDf = job.run(RunStep.getSteps("skip"))
+    finalDf.show(false)
+    finalDf.count() shouldBe 0
   }
 
   "first_load" should "run the ETL as if it was the first time running" in {

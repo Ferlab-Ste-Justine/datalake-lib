@@ -3,7 +3,7 @@ package bio.ferlab.datalake.spark3.transformation
 import bio.ferlab.datalake.spark3.transformation.NormalizeColumnName.normalize
 import org.apache.spark.sql.DataFrame
 
-class NormalizeColumns(columns: String*) extends Transformation {
+case class NormalizeColumnName(columns: String*) extends Transformation {
   /**
    * Main method of the trait.
    * It defines the logic to transform the input dataframe.
@@ -11,7 +11,13 @@ class NormalizeColumns(columns: String*) extends Transformation {
    * @return a transformed dataframe
    */
   override def transform: DataFrame => DataFrame = {df =>
-    columns.foldLeft(df)((d, c) => d.withColumnRenamed(c, normalize(c)))
+    columns match {
+      case Nil =>
+        df.columns.foldLeft(df)((d, c) => d.withColumnRenamed(c, normalize(c)))
+      case _ =>
+        columns.foldLeft(df)((d, c) => d.withColumnRenamed(c, normalize(c)))
+    }
+
   }
 }
 

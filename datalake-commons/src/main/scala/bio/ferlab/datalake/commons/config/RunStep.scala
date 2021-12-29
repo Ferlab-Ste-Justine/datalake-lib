@@ -36,6 +36,7 @@ object RunStep {
   def getSteps(str: String): Seq[RunStep] = {
     str.split("_").toList match {
       case Nil => allSteps
+      case List("skip") => Seq()
       case List("sample") => allSteps
       case List("default") => default_load
       case List("initial") => initial_load
