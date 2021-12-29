@@ -93,7 +93,11 @@ abstract class ETL()(implicit val conf: Configuration) {
     val lastRunDate = lastRunDateTime.getOrElse(if (runSteps.contains(RunStep.reset)) minDateTime else getLastRunDateFor(destination))
     val currentRunDate = currentRunDateTime.getOrElse(LocalDateTime.now())
 
-    println(s"RUN steps: \t\t ${runSteps.mkString(" -> ")}")
+    if (runSteps.isEmpty)
+      println(s"WARNING ETL started with no runSteps. Nothing will be executed.")
+    else
+      println(s"RUN steps: \t\t ${runSteps.mkString(" -> ")}")
+
     println(s"RUN lastRunDate: \t $lastRunDate")
     println(s"RUN currentRunDate: \t $currentRunDate")
 
@@ -124,7 +128,7 @@ abstract class ETL()(implicit val conf: Configuration) {
     if (runSteps.contains(RunStep.publish)) {
       publish()
     }
-    destination.read
+    Try(destination.read).getOrElse(spark.emptyDataFrame)
   }
 
   /**

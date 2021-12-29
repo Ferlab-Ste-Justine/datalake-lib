@@ -3,7 +3,7 @@ package bio.ferlab.datalake.spark3.transformation
 import org.apache.spark.sql.{Column, DataFrame}
 import org.apache.spark.sql.functions._
 
-case class Whens(column: String, conditions: List[(Column, Any)], otherwise: Any) extends Transformation {
+case class When(column: String, conditions: List[(Column, Any)], otherwise: Any) extends Transformation {
   override def transform: DataFrame => DataFrame = { df =>
 
     //step 1 initial
