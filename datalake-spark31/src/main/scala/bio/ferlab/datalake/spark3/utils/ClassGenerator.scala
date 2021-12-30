@@ -129,11 +129,11 @@ case class $className(${fields.mkString("", s",\n${spacing.mkString}" , ")")}"""
     val nestedClasses = getNestedClasses(df)
 
     val imports: List[String] =
-      if ((mainClass + nestedClasses.mkString("\n")).contains("Timestamp.valueOf") && (mainClass + nestedClasses.mkString("\n")).contains("Date.valueOf"))
+      if ((mainClass + nestedClasses.mkString("\n")).contains("Timestamp") && (mainClass + nestedClasses.mkString("\n")).contains("Date"))
         List("import java.sql.{Date, Timestamp}")
-      else if ((mainClass + nestedClasses.mkString("\n")).contains("Timestamp.valueOf"))
+      else if ((mainClass + nestedClasses.mkString("\n")).contains("Timestamp"))
         List("import java.sql.Timestamp")
-      else if ((mainClass + nestedClasses.mkString("\n")).contains("Date.valueOf"))
+      else if ((mainClass + nestedClasses.mkString("\n")).contains("Date"))
         List("import java.sql.Date")
       else List()
 
