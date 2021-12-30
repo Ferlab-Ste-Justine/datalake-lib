@@ -32,7 +32,7 @@ case class TestClassOutput(`a`: String = "a",
                            `b`: Long = 0,
                            `c`: String = "c",
                            `d`: List[String] = List(),
-                           `e`: Timestamp = Timestamp.valueOf("1900-01-01 00:00:00.0"))"""
+                           `e`: Timestamp = java.sql.Timestamp.valueOf("1900-01-01 00:00:00.0"))"""
 
     outputStr shouldBe expectedResult
 
@@ -50,7 +50,7 @@ case class TestClassOutput(`a`: String = "a",
                            `b`: Long = 0,
                            `c`: String = "c",
                            `d`: List[String] = List("c", "d"),
-                           `e`: Timestamp = Timestamp.valueOf("1900-01-01 00:00:00.0"))"""
+                           `e`: Timestamp = java.sql.Timestamp.valueOf("1900-01-01 00:00:00.0"))"""
 
     outputStr shouldBe expectedResult
 
@@ -87,7 +87,7 @@ case class TestClassOutput(`a`: String = "a",
                            `b`: Long = 0,
                            `c`: String = "c",
                            `d`: List[String] = List("c", "d"),
-                           `e`: Timestamp = Timestamp.valueOf("1900-01-01 00:00:00.0"))"""
+                           `e`: Timestamp = java.sql.Timestamp.valueOf("1900-01-01 00:00:00.0"))"""
 
     outputStr shouldBe expectedResult
 
@@ -105,7 +105,7 @@ case class TestClassOutput(`a`: Option[String] = None,
                            `b`: Long = 0,
                            `c`: String = "c",
                            `d`: List[String] = List("c", "d"),
-                           `e`: Timestamp = Timestamp.valueOf("1900-01-01 00:00:00.0"))"""
+                           `e`: Timestamp = java.sql.Timestamp.valueOf("1900-01-01 00:00:00.0"))"""
 
     outputStr shouldBe expectedResult
 
@@ -140,7 +140,7 @@ case class TestClassOutput(`a`: String = "a",
                            `b`: Long = 0,
                            `c`: String = "c",
                            `d`: List[String] = List(),
-                           `e`: Timestamp = Timestamp.valueOf("1900-01-01 00:00:00.0"))
+                           `e`: Timestamp = java.sql.Timestamp.valueOf("1900-01-01 00:00:00.0"))
 
 """
 

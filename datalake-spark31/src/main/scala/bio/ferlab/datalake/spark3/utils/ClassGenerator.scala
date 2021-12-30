@@ -37,7 +37,7 @@ object ClassGenerator {
   def getFakeValue: PartialFunction[DataType, String] = {
     case StringType                                    => """"John Doe""""
     case DateType                                      => """Date.valueOf("1900-01-01")"""
-    case TimestampType                                 => """Timestamp.valueOf("${values.getAs(name)}")"""
+    case TimestampType                                 => """java.sql.Timestamp.valueOf("${values.getAs(name)}")"""
     case ArrayType(StringType,_)                       => """List("John Doe")"""
     case ArrayType(FloatType,_)                        => """List(0.0)"""
     case ArrayType(IntegerType,_)                      => """List(0)"""
@@ -52,8 +52,8 @@ object ClassGenerator {
 
   def getValue: PartialFunction[(String, Row, DataType), String] = {
     case (name, values, StringType)                                    => "\"" + values.getAs(name) + "\""
-    case (name, values, DateType)                                      => s"""Date.valueOf("${values.getAs(name)}")"""
-    case (name, values, TimestampType)                                 => s"""Timestamp.valueOf("${values.getAs(name)}")"""
+    case (name, values, DateType)                                      => s"""java.sql.Date.valueOf("${values.getAs(name)}")"""
+    case (name, values, TimestampType)                                 => s"""java.sql.Timestamp.valueOf("${values.getAs(name)}")"""
     case (name, values, ArrayType(StringType,_)) if values.getAs[List[String]](name).isEmpty => "List()"
     case (name, values, ArrayType(StringType,_))                       => values.getAs[List[String]](name).mkString("List(\"", "\", \"", "\")")
     case (name, values, ArrayType(FloatType,_))                        => values.getAs[List[Float]](name).mkString("List(", ", ", ")")
