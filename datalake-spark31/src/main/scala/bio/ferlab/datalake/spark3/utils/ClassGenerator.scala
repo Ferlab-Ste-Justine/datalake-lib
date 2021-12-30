@@ -34,6 +34,22 @@ object ClassGenerator {
     case MapType(StringType,ArrayType(StringType,_),_) =>"Map[String, List[String]]"
   }
 
+  def getFakeValue: PartialFunction[DataType, String] = {
+    case StringType                                    => """"John Doe""""
+    case DateType                                      => """Date.valueOf("1900-01-01")"""
+    case TimestampType                                 => """Timestamp.valueOf("${values.getAs(name)}")"""
+    case ArrayType(StringType,_)                       => """List("John Doe")"""
+    case ArrayType(FloatType,_)                        => """List(0.0)"""
+    case ArrayType(IntegerType,_)                      => """List(0)"""
+    case ArrayType(BooleanType,_)                      => """List(true)"""
+    case ArrayType(DoubleType,_)                       => """List(0.0)"""
+    case ArrayType(LongType,_)                         => """List(0L)"""
+    case MapType(StringType,StringType, _)             => """Map("John" -> "Doe")"""
+    case MapType(StringType,LongType, _)               => """Map("John" -> 0)"""
+    case MapType(StringType,DecimalType(), _)          => """Map("John" -> 0.0)"""
+    case MapType(StringType,ArrayType(StringType,_),_) => """Map("John" -> List("Doe"))"""
+  }
+
   def getValue: PartialFunction[(String, Row, DataType), String] = {
     case (name, values, StringType)                                    => "\"" + values.getAs(name) + "\""
     case (name, values, DateType)                                      => s"""Date.valueOf("${values.getAs(name)}")"""
@@ -52,14 +68,11 @@ object ClassGenerator {
     case (name, values, _)                                             => values.getAs(name)
   }
 
-  def oneClassString(className: String, df: DataFrame, failsOnEmptyDataFrame: Boolean): String = {
-    if(df.isEmpty && failsOnEmptyDataFrame)
-      throw new IllegalArgumentException("input dataframe empty.")
+  def oneClassString(className: String, df: DataFrame): String = {
 
-    val fields: Array[String] = if(!failsOnEmptyDataFrame) {
+    val fields: Array[String] = if(df.isEmpty) {
       df.schema.fields.map {
-        case StructField(name, dataType, _, _) if !failsOnEmptyDataFrame && getType.isDefinedAt(dataType) =>
-          s"""`$name`: ${getType(dataType)}"""
+        case StructField(name, dataType, _, _) => s"""`$name`: Option[${getType(dataType)}] = None"""
         case StructField(name, StructType(_), _, _) => s"""`$name`: ${name.toUpperCase}"""
         case StructField(name, ArrayType(StructType(_), _), _, _) => s"""`$name`: List[${name.toUpperCase}]"""
         case structField: StructField => structField.toString()
@@ -85,7 +98,7 @@ object ClassGenerator {
 case class $className(${fields.mkString("", s",\n${spacing.mkString}" , ")")}"""
   }
 
-  private def getNestedClasses: (DataFrame, Boolean) => List[String] = {(df, failsOnEmptyDataFrame) =>
+  private def getNestedClasses: DataFrame => List[String] = {df =>
 
     @tailrec
     def getNestedRecurse(done: Map[String, DataFrame], todo: List[DataFrame]): Map[String, DataFrame] = {
@@ -102,17 +115,18 @@ case class $className(${fields.mkString("", s",\n${spacing.mkString}" , ")")}"""
     }
 
     getNestedRecurse(Map(), List(df))
-      .map { case (className, df) => oneClassString(className, df, failsOnEmptyDataFrame)}.toList
+      .map { case (className, df) => oneClassString(className, df)}.toList
 
   }
 
-  def getCaseClassFileContent(packageName: String, className: String, df: DataFrame,
-                              on: LocalDateTime = LocalDateTime.now(),
-                              failsOnEmptyDataFrame: Boolean = true): String = {
+  def getCaseClassFileContent(packageName: String,
+                              className: String,
+                              df: DataFrame,
+                              on: LocalDateTime = LocalDateTime.now()): String = {
 
-    val mainClass = oneClassString(className, df, failsOnEmptyDataFrame)
+    val mainClass = oneClassString(className, df)
 
-    val nestedClasses = getNestedClasses(df, failsOnEmptyDataFrame)
+    val nestedClasses = getNestedClasses(df)
 
     val imports: List[String] =
       if ((mainClass + nestedClasses.mkString("\n")).contains("Timestamp.valueOf") && (mainClass + nestedClasses.mkString("\n")).contains("Date.valueOf"))
