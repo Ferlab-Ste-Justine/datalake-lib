@@ -24,7 +24,7 @@ class ClassGeneratorSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
 
     val outputClass = "TestClassOutput"
 
-    val outputStr = ClassGenerator.oneClassString(outputClass, Seq(TestInput(d = List())).toDF, true)
+    val outputStr = ClassGenerator.oneClassString(outputClass, Seq(TestInput(d = List())).toDF)
 
     val expectedResult =
       """
@@ -42,7 +42,7 @@ case class TestClassOutput(`a`: String = "a",
 
     val outputClass = "TestClassOutput"
 
-    val outputStr = ClassGenerator.oneClassString(outputClass, Seq(TestInput()).toDF, failsOnEmptyDataFrame = true)
+    val outputStr = ClassGenerator.oneClassString(outputClass, Seq(TestInput()).toDF)
 
     val expectedResult =
 """
@@ -60,15 +60,15 @@ case class TestClassOutput(`a`: String = "a",
 
     val outputClass = "TestClassOutput"
 
-    val outputStr = ClassGenerator.oneClassString(outputClass, Seq(TestInput()).toDF.limit(0), failsOnEmptyDataFrame = false)
+    val outputStr = ClassGenerator.oneClassString(outputClass, Seq(TestInput()).toDF.limit(0))
 
     val expectedResult =
 """
-case class TestClassOutput(`a`: String,
-                           `b`: Long,
-                           `c`: String,
-                           `d`: List[String],
-                           `e`: Timestamp)"""
+case class TestClassOutput(`a`: Option[String] = None,
+                           `b`: Option[Long] = None,
+                           `c`: Option[String] = None,
+                           `d`: Option[List[String]] = None,
+                           `e`: Option[Timestamp] = None)"""
 
     outputStr shouldBe expectedResult
 
@@ -79,7 +79,7 @@ case class TestClassOutput(`a`: String,
 
     val outputClass = "TestClassOutput"
 
-    val outputStr = ClassGenerator.oneClassString(outputClass, Seq(TestInput(a=null), TestInput(), TestInput(a=null, c=null)).toDF, true)
+    val outputStr = ClassGenerator.oneClassString(outputClass, Seq(TestInput(a=null), TestInput(), TestInput(a=null, c=null)).toDF)
 
     val expectedResult =
       """
@@ -97,7 +97,7 @@ case class TestClassOutput(`a`: String = "a",
 
     val outputClass = "TestClassOutput"
 
-    val outputStr = ClassGenerator.oneClassString(outputClass, Seq(TestInput(a=null), TestInput(a=null, c=null)).toDF, true)
+    val outputStr = ClassGenerator.oneClassString(outputClass, Seq(TestInput(a=null), TestInput(a=null, c=null)).toDF)
 
     val expectedResult =
       """
@@ -109,13 +109,6 @@ case class TestClassOutput(`a`: Option[String] = None,
 
     outputStr shouldBe expectedResult
 
-  }
-
-
-  "class generator" should "throw exeception if the input dataframe is empty" in {
-    assertThrows[IllegalArgumentException] {
-      ClassGenerator.getCaseClassFileContent("ca.test", "test", spark.emptyDataFrame)
-    }
   }
 
   "class generator" should "create folder if not exists" in {
