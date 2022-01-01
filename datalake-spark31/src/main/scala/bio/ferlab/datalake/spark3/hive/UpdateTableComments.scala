@@ -3,10 +3,13 @@ package bio.ferlab.datalake.spark3.hive
 import bio.ferlab.datalake.commons.config.DatasetConf
 import bio.ferlab.datalake.spark3.datastore.HiveSqlBinder
 import org.apache.spark.sql.SparkSession
+import org.slf4j
 
 import scala.util.Try
 
 object UpdateTableComments {
+
+  val log: slf4j.Logger = slf4j.LoggerFactory.getLogger(getClass.getCanonicalName)
 
   def run(ds: DatasetConf)(implicit spark: SparkSession): Unit = {
     if(ds.table.nonEmpty)
@@ -16,7 +19,7 @@ object UpdateTableComments {
   def run(database: String, table: String, metadata_file: String)(implicit spark: SparkSession): Unit = {
     Try {
       spark.read.option("multiline", "true").json(metadata_file).drop("data_type")
-    }.fold(_ => println(s"[ERROR] documentation ${metadata_file} not found."),
+    }.fold(_ => log.info(s"[ERROR] documentation ${metadata_file} not found."),
       documentationDf => {
         import spark.implicits._
         val describeTableDF = spark.sql(s"DESCRIBE $database.$table")

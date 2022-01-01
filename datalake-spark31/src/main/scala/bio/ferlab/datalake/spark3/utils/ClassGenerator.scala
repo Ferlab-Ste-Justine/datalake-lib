@@ -3,12 +3,15 @@ package bio.ferlab.datalake.spark3.utils
 import org.apache.spark.sql._
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
+import org.slf4j
 
 import java.io.{File, PrintWriter}
 import java.time.LocalDateTime
 import scala.annotation.tailrec
 
 object ClassGenerator {
+
+  val log: slf4j.Logger = slf4j.LoggerFactory.getLogger(getClass.getCanonicalName)
 
   def getType: PartialFunction[DataType, String] = {
     case StringType                           => "String"
@@ -159,7 +162,7 @@ case class $className(${fields.mkString("", s",\n${spacing.mkString}" , ")")}"""
     val folder = s"""$rootFolder${packageName.replace(".", "/")}"""
     val path: String = s"$folder/$className.scala"
 
-    println(
+    log.info(
       s"""writting file: $path :
          |$classContent
          |""".stripMargin)
@@ -180,7 +183,7 @@ case class $className(${fields.mkString("", s",\n${spacing.mkString}" , ")")}"""
 
 
   def printCaseClassFromDataFrame(packageName: String, className: String, df: DataFrame): Unit = {
-    println(getCaseClassFileContent(packageName, className, df))
+    log.info(getCaseClassFileContent(packageName, className, df))
   }
 }
 

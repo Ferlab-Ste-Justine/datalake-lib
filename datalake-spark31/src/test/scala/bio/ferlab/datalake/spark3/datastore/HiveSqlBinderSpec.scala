@@ -1,6 +1,7 @@
 package bio.ferlab.datalake.spark3.datastore
 
 import bio.ferlab.datalake.commons.file.FileSystemType.LOCAL
+import org.apache.log4j.{Level, Logger}
 import org.apache.spark.sql.{AnalysisException, SparkSession}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AnyFlatSpec
@@ -15,7 +16,8 @@ class HiveSqlBinderSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll
     .master("local")
     .getOrCreate()
 
-  spark.sparkContext.setLogLevel("ERROR")
+  Logger.getLogger("org").setLevel(Level.OFF)
+  Logger.getLogger("akka").setLevel(Level.OFF)
   val tableName = "test_hive_binder"
   val databaseName = "default"
   val output: String = getClass.getClassLoader.getResource("normalized/").getFile + "testtable"

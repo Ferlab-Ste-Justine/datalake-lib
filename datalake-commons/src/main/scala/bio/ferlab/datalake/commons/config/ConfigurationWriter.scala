@@ -1,5 +1,6 @@
 package bio.ferlab.datalake.commons.config
 
+import org.slf4j
 import zio.config._
 import zio.config.magnolia.{Descriptor, descriptor}
 import zio.config.typesafe._
@@ -9,6 +10,7 @@ import java.io.{File, PrintWriter}
 object ConfigurationWriter {
 
   implicit val configDescriptor: Descriptor[Configuration] = Descriptor.getDescriptor[Configuration]
+  val log: slf4j.Logger = slf4j.LoggerFactory.getLogger(getClass.getCanonicalName)
 
   def toHocon(conf: Configuration): String = {
 
@@ -23,7 +25,7 @@ object ConfigurationWriter {
 
     val content = toHocon(conf)
 
-    println(
+    log.debug(
       s"""writting configuration: $path :
          |$content
          |""".stripMargin)

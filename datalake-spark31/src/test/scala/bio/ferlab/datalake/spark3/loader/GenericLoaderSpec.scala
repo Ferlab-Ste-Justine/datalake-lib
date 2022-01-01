@@ -1,5 +1,6 @@
 package bio.ferlab.datalake.spark3.loader
 
+import org.apache.log4j.{Level, Logger}
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AnyFlatSpec
@@ -16,7 +17,8 @@ class GenericLoaderSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll
     .master("local")
     .getOrCreate()
 
-  spark.sparkContext.setLogLevel("ERROR")
+  Logger.getLogger("org").setLevel(Level.OFF)
+  Logger.getLogger("akka").setLevel(Level.OFF)
 
   val output: String = getClass.getClassLoader.getResource("normalized/").getFile + "test_generic"
 

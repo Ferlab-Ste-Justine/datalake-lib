@@ -1,4 +1,4 @@
-package bio.ferlab.datalake.spark3.etl
+package bio.ferlab.datalake.spark3.etl.v2
 
 import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf}
 import bio.ferlab.datalake.spark3.file.FileSystemResolver
@@ -9,11 +9,10 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
 import java.time.LocalDateTime
 import scala.util.{Failure, Success, Try}
 
-@Deprecated
 class RawFileToNormalizedETL(override val source: DatasetConf,
-                             override val destination: DatasetConf,
+                             override val mainDestination: DatasetConf,
                              override val transformations: List[Transformation])
-                            (override implicit val conf: Configuration) extends RawToNormalizedETL(source, destination, transformations) {
+                            (override implicit val conf: Configuration) extends RawToNormalizedETL(source, mainDestination, transformations) {
 
   private var processedFiles: List[String] = List()
 
@@ -27,18 +26,18 @@ class RawFileToNormalizedETL(override val source: DatasetConf,
    */
   override def transform(data: Map[String, DataFrame],
                          lastRunDateTime: LocalDateTime,
-                         currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): DataFrame = {
+                         currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): Map[String, DataFrame] = {
     import spark.implicits._
-    log.info(s"transforming: ${source.id} to ${destination.id}")
+    log.info(s"transforming: ${source.id} to ${mainDestination.id}")
     //keep in memory which files are being processed
     processedFiles = data(source.id).withColumn("files", input_file_name())
       .select("files").as[String].collect().distinct.toList
     //apply list of transformations to the input data
     val finalDf = Transformation.applyTransformations(data(source.id), transformations).persist()
 
-    log.info(s"unique ids: ${finalDf.dropDuplicates(destination.keys).count()}")
+    log.info(s"unique ids: ${finalDf.dropDuplicates(mainDestination.keys).count()}")
     log.info(s"rows: ${finalDf.count()}")
-    finalDf
+    Map(mainDestination.id -> finalDf)
   }
 
 
@@ -73,4 +72,5 @@ class RawFileToNormalizedETL(override val source: DatasetConf,
     super.reset()                                                                              // call parent's method to reset destination
   }
 }
+
 

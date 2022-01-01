@@ -1,5 +1,6 @@
 package bio.ferlab.datalake.spark3.file
 import bio.ferlab.datalake.commons.file.{File, FileSystem}
+import org.slf4j
 import software.amazon.awssdk.services.s3.{S3Client, S3Configuration}
 import software.amazon.awssdk.services.s3.model.{CopyObjectRequest, DeleteObjectRequest, HeadObjectRequest, ListObjectsV2Request, ListObjectsV2Response, NoSuchKeyException}
 import software.amazon.awssdk.auth.credentials.{AwsBasicCredentials, StaticCredentialsProvider}
@@ -10,7 +11,9 @@ import java.net.URI
 import java.nio.file.Paths
 
 
-object S3ClientBuilder{
+object S3ClientBuilder {
+
+  val log: slf4j.Logger = slf4j.LoggerFactory.getLogger(getClass.getCanonicalName)
 
   def buildS3Client(pathStyleAccess: Boolean, accessKey: String, secretKey: String, endPoint: String, region: String = "region"): S3Client = {
     val confBuilder: S3Configuration = software.amazon.awssdk.services.s3.S3Configuration.builder
@@ -57,7 +60,7 @@ class S3FileSystem(s3Client: S3Client) extends FileSystem {
 
   private def normalizeToDirectoryUri(uri: URI): URI = {
     if (isPathTerminatedByDelimiter(uri)) return uri
-    println(uri.getHost)
+    log.info(uri.getHost)
     new URI(uri.getScheme, uri.getHost, uri.getPath + DELIMITER, null)
   }
 

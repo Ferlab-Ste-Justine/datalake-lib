@@ -7,6 +7,7 @@ import org.scalatest.GivenWhenThen
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import bio.ferlab.datalake.spark3.transformation
+import org.apache.log4j.{Level, Logger}
 
 import java.sql
 import java.time.LocalDate
@@ -20,7 +21,8 @@ class TransformationSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
     .master("local")
     .getOrCreate()
 
-  spark.sparkContext.setLogLevel("ERROR")
+  Logger.getLogger("org").setLevel(Level.OFF)
+  Logger.getLogger("akka").setLevel(Level.OFF)
 
 
   val input: String = getClass.getClassLoader.getResource("filename/").getFile + "file1.json"
