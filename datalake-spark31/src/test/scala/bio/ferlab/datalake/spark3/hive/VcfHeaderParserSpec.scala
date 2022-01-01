@@ -1,6 +1,7 @@
 package bio.ferlab.datalake.spark3.hive
 
 import bio.ferlab.datalake.spark3.hive.VcfHeaderParser.Header
+import org.apache.log4j.{Level, Logger}
 import org.apache.spark.sql.SparkSession
 import org.scalatest.GivenWhenThen
 import org.scalatest.flatspec.AnyFlatSpec
@@ -15,7 +16,8 @@ class VcfHeaderParserSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
     .master("local")
     .getOrCreate()
 
-  spark.sparkContext.setLogLevel("ERROR")
+  Logger.getLogger("org").setLevel(Level.OFF)
+  Logger.getLogger("akka").setLevel(Level.OFF)
 
   import spark.implicits._
 

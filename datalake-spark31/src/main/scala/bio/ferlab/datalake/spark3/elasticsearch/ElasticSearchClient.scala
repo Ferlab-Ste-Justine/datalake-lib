@@ -9,6 +9,7 @@ import org.apache.http.{HttpHeaders, HttpRequest, HttpRequestInterceptor, HttpRe
 import org.apache.spark.sql.SparkSession
 import org.json4s.DefaultFormats
 import org.json4s.jackson.Serialization.write
+import org.slf4j.{Logger, LoggerFactory}
 import org.sparkproject.guava.io.BaseEncoding
 
 import java.nio.charset.StandardCharsets
@@ -18,6 +19,7 @@ class ElasticSearchClient(url: String, username: Option[String] = None, password
   private val indexUrl: String => String = indexName => s"$url/$indexName"
   private val templateUrl: String => String = templateName => s"$url/_template/$templateName"
   private val aliasesUrl: String = s"$url/_aliases"
+  val log: Logger = LoggerFactory.getLogger(getClass.getCanonicalName)
 
   def http: CloseableHttpClient = {
     val client = HttpClientBuilder.create()
@@ -44,7 +46,7 @@ class ElasticSearchClient(url: String, username: Option[String] = None, password
   def isRunning: Boolean = {
     val response = http.execute(new HttpGet(url))
 
-    println(s"""
+    log.info(s"""
                |GET $url
                |${response.toString}
                |${EntityUtils.toString(response.getEntity)}
@@ -61,7 +63,7 @@ class ElasticSearchClient(url: String, username: Option[String] = None, password
   def checkNodeRoles: Boolean = {
     val response = http.execute(new HttpGet(url + "/_nodes/http"))
 
-    println(s"""
+    log.info(s"""
                |GET $url/_nodes/http
                |${response.toString}
                |${EntityUtils.toString(response.getEntity)}
@@ -80,7 +82,7 @@ class ElasticSearchClient(url: String, username: Option[String] = None, password
 
     val fileContent = spark.read.option("wholetext", "true").textFile(templatePath).collect().mkString
 
-    println(s"SENDING: PUT ${templateUrl(templateName)} with content: $fileContent")
+    log.info(s"SENDING: PUT ${templateUrl(templateName)} with content: $fileContent")
 
     val request = new HttpPut(templateUrl(templateName))
     request.addHeader(HttpHeaders.CONTENT_TYPE,"application/json")
@@ -110,7 +112,7 @@ class ElasticSearchClient(url: String, username: Option[String] = None, password
 
     val requestBody = write(action)
 
-    println(requestBody)
+    log.info(requestBody)
 
     val request = new HttpPost(aliasesUrl)
     request.addHeader(HttpHeaders.CONTENT_TYPE,"application/json")

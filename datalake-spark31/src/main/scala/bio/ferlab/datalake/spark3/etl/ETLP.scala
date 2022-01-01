@@ -7,6 +7,7 @@ import org.apache.spark.sql.functions.{col, lit, regexp_extract, trim}
 
 import scala.util.Try
 
+@Deprecated
 abstract class ETLP()(implicit conf: Configuration) extends ETL {
 
   override def publish()(implicit spark: SparkSession): Unit = {

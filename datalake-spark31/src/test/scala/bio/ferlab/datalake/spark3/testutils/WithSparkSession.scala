@@ -1,6 +1,7 @@
 package bio.ferlab.datalake.spark3.testutils
 
 import org.apache.commons.io.FileUtils
+import org.apache.log4j.{Level, Logger}
 import org.apache.spark.sql.SparkSession
 
 import java.io.File
@@ -16,7 +17,8 @@ trait WithSparkSession {
     .master("local")
     .getOrCreate()
 
-  spark.sparkContext.setLogLevel("ERROR")
+  Logger.getLogger("org").setLevel(Level.OFF)
+  Logger.getLogger("akka").setLevel(Level.OFF)
 
 
   /**

@@ -6,8 +6,11 @@ import org.apache.spark.SparkConf
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.{StringType, StructField}
 import org.apache.spark.sql.{DataFrame, DataFrameReader, SparkSession}
+import org.slf4j
 
 object DataProfiling {
+
+  val log: slf4j.Logger = slf4j.LoggerFactory.getLogger(getClass.getCanonicalName)
 
   def initSparkSession(s3accessKey: String,
                        s3secretKey: String,
@@ -167,7 +170,7 @@ object DataProfiling {
     val head: String = df.columns.head
     val tail: Array[String] = df.columns.tail
     val resultDf = tail.zipWithIndex.foldLeft(analyseColumn(df, head)) { case (d, (c, idx)) =>
-      println(s"ANALYSING [${c.padTo(50, " ").mkString}] \t COLUMN ${idx} out of ${df.columns.length} COLUMNS")
+      log.info(s"ANALYSING [${c.padTo(50, " ").mkString}] \t COLUMN ${idx} out of ${df.columns.length} COLUMNS")
       d.unionByName(analyseColumn(df, c))
     }.as[(String, List[(String, Double)], Long, Long, Double, Double, String)]
 

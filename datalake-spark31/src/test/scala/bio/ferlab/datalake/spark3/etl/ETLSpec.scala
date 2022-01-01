@@ -6,6 +6,7 @@ import bio.ferlab.datalake.commons.config._
 import bio.ferlab.datalake.commons.file.FileSystemType.LOCAL
 import bio.ferlab.datalake.spark3.file.{FileSystemResolver, HadoopFileSystem}
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
+import org.apache.log4j.{Level, Logger}
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.LongType
 import org.apache.spark.sql.{DataFrame, SparkSession}
@@ -26,7 +27,8 @@ class ETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers with BeforeAn
     .master("local")
     .getOrCreate()
 
-  spark.sparkContext.setLogLevel("ERROR")
+  Logger.getLogger("org").setLevel(Level.OFF)
+  Logger.getLogger("akka").setLevel(Level.OFF)
 
 
   implicit val conf: Configuration = Configuration(storages = List(
@@ -50,6 +52,7 @@ class ETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers with BeforeAn
     override def transform(data: Map[String, DataFrame],
                            lastRunDateTime: LocalDateTime = minDateTime,
                            currentRunDateTime: LocalDateTime = LocalDateTime.now())(implicit spark: SparkSession): DataFrame = {
+      log.info(srcConf.id)
       data(srcConf.id)
         .select(
           col("id").cast(LongType) as "airport_id",

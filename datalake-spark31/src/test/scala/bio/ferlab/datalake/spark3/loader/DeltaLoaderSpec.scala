@@ -3,6 +3,7 @@ package bio.ferlab.datalake.spark3.loader
 import bio.ferlab.datalake.commons.config.Format.DELTA
 import bio.ferlab.datalake.spark3.file.HadoopFileSystem
 import io.delta.tables.DeltaTable
+import org.apache.log4j.{Level, Logger}
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AnyFlatSpec
@@ -20,7 +21,8 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
     .master("local")
     .getOrCreate()
 
-  spark.sparkContext.setLogLevel("ERROR")
+  Logger.getLogger("org").setLevel(Level.OFF)
+  Logger.getLogger("akka").setLevel(Level.OFF)
 
   val testtableoverwite: String = getClass.getClassLoader.getResource("normalized/").getFile + "testtableoverwite"
   val output: String = getClass.getClassLoader.getResource("normalized/").getFile + "testtable"
