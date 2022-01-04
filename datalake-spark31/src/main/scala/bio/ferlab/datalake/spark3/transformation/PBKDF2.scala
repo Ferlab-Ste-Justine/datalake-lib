@@ -10,18 +10,18 @@ import scala.language.postfixOps
 /**
  * example of usage: PBKDF2("salt", 100000, 512, "NoDossierClient", "NoAssuranceMaladie", ...))
  *
- * @param salt
- * @param iteration
- * @param keyLength
- * @param columns
+ * @param salt random salt string
+ * @param iteration number of iteration
+ * @param keyLength length of the resulting hash
+ * @param columns names of the columns to hash
  */
-case class PBKDF2(salt: String, iteration: Int, keyLength: Int, columns: String*) extends Transformation {
+case class PBKDF2(salt: String, iteration: Int, keyLength: Int, override val columns: String*) extends HashTransformation {
 
   /**
    *
-   * @param id
-   * @param salt
-   * @return
+   * @param id string to be hashed
+   * @param salt random salt string
+   * @return hashed and salted string
    */
   def pbkdf2(id: String, salt: String): String = {
     id.pbkdf2(salt, iteration, keyLength).hex
@@ -39,7 +39,6 @@ case class PBKDF2(salt: String, iteration: Int, keyLength: Int, columns: String*
         when(col(column).isNull, lit(null).cast(StringType)).otherwise(callUDF("pbkdf2Udf", col(column), lit(salt))))
 
     }
-
   }
 
 }

@@ -26,6 +26,6 @@ jobs:
           password: ${{ secrets.SONATYPE_PASSWORD }}
           format: maven2
           repository: releases
-          coordinates: groupId=bio.ferlab artifactId=datalake-core version=0.0.11
+          coordinates: groupId=bio.ferlab artifactId=datalake-spark3 version=0.2.1
           assets: extension=jar
-          filename: ./datalake-core/target/scala-2.12/datalake-core_2.12-0.0.11.jar
+          filename: ./datalake-spark31/target/scala-2.12/datalake-spark3_2.12-0.2.1.jar
