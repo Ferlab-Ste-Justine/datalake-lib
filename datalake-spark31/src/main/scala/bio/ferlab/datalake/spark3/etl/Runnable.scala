@@ -13,6 +13,6 @@ trait Runnable {
    */
   def run(runSteps: Seq[RunStep] = RunStep.default_load,
           lastRunDateTime: Option[LocalDateTime] = None,
-          currentRunDateTime: Option[LocalDateTime] = None)(implicit spark: SparkSession): DataFrame
+          currentRunDateTime: Option[LocalDateTime] = None)(implicit spark: SparkSession): Map[String, DataFrame]
 
 }

@@ -91,7 +91,7 @@ abstract class ETL()(implicit val conf: Configuration) extends Runnable {
    */
   override def run(runSteps: Seq[RunStep] = RunStep.default_load,
                    lastRunDateTime: Option[LocalDateTime] = None,
-                   currentRunDateTime: Option[LocalDateTime] = None)(implicit spark: SparkSession): DataFrame = {
+                   currentRunDateTime: Option[LocalDateTime] = None)(implicit spark: SparkSession): Map[String, DataFrame] = {
 
     val lastRunDate = lastRunDateTime.getOrElse(if (runSteps.contains(RunStep.reset)) minDateTime else getLastRunDateFor(mainDestination))
     val currentRunDate = currentRunDateTime.getOrElse(LocalDateTime.now())
@@ -134,7 +134,10 @@ abstract class ETL()(implicit val conf: Configuration) extends Runnable {
     if (runSteps.contains(RunStep.publish)) {
       publish()
     }
-    Try(mainDestination.read).getOrElse(spark.emptyDataFrame)
+    //read all outputDf
+    (output.keys.toList ++ List(mainDestination.id))
+      .map(dsid => dsid -> Try(conf.getDataset(dsid).read).getOrElse(spark.emptyDataFrame))
+      .toMap
   }
 
   /**

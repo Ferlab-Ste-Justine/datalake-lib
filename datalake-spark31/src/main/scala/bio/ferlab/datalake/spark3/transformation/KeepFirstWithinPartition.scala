@@ -6,6 +6,7 @@ import org.apache.spark.sql.{Column, DataFrame}
 
 import java.util.UUID
 
+@Deprecated
 case class KeepFirstWithinPartition(partitionByExpr: Seq[String],
                                     orderByExpr: Column*) extends Transformation {
   override def transform: DataFrame => DataFrame = {df =>

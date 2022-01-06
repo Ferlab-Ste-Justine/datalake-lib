@@ -9,7 +9,7 @@ import java.time.LocalDateTime
 class RawToNormalizedETL(val source: DatasetConf,
                          override val mainDestination: DatasetConf,
                          val transformations: List[Transformation])
-                        (override implicit val conf: Configuration) extends ETL() {
+                        (override implicit val conf: Configuration) extends ETL {
 
   override def extract(lastRunDateTime: LocalDateTime,
                        currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): Map[String, DataFrame] = {
