@@ -60,6 +60,31 @@ class TransformationSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
       )
   }
 
+  "DropDuplicates" should "keep one line per partition if a subset is given" in {
+
+    val df = Seq(
+      ("1", sql.Date.valueOf(LocalDate.of(2000, 1, 11))),
+      ("1", sql.Date.valueOf(LocalDate.of(2000, 1, 2))),
+      ("1", sql.Date.valueOf(LocalDate.of(2000, 1, 5))),
+      ("2", sql.Date.valueOf(LocalDate.of(2000, 1, 3))),
+      ("2", sql.Date.valueOf(LocalDate.of(2000, 1, 1)))
+    ).toDF("id", "updated_on")
+
+    Transformation
+      .applyTransformations(df, List(DropDuplicates(Seq("id"), col("updated_on").desc)))
+      .as[(String, sql.Date)].collect() should contain allElementsOf
+      Seq(
+        ("1", sql.Date.valueOf(LocalDate.of(2000, 1, 11))),
+        ("2", sql.Date.valueOf(LocalDate.of(2000, 1, 3)))
+      )
+
+    val transformations = List(DropDuplicates(Seq("id"), col("updated_on").desc))
+
+    Transformation
+      .applyTransformations(df, List(DropDuplicates()))
+      .count() shouldBe 5
+  }
+
   "InputFileName" should "extract filename" in {
 
     val df = spark.read.json(input)
