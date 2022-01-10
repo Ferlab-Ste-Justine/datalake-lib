@@ -19,13 +19,13 @@ import scala.util.Try
 
 /**
  * @deprecated
- * use [[ETL]] instead
+ * use [[v2.ETL]] instead
  *
  * Defines a common workflow for ETL jobs.
  * By definition an ETL can take 1..n sources as input and can produce only 1 output.
  * @param conf application configuration
  */
-@Deprecated
+@deprecated("use [[v2.ETL]] instead", "0.2.0")
 abstract class ETL()(implicit val conf: Configuration) {
 
   val minDateTime: LocalDateTime = LocalDateTime.of(1900, 1, 1, 0, 0, 0)
@@ -147,12 +147,12 @@ abstract class ETL()(implicit val conf: Configuration) {
     ds.loadtype match {
       case Scd1 =>
         Try(
-          ds.read.select(max(col(ds.writeoptions(UPDATED_ON_COLUMN_NAME.value)))).limit(1).as[Timestamp].head().toLocalDateTime
+          ds.read.select(max(col(ds.writeoptions(UPDATED_ON_COLUMN_NAME)))).limit(1).as[Timestamp].head().toLocalDateTime
         ).getOrElse(minDateTime)
 
       case Scd2 =>
         Try(
-          ds.read.select(max(col(ds.writeoptions(VALID_FROM_COLUMN_NAME.value)))).limit(1).as[Date].head().toLocalDate.atStartOfDay()
+          ds.read.select(max(col(ds.writeoptions(VALID_FROM_COLUMN_NAME)))).limit(1).as[Date].head().toLocalDate.atStartOfDay()
         ).getOrElse(minDateTime)
 
       case _ => minDateTime

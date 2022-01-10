@@ -151,12 +151,12 @@ abstract class ETL()(implicit val conf: Configuration) extends Runnable {
     ds.loadtype match {
       case Scd1 =>
         Try(
-          ds.read.select(max(col(ds.writeoptions(UPDATED_ON_COLUMN_NAME.value)))).limit(1).as[Timestamp].head().toLocalDateTime
+          ds.read.select(max(col(ds.writeoptions(UPDATED_ON_COLUMN_NAME)))).limit(1).as[Timestamp].head().toLocalDateTime
         ).getOrElse(minDateTime)
 
       case Scd2 =>
         Try(
-          ds.read.select(max(col(ds.writeoptions(VALID_FROM_COLUMN_NAME.value)))).limit(1).as[Date].head().toLocalDate.atStartOfDay()
+          ds.read.select(max(col(ds.writeoptions(VALID_FROM_COLUMN_NAME)))).limit(1).as[Date].head().toLocalDate.atStartOfDay()
         ).getOrElse(minDateTime)
 
       case _ => minDateTime

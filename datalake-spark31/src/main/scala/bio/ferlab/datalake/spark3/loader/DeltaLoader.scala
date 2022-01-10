@@ -1,7 +1,9 @@
 package bio.ferlab.datalake.spark3.loader
 
 import bio.ferlab.datalake.commons.config.Format.DELTA
+import bio.ferlab.datalake.spark3.transformation.Implicits._
 import io.delta.tables.DeltaTable
+import org.apache.spark.sql.functions.{col, concat_ws, lit, sha1}
 import org.apache.spark.sql.{Column, DataFrame, SparkSession}
 
 import java.time.LocalDate
@@ -140,13 +142,65 @@ object DeltaLoader extends Loader {
            tableName: String,
            updates: DataFrame,
            primaryKeys: Seq[String],
+           buidName: String,
            oidName: String,
-           createdOnName: String,
-           updatedOnName: String,
+           isCurrentName: String,
            partitioning: List[String],
            format: String,
            validFromName: String,
            validToName: String,
-           minValidFromDate: LocalDate,
-           maxValidToDate: LocalDate)(implicit spark: SparkSession): DataFrame = ???
+           minValidFromDate: LocalDate = LocalDate.of(1900, 1, 1),
+           maxValidToDate: LocalDate = LocalDate.of(9999, 12, 31))(implicit spark: SparkSession): DataFrame = {
+
+    require(primaryKeys.forall(updates.columns.contains), s"requires column [${primaryKeys.mkString(", ")}]")
+    require(updates.columns.exists(_.equals(oidName)), s"requires column [$oidName]")
+    require(updates.columns.exists(_.equals(validFromName)), s"requires column [$validFromName]")
+
+    val newData =
+      updates
+        .withColumn(buidName, sha1(concat_ws("_", primaryKeys.map(col):_*)))
+        .withColumn(validToName, lit(maxValidToDate))
+        .withColumn(isCurrentName, lit(true))
+
+    val deduplicatedData =
+      if (updates.select(validFromName).dropDuplicates().count() > 1)
+        newData.withDropDuplicates(Seq(buidName), col(validFromName).desc)
+      else
+        newData
+
+    readTableAsDelta(location, databaseName, tableName) match {
+      case Failure(_) => writeOnce(location, databaseName, tableName, deduplicatedData, partitioning, format)
+      case Success(existing) =>
+        val existingDf = existing.toDF
+
+        val newRowsToInsert = deduplicatedData
+          .as("updates")
+          .join(existingDf, primaryKeys)
+          .where(existingDf(isCurrentName) and deduplicatedData(oidName) =!= existingDf(oidName) and existingDf(validFromName) < deduplicatedData(validFromName))
+
+        val stagedUpdates = newRowsToInsert
+          .selectExpr("NULL as mergeKey", "updates.*")
+          .union(
+            deduplicatedData.selectExpr(s"${buidName} as mergeKey", "*")
+          )
+
+        val columnWithoutMergeKey = stagedUpdates.columns.filterNot(_.equals("mergeKey")).map(c => c -> s"updates.$c").toMap
+
+        existing.as("existing")
+          .merge(
+            stagedUpdates.as("updates"),
+            existingDf(buidName) === col("mergeKey")
+          )
+          .whenMatched(stagedUpdates(oidName) =!= existingDf(oidName) and existingDf(isCurrentName) and existingDf(validFromName) < stagedUpdates(validFromName))
+          .updateExpr(Map(
+            isCurrentName -> "false",
+            validToName -> s"updates.$validFromName - 1 days"))
+          .whenMatched(stagedUpdates(oidName) =!= existingDf(oidName) and existingDf(isCurrentName) and existingDf(validFromName) === stagedUpdates(validFromName))
+          .updateExpr(columnWithoutMergeKey)
+          .whenNotMatched()
+          .insertExpr(columnWithoutMergeKey)
+          .execute()
+    }
+    read(location, DELTA.sparkFormat, Map(), Some(databaseName), Some(tableName))
+  }
 }

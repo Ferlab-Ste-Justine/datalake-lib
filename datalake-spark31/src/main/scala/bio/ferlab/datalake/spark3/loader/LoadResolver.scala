@@ -1,8 +1,8 @@
 package bio.ferlab.datalake.spark3.loader
 
-import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf, Format, LoadType, WriteOptions}
 import bio.ferlab.datalake.commons.config.Format.{DELTA, JDBC, SQL_SERVER}
 import bio.ferlab.datalake.commons.config.LoadType._
+import bio.ferlab.datalake.commons.config._
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
 import java.time.LocalDateTime
@@ -13,9 +13,15 @@ object LoadResolver {
 
   def write(implicit spark: SparkSession, conf: Configuration): PartialFunction[(Format, LoadType), DataSourceLoader] = {
     case (DELTA, Scd1)      => (ds: DatasetConf, df: DataFrame) =>
-      val createdOnName = ds.writeoptions.getOrElse(WriteOptions.CREATED_ON_COLUMN_NAME.value, "created_on")
-      val updatedOnName = ds.writeoptions.getOrElse(WriteOptions.CREATED_ON_COLUMN_NAME.value, "updated_on")
+      val createdOnName = ds.writeoptions.getOrElse(WriteOptions.CREATED_ON_COLUMN_NAME, WriteOptions.DEFAULT_CREATED_ON)
+      val updatedOnName = ds.writeoptions.getOrElse(WriteOptions.UPDATED_ON_COLUMN_NAME, WriteOptions.DEFAULT_UPDATED_ON)
       DeltaLoader.scd1(ds.location, ds.table.get.database, ds.table.get.name, df, ds.keys, ds.oid, createdOnName, updatedOnName, ds.partitionby, ds.format.sparkFormat)
+
+    case (DELTA, Scd2)      => (ds: DatasetConf, df: DataFrame) =>
+      val validFromName = ds.writeoptions.getOrElse(WriteOptions.VALID_FROM_COLUMN_NAME, WriteOptions.DEFAULT_VALID_FROM)
+      val validToName = ds.writeoptions.getOrElse(WriteOptions.VALID_TO_COLUMN_NAME, WriteOptions.DEFAULT_VALID_TO)
+      val isCurrentName = ds.writeoptions.getOrElse(WriteOptions.IS_CURRENT_COLUMN_NAME, WriteOptions.DEFAULT_IS_CURRENT)
+      DeltaLoader.scd2(ds.location, ds.table.map(_.database).getOrElse(""), ds.table.map(_.name).getOrElse(""), df, ds.keys, ds.buid, ds.oid, isCurrentName, ds.partitionby, ds.format.sparkFormat, validFromName, validToName)
 
     case (DELTA, Upsert)    => (ds: DatasetConf, df: DataFrame) =>
       DeltaLoader.upsert(ds.location, ds.table.map(_.database).getOrElse(""), ds.table.map(_.name).getOrElse(""), df, ds.keys, ds.partitionby, ds.format.sparkFormat, ds.writeoptions)

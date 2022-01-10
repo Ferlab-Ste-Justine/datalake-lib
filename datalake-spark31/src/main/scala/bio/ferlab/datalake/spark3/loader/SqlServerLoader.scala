@@ -182,8 +182,6 @@ override def scd1(location: String,
    * @param updates       new data to be merged with existing data
    * @param primaryKeys   name of the columns holding the unique id
    * @param oidName       name of the column holding the hash of the column that can change over time (or version number)
-   * @param createdOnName name of the column holding the creation timestamp
-   * @param updatedOnName name of the column holding the last update timestamp
    * @param spark         a valid spark session
    * @return the data as a dataframe
    */
@@ -192,9 +190,9 @@ override def scd2(location: String,
                   tableName: String,
                   updates:  DataFrame,
                   primaryKeys:  Seq[String],
+                  buidName: String,
                   oidName: String,
-                  createdOnName: String,
-                  updatedOnName: String,
+                  isCurrentName: String,
                   partitioning: List[String],
                   format: String,
                   validFromName: String,
