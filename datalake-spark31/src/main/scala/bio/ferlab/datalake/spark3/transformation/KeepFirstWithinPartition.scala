@@ -6,7 +6,7 @@ import org.apache.spark.sql.{Column, DataFrame}
 
 import java.util.UUID
 
-@Deprecated
+@deprecated("use DropDuplicates instead", "0.2.0")
 case class KeepFirstWithinPartition(partitionByExpr: Seq[String],
                                     orderByExpr: Column*) extends Transformation {
   override def transform: DataFrame => DataFrame = {df =>
