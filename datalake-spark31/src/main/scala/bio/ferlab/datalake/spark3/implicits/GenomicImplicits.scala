@@ -63,7 +63,7 @@ object GenomicImplicits {
     }
 
     val normalizeCall: Column => Column = calls =>
-      when(col("is_multi_allelic"), transform(calls, c => when(c === -1, lit(0)).otherwise(c))).otherwise(calls)
+      sort_array(when(col("is_multi_allelic"), transform(calls, c => when(c === -1, lit(0)).otherwise(c))).otherwise(calls))
 
     val isHeterozygote: Column = col("zygosity") === "HET"
 
@@ -137,23 +137,35 @@ object GenomicImplicits {
       ("Male"  , Array(1, 1), Array(1, 1), Array(1, 1), true, true, "x_linked_recessive"),
     )
 
-    def withGenotypeTransmission(as: String, fth_calls: Column, mth_calls: Column): DataFrame = {
+    def withGenotypeTransmission(as: String,
+                                 calls_name: String = "calls",
+                                 gender_name: String = "gender",
+                                 affected_status_name: String = "affected_status",
+                                 father_calls_name: String = "father_calls",
+                                 father_affected_status_name: String = "father_affected_status",
+                                 mother_calls_name: String = "mother_calls",
+                                 mother_affected_status_name: String = "mother_affected_status"): DataFrame = {
+      val calls = col(calls_name)
+      val fth_calls = col(father_calls_name)
+      val mth_calls = col(mother_calls_name)
+
       val normalizedCallsDf =
-        df.withColumn("norm_fth_calls", normalizeCall(fth_calls))
+        df.withColumn("norm_calls", normalizeCall(calls))
+          .withColumn("norm_fth_calls", normalizeCall(fth_calls))
           .withColumn("norm_mth_calls", normalizeCall(mth_calls))
 
       val static_transmissions = {
         when(col("norm_fth_calls").isNull or col("norm_mth_calls").isNull, lit(null))
-          .when(col("calls") === Array(0, 0), lit("non_carrier_proband"))
-          .when(col("calls").isNull or col("calls") === Array(-1, -1), lit("unknown_proband_genotype"))
+          .when(col("norm_calls") === Array(0, 0), lit("non_carrier_proband"))
+          .when(col("norm_calls").isNull or col("norm_calls") === Array(-1, -1), lit("unknown_proband_genotype"))
       }
 
       val autosomal_transmissions: Column = strictAutosomalTransmissions.foldLeft[Column](static_transmissions){
         case (c, (proband_calls, fth_calls, mth_calls, fth_affected_status, mth_affected_status, transmission)) =>
           c.when(
-            col("mother_affected_status") === mth_affected_status and
-              col("father_affected_status") === fth_affected_status and
-              col("calls") === proband_calls and
+            col(mother_affected_status_name) === mth_affected_status and
+              col(father_affected_status_name) === fth_affected_status and
+              col("norm_calls") === proband_calls and
               col("norm_fth_calls") === fth_calls and
               col("norm_mth_calls") === mth_calls, lit(transmission))
       }
@@ -161,10 +173,10 @@ object GenomicImplicits {
       val sexual_transmissions: Column = strictSexualTransmissions.foldLeft[Column](static_transmissions){
         case (c, (gender, proband_calls, fth_calls, mth_calls, fth_affected_status, mth_affected_status, transmission)) =>
           c.when(
-            col("gender") === gender and
-              col("mother_affected_status") === mth_affected_status and
-              col("father_affected_status") === fth_affected_status and
-              col("calls") === proband_calls and
+            col(gender_name) === gender and
+              col(mother_affected_status_name) === mth_affected_status and
+              col(father_affected_status_name) === fth_affected_status and
+              col("norm_calls") === proband_calls and
               col("norm_fth_calls") === fth_calls and
               col("norm_mth_calls") === mth_calls, lit(transmission))
       }
