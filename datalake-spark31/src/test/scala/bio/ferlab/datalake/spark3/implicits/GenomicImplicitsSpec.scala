@@ -108,6 +108,7 @@ class GenomicImplicitsSpec extends AnyFlatSpec with WithSparkSession with Matche
       ("X", "Male"  , false, null         , Array(0, 0), Array(0, 0), false, false, false, "unknown_proband_genotype"),
       ("1", "Female", false, Array(-1, -1), Array(0, 0), Array(0, 0), false, false, false, "unknown_proband_genotype"),
       ("X", "Male"  , false, Array(-1, -1), Array(0, 0), Array(0, 0), false, false, false, "unknown_proband_genotype"),
+      ("1", "Male"  , false, Array(1, 0)  , Array(0, 0), Array(0, 0), true, false, false, "autosomal_dominant_de_novo"),
       ("1", "Male"  , false, Array(0, 1)  , Array(0, 0), Array(0, 0), true, false, false, "autosomal_dominant_de_novo"),
       ("1", "Male"  , false, Array(0, 1)  , Array(0, 0), Array(0, 1), true, false, true , "autosomal_dominant"),
       ("1", "Male"  , false, Array(0, 1)  , Array(0, 1), Array(0, 0), true, true , false, "autosomal_dominant"),
@@ -145,7 +146,14 @@ class GenomicImplicitsSpec extends AnyFlatSpec with WithSparkSession with Matche
         "affected_status", "father_affected_status", "mother_affected_status", "expectedResult")
 
     val result = input_occurrences
-      .withGenotypeTransmission("transmission", $"father_calls", $"mother_calls")
+      .withGenotypeTransmission("transmission",
+        "calls",
+        "gender",
+        "affected_status",
+        "father_calls",
+        "father_affected_status",
+        "mother_calls",
+        "mother_affected_status")
 
     result.show(false)
     result
