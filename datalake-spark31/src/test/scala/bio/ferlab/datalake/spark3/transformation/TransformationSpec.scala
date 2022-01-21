@@ -1,12 +1,13 @@
 package bio.ferlab.datalake.spark3.transformation
 
-import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.{Column, SparkSession}
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
 import org.scalatest.GivenWhenThen
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import bio.ferlab.datalake.spark3.transformation
+import bio.ferlab.datalake.spark3.transformation.NormalizeColumnName.replace_special_char_by_ansii_code
 import org.apache.log4j.{Level, Logger}
 
 import java.sql
@@ -45,13 +46,13 @@ class TransformationSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
 
   }
 
-  "Date" should "cast a strings into a date" in {
+  "Date" should "cast a strings or a timestamp into a date" in {
 
     val df =
-      Seq(("1900-01-01", "test"), ("2000-12-31", "test"))
+      Seq((java.sql.Timestamp.valueOf("1900-01-01 12:23:34.1234"), "test"), (java.sql.Timestamp.valueOf("2000-12-31 12:23:34.1234"), "test"))
         .toDF("a", "c")
 
-    val transformations = List(ToDate("yyyy-MM-dd", "a"))
+    val transformations = List(ToDate("", "a"))
 
     Transformation.applyTransformations(df, transformations).as[(sql.Date, String)].collect() should contain allElementsOf
       Seq(
@@ -202,8 +203,8 @@ class TransformationSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
 
   "NormalizeColumnName" should "replace replace illegal characters by underscore or ansii value" in {
     val expectedResult = Seq("A_a", "b_b")
-    val expectedResult2 = Seq("A_32a", "B_36b", "B_41b_2", "B_41b")
-    val expectedResult3 = Seq("B_36b", "B_41b_2", "B_41b")
+    val expectedResult2 = Seq("A_32a", "B_36b", "B_41b_2", "B_41b", "AVC_FOLLII", "AVC_FOLLI_305")
+    val expectedResult3 = Seq("B_36b", "B_41b_2", "B_41b", "AVC_FOLLII", "AVC_FOLLI_305")
 
     val input = Seq(
       ("test", "test"),
@@ -211,14 +212,13 @@ class TransformationSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
     ).toDF("A a", "b$b")
 
     val input2 = Seq(
-      ("test", "test", "test", "test"),
-      ("test", "test", "test", "test")
-    ).toDF("A a", "B$b", "B)b", "B_41b")
+      ("test", "test", "test", "test", "test", "")
+    ).toDF("A a", "B$b", "B)b", "B_41b", "AVC_FOLLII", "AVC_FOLLIı")
 
     NormalizeColumnName().transform(input).columns should contain allElementsOf expectedResult
     NormalizeColumnName("A a", "b$b").transform(input).columns should contain allElementsOf expectedResult
     NormalizeColumnName().transform(input2).columns should contain allElementsOf expectedResult2
-    NormalizeColumnName("B$b", "B)b", "B_41b").transform(input2).columns should contain allElementsOf expectedResult3
+    NormalizeColumnName("B$b", "B)b", "B_41b", "AVC_FOLLII", "AVC_FOLLIı").transform(input2).columns should contain allElementsOf expectedResult3
 
   }
 
