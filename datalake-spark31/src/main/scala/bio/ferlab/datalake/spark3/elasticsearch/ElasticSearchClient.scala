@@ -17,7 +17,7 @@ import java.nio.charset.StandardCharsets
 class ElasticSearchClient(url: String, username: Option[String] = None, password: Option[String] = None) {
 
   private val indexUrl: String => String = indexName => s"$url/$indexName"
-  private val templateUrl: String => String = templateName => s"$url/_template/$templateName"
+  private val templateUrl: String => String = templateName => s"$url/_index_template/$templateName"
   private val aliasesUrl: String = s"$url/_aliases"
   val log: Logger = LoggerFactory.getLogger(getClass.getCanonicalName)
 
