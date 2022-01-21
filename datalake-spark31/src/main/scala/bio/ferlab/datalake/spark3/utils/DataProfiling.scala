@@ -1,7 +1,7 @@
 package bio.ferlab.datalake.spark3.utils
 
 import bio.ferlab.datalake.spark3.transformation.CamelToSnake.camel2Snake
-import bio.ferlab.datalake.spark3.transformation.NormalizeColumnName.normalize
+import bio.ferlab.datalake.spark3.transformation.NormalizeColumnName.replace_special_char_by_underscore
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.{StringType, StructField}
@@ -91,7 +91,7 @@ object DataProfiling {
     println(s"$schema.$tableName,${format},${folder}/$systemName/${camel2Snake(tableName)},${lcSchema}_${camel2Snake(tableName)},$loadType")
     df.schema.fields.foreach{
       case StructField(name, dataType, _, _) =>
-        val normalizedName = normalize(name)
+        val normalizedName = replace_special_char_by_underscore(name)
         val spec = s"$name,${ClassGenerator.getType(dataType)},-,$normalizedName,${ClassGenerator.getType(dataType)}"
         if(normalizedName!=name) println(s"$spec,NormalizeColumnName")
         else println(spec)

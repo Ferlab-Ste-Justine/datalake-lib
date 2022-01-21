@@ -200,16 +200,26 @@ class TransformationSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
 
   }
 
-  "NormalizeColumnName" should "replace spaces by underscores" in {
+  "NormalizeColumnName" should "replace replace illegal characters by underscore or ansii value" in {
     val expectedResult = Seq("A_a", "b_b")
+    val expectedResult2 = Seq("A_32a", "B_36b", "B_41b_2", "B_41b")
+    val expectedResult3 = Seq("B_36b", "B_41b_2", "B_41b")
 
     val input = Seq(
       ("test", "test"),
       ("test", "test")
     ).toDF("A a", "b$b")
 
+    val input2 = Seq(
+      ("test", "test", "test", "test"),
+      ("test", "test", "test", "test")
+    ).toDF("A a", "B$b", "B)b", "B_41b")
+
     NormalizeColumnName().transform(input).columns should contain allElementsOf expectedResult
     NormalizeColumnName("A a", "b$b").transform(input).columns should contain allElementsOf expectedResult
+    NormalizeColumnName().transform(input2).columns should contain allElementsOf expectedResult2
+    NormalizeColumnName("B$b", "B)b", "B_41b").transform(input2).columns should contain allElementsOf expectedResult3
+
   }
 
   "Rename" should "rename the name of the column" in {
