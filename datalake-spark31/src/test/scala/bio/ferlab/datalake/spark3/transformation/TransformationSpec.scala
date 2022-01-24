@@ -61,6 +61,56 @@ class TransformationSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
       )
   }
 
+  "ToUtcTimestamp" should "cast a timestamp into a UTC timestamp" in {
+
+    val df =
+      Seq((java.sql.Timestamp.valueOf("1900-01-01 05:23:34.1234"), "test"), (java.sql.Timestamp.valueOf("1900-01-01 12:23:34.1234"), "test"),
+          (java.sql.Timestamp.valueOf("1900-01-01 17:23:34.1234"), "test"), (java.sql.Timestamp.valueOf("1900-01-01 23:59:59.1234"), "test"),
+          (java.sql.Timestamp.valueOf("1999-12-31 21:30:30.1234"), "test"))
+        .toDF("a", "c")
+
+    val transformations = List(ToUtcTimestamps("America/Montreal", "a"))
+    val transformations2 = List(ToUtcTimestamps("America/Vancouver", "a"))
+
+    Transformation.applyTransformations(df, transformations).as[(sql.Timestamp, String)].collect() should contain allElementsOf
+      Seq(
+        (java.sql.Timestamp.valueOf("1900-01-01 10:23:34.1234"), "test"),
+        (java.sql.Timestamp.valueOf("1900-01-01 17:23:34.1234"), "test"),
+        (java.sql.Timestamp.valueOf("1900-01-01 22:23:34.1234"), "test"),
+        (java.sql.Timestamp.valueOf("1900-01-02 04:59:59.1234"), "test"),
+        (java.sql.Timestamp.valueOf("2000-01-01 02:30:30.1234"), "test")
+      )
+
+    Transformation.applyTransformations(df, transformations2).as[(sql.Timestamp, String)].collect() should contain allElementsOf
+      Seq(
+        (java.sql.Timestamp.valueOf("1900-01-01 13:23:34.1234"), "test"),
+        (java.sql.Timestamp.valueOf("1900-01-01 20:23:34.1234"), "test"),
+        (java.sql.Timestamp.valueOf("1900-01-02 01:23:34.1234"), "test"),
+        (java.sql.Timestamp.valueOf("1900-01-02 07:59:59.1234"), "test"),
+        (java.sql.Timestamp.valueOf("2000-01-01 05:30:30.1234"), "test")
+      )
+  }
+
+  "FromUtcTimestamp" should "cast a UTC timestamp into a local timestamp" in {
+
+    val df =
+      Seq((java.sql.Timestamp.valueOf("1900-01-01 10:23:34.1234"), "test"), (java.sql.Timestamp.valueOf("1900-01-01 17:23:34.1234"), "test"),
+        (java.sql.Timestamp.valueOf("1900-01-01 22:23:34.1234"), "test"), (java.sql.Timestamp.valueOf("1900-01-02 04:59:59.1234"), "test"),
+        (java.sql.Timestamp.valueOf("2000-01-01 02:30:30.1234"), "test"))
+        .toDF("a", "c")
+
+    val transformations = List(FromUtcTimestamps("America/Montreal", "a"))
+
+    Transformation.applyTransformations(df, transformations).as[(sql.Timestamp, String)].collect() should contain allElementsOf
+      Seq(
+        (java.sql.Timestamp.valueOf("1900-01-01 05:23:34.1234"), "test"),
+        (java.sql.Timestamp.valueOf("1900-01-01 12:23:34.1234"), "test"),
+        (java.sql.Timestamp.valueOf("1900-01-01 17:23:34.1234"), "test"),
+        (java.sql.Timestamp.valueOf("1900-01-01 23:59:59.1234"), "test"),
+        (java.sql.Timestamp.valueOf("1999-12-31 21:30:30.1234"), "test")
+      )
+  }
+
   "DropDuplicates" should "keep one line per partition if a subset is given" in {
 
     val df = Seq(
