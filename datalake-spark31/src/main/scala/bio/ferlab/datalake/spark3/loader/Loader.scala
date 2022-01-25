@@ -1,10 +1,14 @@
 package bio.ferlab.datalake.spark3.loader
 
+import bio.ferlab.datalake.spark3.loader.ElasticsearchLoader.getClass
 import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.slf4j
 
 import java.time.LocalDate
 
 trait Loader {
+
+  val log: slf4j.Logger = slf4j.LoggerFactory.getLogger(getClass.getCanonicalName)
 
   /**
    * Default read logic for a loader

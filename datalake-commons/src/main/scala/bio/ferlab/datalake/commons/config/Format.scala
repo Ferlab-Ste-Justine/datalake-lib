@@ -38,6 +38,11 @@ object Format {
   case object DELTA extends Format {override val sparkFormat = "delta"; override val fileExtension: String = ".parquet"}
 
   /**
+   * Elasticsearch, https://github.com/elastic/elasticsearch
+   */
+  case object ELASTICSEARCH extends Format {override val sparkFormat = "es"; override val fileExtension: String = ".*"}
+
+  /**
    * Apache Kafka, https://github.com/apache/kafka
    */
   case object KAFKA extends Format {override val sparkFormat = "kafka"; override val fileExtension: String = ".*"}

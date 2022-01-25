@@ -1,6 +1,6 @@
 package bio.ferlab.datalake.spark3.loader
 
-import bio.ferlab.datalake.commons.config.Format.{DELTA, JDBC, SQL_SERVER}
+import bio.ferlab.datalake.commons.config.Format.{DELTA, ELASTICSEARCH, JDBC, SQL_SERVER}
 import bio.ferlab.datalake.commons.config.LoadType._
 import bio.ferlab.datalake.commons.config._
 import org.apache.spark.sql.{DataFrame, SparkSession}
@@ -41,6 +41,9 @@ object LoadResolver {
     case (format, Insert) if format == JDBC || format == SQL_SERVER => (ds: DatasetConf, df: DataFrame) =>
       JdbcLoader.insert(ds.location, ds.table.map(_.database).getOrElse(""), ds.table.map(_.name).getOrElse(""), df, ds.partitionby, ds.format.sparkFormat, ds.writeoptions)
 
+    case (ELASTICSEARCH, OverWrite) => (ds: DatasetConf, df: DataFrame) =>
+      ElasticsearchLoader.writeOnce(ds.location, ds.table.map(_.database).getOrElse(""), ds.table.map(_.name).getOrElse(ds.location), df, ds.partitionby, ds.format.sparkFormat, ds.writeoptions)
+
 
     //generic fallback behaviours
     case (f, OverWrite)   => (ds: DatasetConf, df: DataFrame) =>
@@ -57,6 +60,9 @@ object LoadResolver {
 
     case DELTA => ds: DatasetConf =>
       DeltaLoader.read(ds.location, DELTA.sparkFormat, ds.readoptions, ds.table.map(_.database), ds.table.map(_.name))
+
+    case ELASTICSEARCH => ds: DatasetConf =>
+      ElasticsearchLoader.read(ds.location, ELASTICSEARCH.sparkFormat, ds.readoptions, ds.table.map(_.database), ds.table.map(_.name))
 
     case format => ds: DatasetConf =>
       GenericLoader.read(ds.location, format.sparkFormat, ds.readoptions, ds.table.map(_.database), ds.table.map(_.name))
