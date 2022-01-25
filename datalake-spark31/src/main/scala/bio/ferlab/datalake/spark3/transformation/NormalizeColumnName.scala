@@ -1,10 +1,26 @@
 package bio.ferlab.datalake.spark3.transformation
 
-import bio.ferlab.datalake.spark3.transformation.NormalizeColumnName.{replace_special_char_by_ansii_code, replace_special_char_by_underscore}
-import org.apache.spark.sql.{Column, DataFrame}
+import bio.ferlab.datalake.spark3.transformation.NormalizeColumnName.normalizeColumnName
 import org.apache.spark.sql.functions.col
+import org.apache.spark.sql.{Column, DataFrame}
 
 case class NormalizeColumnName(columns: String*) extends Transformation {
+
+  /**
+   * Main method of the trait.
+   * It defines the logic to transform the input dataframe.
+   *
+   * @return a transformed dataframe
+   */
+  override def transform: DataFrame => DataFrame = {df =>
+    columns match {
+      case Nil => normalizeColumnName(df, df.columns.toList)
+      case _ => normalizeColumnName(df, columns.toList)
+    }
+  }
+}
+
+object NormalizeColumnName {
 
   /**
    * Apply a normalization over a dataframe column names.
@@ -31,21 +47,6 @@ case class NormalizeColumnName(columns: String*) extends Transformation {
     }
   }
 
-  /**
-   * Main method of the trait.
-   * It defines the logic to transform the input dataframe.
-   *
-   * @return a transformed dataframe
-   */
-  override def transform: DataFrame => DataFrame = {df =>
-    columns match {
-      case Nil => normalizeColumnName(df, df.columns.toList)
-      case _ => normalizeColumnName(df, columns.toList)
-    }
-  }
-}
-
-object NormalizeColumnName {
   val replace_special_char_by_ansii_code: (String, Int, Array[String]) => String = {
     case (column_s, idx_col, columns_a) =>
       val idx_pos = "[^a-zA-Z0-9_]".r.findAllMatchIn(column_s).map(_.start).toList

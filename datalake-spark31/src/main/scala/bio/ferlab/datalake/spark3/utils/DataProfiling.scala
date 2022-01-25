@@ -1,7 +1,7 @@
 package bio.ferlab.datalake.spark3.utils
 
 import bio.ferlab.datalake.spark3.transformation.CamelToSnake.camel2Snake
-import bio.ferlab.datalake.spark3.transformation.NormalizeColumnName.replace_special_char_by_underscore
+import bio.ferlab.datalake.spark3.transformation.NormalizeColumnName
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.{StringType, StructField}
@@ -83,18 +83,19 @@ object DataProfiling {
                          schema: String,
                          tableName: String,
                          systemName: String,
-                         folder: String = "s3a://red-prd/raw",
-                         format: String = "DELTA",
-                         loadType: String = "INSERT"): Unit = {
+                         folder: String,
+                         format: String,
+                         loadType: String): Unit = {
 
     val lcSchema = schema.toLowerCase
     println(s"$schema.$tableName,${format},${folder}/$systemName/${camel2Snake(tableName)},${lcSchema}_${camel2Snake(tableName)},$loadType")
-    df.schema.fields.foreach{
-      case StructField(name, dataType, _, _) =>
-        val normalizedName = replace_special_char_by_underscore(name)
+
+    val newNames = NormalizeColumnName.normalizeColumnName(df, df.columns.toList).columns
+
+    df.schema.fields.zip(newNames).foreach{
+      case (StructField(name, dataType, _, _), normalizedName) =>
         val spec = s"$name,${ClassGenerator.getType(dataType)},-,$normalizedName,${ClassGenerator.getType(dataType)}"
-        if(normalizedName!=name) println(s"$spec,NormalizeColumnName")
-        else println(spec)
+        println(s"$spec")
     }
   }
 
