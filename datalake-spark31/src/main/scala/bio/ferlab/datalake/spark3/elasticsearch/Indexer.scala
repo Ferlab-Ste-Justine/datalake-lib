@@ -29,6 +29,7 @@ import scala.util.Try
  * }}}
  *
  */
+@deprecated
 class Indexer(jobType: String,
               templateFilePath: String,
               currentIndex: String)
