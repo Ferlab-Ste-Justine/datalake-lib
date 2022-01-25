@@ -28,6 +28,11 @@ object Format {
   case object VCF extends Format {override val sparkFormat = "vcf"; override val fileExtension: String = ".vcf.gz"}
 
   /**
+   * Generic Feature Format https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md
+   */
+  case object GFF extends Format {override val sparkFormat = "gff"; override val fileExtension: String = ".gff.gz"}
+
+  /**
    * Delta lake format, https://delta.io/
    */
   case object DELTA extends Format {override val sparkFormat = "delta"; override val fileExtension: String = ".parquet"}
