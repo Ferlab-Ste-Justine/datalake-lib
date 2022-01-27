@@ -18,7 +18,7 @@ class ConfigurationWriterSpec extends AnyFlatSpec with GivenWhenThen with Matche
     sources = List(
       DatasetConf("name_a", "a" ,"/path/a", PARQUET, OverWrite, Some(TableConf("db", "name_a")), List("id"), List(), Map("key" -> "value"), Map("key2" -> "value")),
       DatasetConf("name_b", "b" ,"/path/b", PARQUET, OverWrite, Some(TableConf("db", "name_b")), List("id"), List(), Map("key" -> "value"), Map("key2" -> "value"))),
-    sparkconf = Map("spark.conf1" -> "v1", "spark.conf2" -> "v2")
+    sparkconf = Map("spark.conf1" -> "v1", "spark.conf2" -> "${?v2}")
   )
 
   "ConfigurationWriter" should "read a conf and convert it to readable hocon configuration" in {
@@ -75,10 +75,11 @@ class ConfigurationWriterSpec extends AnyFlatSpec with GivenWhenThen with Matche
          |]
          |sparkconf {
          |    "spark.conf1"=v1
-         |    "spark.conf2"=v2
+         |    "spark.conf2"="${?v2}"
          |}
          |storages=[
          |    {
+         |        filesystem=S3
          |        id=a
          |        path="s3://a"
          |    }
@@ -96,7 +97,7 @@ class ConfigurationWriterSpec extends AnyFlatSpec with GivenWhenThen with Matche
     file.exists() shouldBe true
 
     val writtenConf: Configuration = ConfigSource.file(path).loadOrThrow[Configuration]
-    writtenConf shouldBe conf
+    writtenConf shouldBe conf.copy(sparkconf = Map("spark.conf1" -> "v1")) // Since v2 env variable does not exist.
   }
 
 }
