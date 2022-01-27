@@ -25,15 +25,19 @@ object ConfigurationWriter {
 
     val content = toHocon(conf)
 
+    val contentWithEnvVariable = content
+      .replaceAll("\"\\$\\{", "\\$\\{")
+      .replaceAll("}\"", "}")
+
     log.debug(
       s"""writting configuration: $path :
-         |$content
+         |$contentWithEnvVariable
          |""".stripMargin)
 
     val file = new File(path)
     file.createNewFile()
     val pw = new PrintWriter(file)
-    pw.write(content)
+    pw.write(contentWithEnvVariable)
     pw.close()
 
   }
