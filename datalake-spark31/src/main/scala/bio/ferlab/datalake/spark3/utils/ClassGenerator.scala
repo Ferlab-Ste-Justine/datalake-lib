@@ -55,7 +55,7 @@ object ClassGenerator {
   }
 
   def getValue: PartialFunction[(String, Row, DataType), String] = {
-    case (name, values, StringType)                                    => "\"" + values.getAs(name) + "\""
+    case (name, values, StringType)                                    => "\"" + values.getAs[String](name).replaceAll("\n", " ").take(512) + "\""
     case (name, values, DateType)                                      => s"""java.sql.Date.valueOf("${values.getAs(name)}")"""
     case (name, values, TimestampType)                                 => s"""java.sql.Timestamp.valueOf("${values.getAs(name)}")"""
     case (name, values, BinaryType)                                    => values.getAs[Array[Byte]](name).map(b => s"$b.toByte").mkString("Array(", ", ", ")")
