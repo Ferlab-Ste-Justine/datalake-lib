@@ -2,7 +2,7 @@ package bio.ferlab.datalake.spark3.utils
 
 import org.apache.spark.sql._
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.types._
+import org.apache.spark.sql.types.{BinaryType, _}
 import org.slf4j
 
 import java.io.{File, PrintWriter}
@@ -24,6 +24,7 @@ object ClassGenerator {
     case DecimalType()                        => "Double"
     case DateType                             => "Date"
     case TimestampType                        => "Timestamp"
+    case BinaryType                           => "Array[Byte]"
     case ArrayType(StringType, _)             => "List[String]"
     case ArrayType(FloatType, _)              => "List[Float]"
     case ArrayType(IntegerType, _)            => "List[Int]"
@@ -57,6 +58,7 @@ object ClassGenerator {
     case (name, values, StringType)                                    => "\"" + values.getAs(name) + "\""
     case (name, values, DateType)                                      => s"""java.sql.Date.valueOf("${values.getAs(name)}")"""
     case (name, values, TimestampType)                                 => s"""java.sql.Timestamp.valueOf("${values.getAs(name)}")"""
+    case (name, values, BinaryType)                                    => values.getAs[Array[Byte]](name).map(b => s"$b.toByte").mkString("Array(", ", ", ")")
     case (name, values, ArrayType(StringType,_)) if values.getAs[List[String]](name).isEmpty => "List()"
     case (name, values, ArrayType(StringType,_))                       => values.getAs[List[String]](name).mkString("List(\"", "\", \"", "\")")
     case (name, values, ArrayType(FloatType,_))                        => values.getAs[List[Float]](name).mkString("List(", ", ", ")")

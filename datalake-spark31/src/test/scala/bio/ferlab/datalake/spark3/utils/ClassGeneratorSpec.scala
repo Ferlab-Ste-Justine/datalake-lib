@@ -10,7 +10,8 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 
-case class TestInput(a: String = "a", b: Long = 0, c: String = "c", d: List[String] = List("c", "d"), e: Timestamp = Timestamp.valueOf("1900-01-01 00:00:00"))
+case class TestInput(a: String = "a", b: Long = 0, c: String = "c", d: List[String] = List("c", "d"), e: Timestamp = Timestamp.valueOf("1900-01-01 00:00:00"),
+                     f: Array[Byte] = Array(0.toByte, "2".toByte))
 
 class ClassGeneratorSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
 
@@ -32,7 +33,8 @@ case class TestClassOutput(`a`: String = "a",
                            `b`: Long = 0,
                            `c`: String = "c",
                            `d`: List[String] = List(),
-                           `e`: Timestamp = java.sql.Timestamp.valueOf("1900-01-01 00:00:00.0"))"""
+                           `e`: Timestamp = java.sql.Timestamp.valueOf("1900-01-01 00:00:00.0"),
+                           `f`: Array[Byte] = Array(0.toByte, 2.toByte))"""
 
     outputStr shouldBe expectedResult
 
@@ -50,7 +52,8 @@ case class TestClassOutput(`a`: String = "a",
                            `b`: Long = 0,
                            `c`: String = "c",
                            `d`: List[String] = List("c", "d"),
-                           `e`: Timestamp = java.sql.Timestamp.valueOf("1900-01-01 00:00:00.0"))"""
+                           `e`: Timestamp = java.sql.Timestamp.valueOf("1900-01-01 00:00:00.0"),
+                           `f`: Array[Byte] = Array(0.toByte, 2.toByte))"""
 
     outputStr shouldBe expectedResult
 
@@ -68,7 +71,8 @@ case class TestClassOutput(`a`: Option[String] = None,
                            `b`: Option[Long] = None,
                            `c`: Option[String] = None,
                            `d`: Option[List[String]] = None,
-                           `e`: Option[Timestamp] = None)"""
+                           `e`: Option[Timestamp] = None,
+                           `f`: Option[Array[Byte]] = None)"""
 
     outputStr shouldBe expectedResult
 
@@ -87,7 +91,8 @@ case class TestClassOutput(`a`: String = "a",
                            `b`: Long = 0,
                            `c`: String = "c",
                            `d`: List[String] = List("c", "d"),
-                           `e`: Timestamp = java.sql.Timestamp.valueOf("1900-01-01 00:00:00.0"))"""
+                           `e`: Timestamp = java.sql.Timestamp.valueOf("1900-01-01 00:00:00.0"),
+                           `f`: Array[Byte] = Array(0.toByte, 2.toByte))"""
 
     outputStr shouldBe expectedResult
 
@@ -105,7 +110,8 @@ case class TestClassOutput(`a`: Option[String] = None,
                            `b`: Long = 0,
                            `c`: String = "c",
                            `d`: List[String] = List("c", "d"),
-                           `e`: Timestamp = java.sql.Timestamp.valueOf("1900-01-01 00:00:00.0"))"""
+                           `e`: Timestamp = java.sql.Timestamp.valueOf("1900-01-01 00:00:00.0"),
+                           `f`: Array[Byte] = Array(0.toByte, 2.toByte))"""
 
     outputStr shouldBe expectedResult
 
@@ -140,7 +146,8 @@ case class TestClassOutput(`a`: String = "a",
                            `b`: Long = 0,
                            `c`: String = "c",
                            `d`: List[String] = List(),
-                           `e`: Timestamp = java.sql.Timestamp.valueOf("1900-01-01 00:00:00.0"))
+                           `e`: Timestamp = java.sql.Timestamp.valueOf("1900-01-01 00:00:00.0"),
+                           `f`: Array[Byte] = Array(0.toByte, 2.toByte))
 
 """
 
