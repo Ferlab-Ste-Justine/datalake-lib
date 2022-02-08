@@ -3,6 +3,7 @@ package bio.ferlab.datalake.spark3.implicits
 import bio.ferlab.datalake.commons.config.LoadType.Read
 import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf}
 import bio.ferlab.datalake.spark3.loader.LoadResolver
+import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
 import java.time.LocalDateTime
@@ -38,6 +39,11 @@ object DatasetConfImplicits {
       }
 
     }
+
+    def tableExist(implicit spark: SparkSession): Boolean = {
+      ds.table.exists(t => spark.catalog.tableExists(t.fullName))
+    }
   }
+
 
 }
