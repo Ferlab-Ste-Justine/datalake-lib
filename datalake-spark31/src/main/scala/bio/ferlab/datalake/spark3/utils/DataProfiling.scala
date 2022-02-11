@@ -2,7 +2,6 @@ package bio.ferlab.datalake.spark3.utils
 
 import bio.ferlab.datalake.spark3.transformation.CamelToSnake.camel2Snake
 import bio.ferlab.datalake.spark3.transformation.NormalizeColumnName
-import org.apache.spark.SparkConf
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.{StringType, StructField}
 import org.apache.spark.sql.{DataFrame, DataFrameReader, SparkSession}
@@ -11,39 +10,6 @@ import org.slf4j
 object DataProfiling {
 
   val log: slf4j.Logger = slf4j.LoggerFactory.getLogger(getClass.getCanonicalName)
-
-  def initSparkSession(s3accessKey: String,
-                       s3secretKey: String,
-                       s3Endpoint: String,
-                       existingSparkSession: SparkSession): SparkSession = {
-    val existingConf = existingSparkSession.sparkContext.getConf
-    existingSparkSession.stop()
-
-    val conf = Map(
-      "spark.sql.legacy.timeParserPolicy" -> "CORRECTED",
-      "spark.sql.legacy.parquet.datetimeRebaseModeInWrite" -> "CORRECTED",
-      "fs.s3a.access.key" -> s3accessKey,
-      "fs.s3a.secret.key" -> s3secretKey,
-      "spark.hadoop.fs.s3a.endpoint" -> s3Endpoint,
-      "spark.hadoop.fs.s3a.impl" -> "org.apache.hadoop.fs.s3a.S3AFileSystem",
-      "spark.hadoop.fs.s3a.aws.credentials.provider" -> "org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider",
-      "spark.hadoop.fs.s3a.path.style.access" -> "true",
-      "spark.hadoop.fs.s3a.connection.ssl.enabled" -> "true",
-      "spark.sql.extensions" -> "io.delta.sql.DeltaSparkSessionExtension",
-      "spark.sql.catalog.spark_catalog" -> "org.apache.spark.sql.delta.catalog.DeltaCatalog",
-      "spark.databricks.delta.retentionDurationCheck.enabled" -> "false",
-      "spark.delta.merge.repartitionBeforeWrite" -> "true"
-    )
-
-    val sparkConf: SparkConf = conf.foldLeft(existingConf){ case (c, (k, v)) => c.set(k, v) }
-
-    SparkSession
-      .builder
-      .config(sparkConf)
-      .enableHiveSupport()
-      .appName("SparkApp")
-      .getOrCreate()
-  }
 
   def showSchema(schema: String, numRows: Int = 50)
                 (implicit spark: SparkSession, dfr: DataFrameReader): DataFrame = {

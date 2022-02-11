@@ -2,7 +2,7 @@ package bio.ferlab.datalake.spark3.utils
 
 import org.apache.spark.sql._
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.types.{BinaryType, _}
+import org.apache.spark.sql.types._
 import org.slf4j
 
 import java.io.{File, PrintWriter}
