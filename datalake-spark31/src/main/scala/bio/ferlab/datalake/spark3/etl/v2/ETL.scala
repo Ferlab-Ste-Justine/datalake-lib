@@ -63,15 +63,12 @@ abstract class ETL()(implicit val conf: Configuration) extends Runnable {
            currentRunDateTime: LocalDateTime = LocalDateTime.now())(implicit spark: SparkSession): Map[String, DataFrame] = {
     data.map { case (dsid, df) =>
       val ds = conf.getDataset(dsid)
-      val result =
-        Try {
-          ds.table.foreach(table => spark.sql(s"CREATE DATABASE IF NOT EXISTS ${table.database}"))
-          LoadResolver
-            .write(spark, conf)(ds.format -> ds.loadtype)
-            .apply(ds, df)
-        }.fold( _ => s"Failed to load $dsid", _ => s"Succeeded to load $dsid")
+      ds.table.foreach(table => spark.sql(s"CREATE DATABASE IF NOT EXISTS ${table.database}"))
+      LoadResolver
+        .write(spark, conf)(ds.format -> ds.loadtype)
+        .apply(ds, df)
 
-      log.info(result)
+      log.info(s"Succeeded to load $dsid")
       dsid -> ds.read
     }
   }
