@@ -12,6 +12,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.{BeforeAndAfterAll, GivenWhenThen}
 
+import java.time.LocalDateTime
 import scala.util.Try
 
 class RawToNormalizedETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers with BeforeAndAfterAll {
@@ -65,7 +66,7 @@ class RawToNormalizedETLSpec extends AnyFlatSpec with GivenWhenThen with Matcher
     import spark.implicits._
 
     val input = job.extract()
-    val output = job.transform(input)
+    val output = job.transform(input, LocalDateTime.now(), LocalDateTime.now())
     output.as[AirportOutput]
 
     job.publish()
