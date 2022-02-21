@@ -1,5 +1,6 @@
 package bio.ferlab.datalake.spark3.transformation
 
+import bio.ferlab.datalake.spark3.transformation.PBKDF2.pbkdf2Udf
 import com.roundeights.hasher.Implicits._
 import org.apache.spark.sql._
 import org.apache.spark.sql.functions._
@@ -17,18 +18,6 @@ import scala.language.postfixOps
  */
 case class PBKDF2(salt: String, iteration: Int, keyLength: Int, override val columns: String*) extends HashTransformation {
 
-  /**
-   *
-   * @param id string to be hashed
-   * @param salt random salt string
-   * @return hashed and salted string
-   */
-  def pbkdf2(id: String, salt: String): String = {
-    id.pbkdf2(salt, iteration, keyLength).hex
-  }
-
-  val pbkdf2Udf = udf((id: String, salt: String) => pbkdf2(id, salt))
-
   override def transform: DataFrame => DataFrame = { df =>
 
     val spark = df.sparkSession
@@ -36,9 +25,24 @@ case class PBKDF2(salt: String, iteration: Int, keyLength: Int, override val col
 
     columns.foldLeft(df) { case (d, column) =>
       d.withColumn(column,
-        when(col(column).isNull, lit(null).cast(StringType)).otherwise(callUDF("pbkdf2Udf", col(column), lit(salt))))
+        when(col(column).isNull, nullValues).otherwise(callUDF("pbkdf2Udf", col(column), lit(salt), lit(iteration), lit(keyLength))))
 
     }
   }
 
+}
+
+object PBKDF2 {
+
+  /**
+   *
+   * @param id string to be hashed
+   * @param salt random salt string
+   * @return hashed and salted string
+   */
+  def pbkdf2(id: String, salt: String, iteration: Int, keyLength: Int): String = {
+    id.pbkdf2(salt, iteration, keyLength).hex
+  }
+
+  val pbkdf2Udf = udf((id: String, salt: String, iteration: Int, keyLength: Int) => pbkdf2(id, salt, iteration, keyLength))
 }

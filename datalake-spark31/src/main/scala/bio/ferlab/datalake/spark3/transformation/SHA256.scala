@@ -7,7 +7,9 @@ import org.apache.spark.sql.types.StringType
 case class SHA256(salt: String, override val columns: String*) extends HashTransformation {
   override def transform: DataFrame => DataFrame = { df =>
     columns.foldLeft(df){ case (d, column) =>
-      d.withColumn(column, sha2(concat_ws("_", col(column).cast(StringType), lit(salt)), 256))
+      d.withColumn(column,
+        when(col(column).isNull, nullValues)
+          .otherwise(sha2(concat_ws("_", col(column).cast(StringType), lit(salt)), 256)))
     }
   }
 }
