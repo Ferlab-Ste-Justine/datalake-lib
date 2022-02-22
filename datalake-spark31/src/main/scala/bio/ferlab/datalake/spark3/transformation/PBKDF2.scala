@@ -44,5 +44,5 @@ object PBKDF2 {
     id.pbkdf2(salt, iteration, keyLength).hex
   }
 
-  val pbkdf2Udf = udf((id: String, salt: String, iteration: Int, keyLength: Int) => pbkdf2(id, salt, iteration, keyLength))
+  def pbkdf2Udf = udf((id: String, salt: String, iteration: Int, keyLength: Int) => pbkdf2(id, salt, iteration, keyLength))
 }
