@@ -69,7 +69,7 @@ class TransformationSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
           (java.sql.Timestamp.valueOf("1999-12-31 21:30:30.1234"), "test"))
         .toDF("a", "c")
 
-    val transformations = List(ToUtcTimestamps("America/Montreal", "a"))
+    val transformations = List(ToUtcTimestamps("America/Montreal"))
     val transformations2 = List(ToUtcTimestamps("America/Vancouver", "a"))
 
     Transformation.applyTransformations(df, transformations).as[(sql.Timestamp, String)].collect() should contain allElementsOf
