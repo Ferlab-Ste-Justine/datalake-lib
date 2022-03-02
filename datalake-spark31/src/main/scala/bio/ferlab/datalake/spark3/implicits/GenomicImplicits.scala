@@ -72,21 +72,43 @@ object GenomicImplicits {
     val strictAutosomalTransmissions = List(
       //(proband_calls, father_calls, mother_calls, father_affected, mother_affected, transmission)
       //(“0/1”, “0/0”, “0/0”) -> 	autosomal_dominant (de_novo) [if both parents unaffected]
-      (Array(0, 1), Array(0, 0), Array(0, 0), false, false, "autosomal_dominant_de_novo"),
+      (Array(0, 1), Array(0, 0),   Array(0, 0),   false, false, "autosomal_dominant_de_novo"),
       //(“0/1”, “0/0”, “0/1”) -> 	autosomal_dominant [if affected mother and unaffected father]
-      (Array(0, 1), Array(0, 0), Array(0, 1), false, true , "autosomal_dominant"),
+      (Array(0, 1), Array(0, 0),   Array(0, 1),   false, true , "autosomal_dominant"),
+      //(“0/1”, “0/0”, “1/1”) -> 	autosomal_dominant [if affected mother and unaffected father]
+      (Array(0, 1), Array(0, 0),   Array(1, 1),   false, true , "autosomal_dominant"),
       //(“0/1”, “0/1”, “0/0”) -> 	autosomal_dominant [if affected father and unaffected mother]
-      (Array(0, 1), Array(0, 1), Array(0, 0), true , false, "autosomal_dominant"),
+      (Array(0, 1), Array(0, 1),   Array(0, 0),   true , false, "autosomal_dominant"),
       //(“0/1”, “0/1”, “0/1”) -> 	autosomal_dominant [if both parents affected]
-      (Array(0, 1), Array(0, 1), Array(0, 1), true, true, "autosomal_dominant"),
+      (Array(0, 1), Array(0, 1),   Array(1, 1),   true , true , "autosomal_dominant"),
+      //(“0/1”, “0/1”, “0/1”) -> 	autosomal_dominant [if both parents affected]
+      (Array(0, 1), Array(0, 1),   Array(0, 1),   true , true , "autosomal_dominant"),
+      //(“0/1”, “0/1”, “-1/-1”) -> 	autosomal_dominant [if affected father]
+      (Array(0, 1), Array(0, 1),   Array(-1, -1), true , true , "autosomal_dominant"),
+      (Array(0, 1), Array(0, 1),   Array(-1, -1), true , false, "autosomal_dominant"),
+      //(“0/1”, “1/1”, “*/*”) -> 	autosomal_dominant [if affected father]
+      (Array(0, 1), Array(1, 1),   Array(0, 0),   true , true , "autosomal_dominant"),
+      (Array(0, 1), Array(1, 1),   Array(0, 0),   true , false, "autosomal_dominant"),
+      (Array(0, 1), Array(1, 1),   Array(0, 1),   true , true , "autosomal_dominant"),
+      (Array(0, 1), Array(1, 1),   Array(0, 1),   true , false, "autosomal_dominant"),
+      (Array(0, 1), Array(1, 1),   Array(1, 1),   true , true , "autosomal_dominant"),
+      (Array(0, 1), Array(1, 1),   Array(1, 1),   true , false, "autosomal_dominant"),
+      (Array(0, 1), Array(1, 1),   Array(-1, -1), true , true , "autosomal_dominant"),
+      (Array(0, 1), Array(1, 1),   Array(-1, -1), true , false, "autosomal_dominant"),
+      //(“0/1”, “-1/-1”, “0/1”) -> 	autosomal_dominant [if affected mother]
+      (Array(0, 1), Array(-1, -1), Array(0, 1),   true , true , "autosomal_dominant"),
+      (Array(0, 1), Array(-1, -1), Array(0, 1),   false, true , "autosomal_dominant"),
+      //(“0/1”, “-1/-1”, “1/1”) -> 	autosomal_dominant [if affected mother]
+      (Array(0, 1), Array(-1, -1), Array(1, 1),   true , true , "autosomal_dominant"),
+      (Array(0, 1), Array(-1, -1), Array(1, 1),   false, true , "autosomal_dominant"),
       //(“1/1”, “0/1”, “0/1”) -> 	autosomal_recessive [if both parents unaffected]
-      (Array(1, 1), Array(0, 1), Array(0, 1), false, false, "autosomal_recessive"),
+      (Array(1, 1), Array(0, 1),   Array(0, 1),   false, false, "autosomal_recessive"),
       //(“1/1”, “0/1”, “1/1”) -> 	autosomal_recessive [if affected mother and unaffected father]
-      (Array(1, 1), Array(0, 1), Array(1, 1), false, true, "autosomal_recessive"),
+      (Array(1, 1), Array(0, 1),   Array(1, 1),   false, true , "autosomal_recessive"),
       //(“1/1”, “1/1”, “0/1”) -> 	autosomal_recessive [if affected father and unaffected mother]
-      (Array(1, 1), Array(1, 1), Array(0, 1), true, false, "autosomal_recessive"),
+      (Array(1, 1), Array(1, 1),   Array(0, 1),   true , false, "autosomal_recessive"),
       //(“1/1”, “1/1”, “1/1”) -> 	autosomal_recessive [if both parents affected]
-      (Array(1, 1), Array(1, 1), Array(1, 1), true, true, "autosomal_recessive")
+      (Array(1, 1), Array(1, 1),   Array(1, 1),   true , true , "autosomal_recessive"),
     )
 
     val strictSexualTransmissions = List(
