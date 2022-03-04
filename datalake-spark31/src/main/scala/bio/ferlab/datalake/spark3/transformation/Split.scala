@@ -1,6 +1,6 @@
 package bio.ferlab.datalake.spark3.transformation
-import org.apache.spark.sql.DataFrame
-import org.apache.spark.sql.functions.{array_remove, col, split, substring}
+import org.apache.spark.sql.{DataFrame, functions}
+import org.apache.spark.sql.functions._
 
 case class Split(pattern: String, columns: String*) extends Transformation {
   /**
@@ -11,7 +11,10 @@ case class Split(pattern: String, columns: String*) extends Transformation {
    */
   override def transform: DataFrame => DataFrame = {df =>
     columns
-      .foldLeft(df){ case (d, c) => d.withColumn(c, array_remove(split(col(c), pattern), "")) }
+      .foldLeft(df){ case (d, c) => d.withColumn(c,
+        when(col(c).isNotNull, array_remove(split(col(c), pattern), ""))
+          .otherwise(lit(array()))
+      )}
 
   }
 }

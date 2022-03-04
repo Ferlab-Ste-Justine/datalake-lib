@@ -38,22 +38,6 @@ object ClassGenerator {
     case MapType(StringType,ArrayType(StringType,_),_) =>"Map[String, List[String]]"
   }
 
-  def getFakeValue: PartialFunction[DataType, String] = {
-    case StringType                                    => """"John Doe""""
-    case DateType                                      => """Date.valueOf("1900-01-01")"""
-    case TimestampType                                 => """java.sql.Timestamp.valueOf("${values.getAs(name)}")"""
-    case ArrayType(StringType,_)                       => """List("John Doe")"""
-    case ArrayType(FloatType,_)                        => """List(0.0)"""
-    case ArrayType(IntegerType,_)                      => """List(0)"""
-    case ArrayType(BooleanType,_)                      => """List(true)"""
-    case ArrayType(DoubleType,_)                       => """List(0.0)"""
-    case ArrayType(LongType,_)                         => """List(0L)"""
-    case MapType(StringType,StringType, _)             => """Map("John" -> "Doe")"""
-    case MapType(StringType,LongType, _)               => """Map("John" -> 0)"""
-    case MapType(StringType,DecimalType(), _)          => """Map("John" -> 0.0)"""
-    case MapType(StringType,ArrayType(StringType,_),_) => """Map("John" -> List("Doe"))"""
-  }
-
   def getValue: PartialFunction[(String, Row, DataType), String] = {
     case (name, values, StringType)                                    => "\"" + values.getAs[String](name).replace("\"", "\\\"").replaceAll("\n", " ").take(512) + "\""
     case (name, values, DateType)                                      => s"""java.sql.Date.valueOf("${values.getAs(name)}")"""
