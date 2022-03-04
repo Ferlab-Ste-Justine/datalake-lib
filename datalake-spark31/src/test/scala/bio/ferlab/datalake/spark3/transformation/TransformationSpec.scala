@@ -12,6 +12,7 @@ import org.apache.log4j.{Level, Logger}
 
 import java.sql
 import java.time.LocalDate
+import scala.Seq
 
 class TransformationSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
 
@@ -213,6 +214,19 @@ class TransformationSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
     result.count shouldBe 2
     result.as[String].collect should contain allElementsOf Seq(null, "72245ae61da8e920c321e0bf57f9a1c9aae59b9806bfc3e7344e794a05dfa27dab0e7c03ba2ba64b2deeb310b996e5f7e984a4e51dab13b59026c339e6fc2a5b")
 
+  }
+
+  "Split" should "split string into an array" in {
+
+    val testData = Seq(
+      ("|TEST|TEST|", "TEST|TEST")
+    ).toDF("a", "b")
+
+    val result = Split("[|]", "a").transform(testData)
+    result.show(false)
+
+    result.count shouldBe 1
+    result.select("a").as[Array[String]].collect().head should contain allElementsOf Array("TEST", "TEST")
   }
 
   "When" should "use when function many times as per user needs" in {

@@ -38,7 +38,7 @@ class RawToNormalizedETLSpec extends AnyFlatSpec with GivenWhenThen with Matcher
 
   val job: RawFileToNormalizedETL = new RawFileToNormalizedETL(srcConf, destConf,
     List(
-      DuplicateColumn("id", "hash_id") -> SHA1("hash_id"),
+      DuplicateColumn("id", "hash_id") -> SHA1("", "hash_id"),
       ToLong("id"),
       Trim("CODE", "description"),
       InputFileName("input_file_name"),
