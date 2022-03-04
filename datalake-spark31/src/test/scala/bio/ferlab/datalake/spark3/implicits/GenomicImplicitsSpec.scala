@@ -282,6 +282,12 @@ class GenomicImplicitsSpec extends AnyFlatSpec with WithSparkSession with Matche
 
       // Les 100 combinaisons avec calls=-1/-1 (affected_status=false)
 //TODO("1", "Male", false, Array(-1, -1), Array(0, 0),   Array(0, 0),   false, true , true , null), // Les 100 combinaisons avec calls=-1/-1
+
+      // Les cas où les données sont null
+      ("1", "Male", false, Array(0, 0),   Array(0, 0),   null,          true , true , true , "unknown_mother_genotype"),
+      ("1", "Male", false, Array(0, 0),   null,          Array(0, 0),   true , true , true , "unknown_father_genotype"),
+      ("1", "Male", false, null,          Array(0, 0),   Array(0, 0),   true , true , true , "unknown_proband_genotype"),
+      ("1", null,   false, Array(0, 0),   Array(0, 0),   Array(0, 0),   true , true , true , "non_carrier_proband"),
     )
       .toDF("chromosome", "gender", "is_multi_allelic", "calls", "father_calls", "mother_calls",
         "affected_status", "father_affected_status", "mother_affected_status", "expectedResult")
@@ -308,40 +314,178 @@ class GenomicImplicitsSpec extends AnyFlatSpec with WithSparkSession with Matche
 
   }
 
-  it should "return sexual transmissions accordingly" in {
+  it should "return sexual transmissions for male accordingly" in {
 
     val input_occurrences = List(
 
-      // Les tests originaux sur la transmission sexuelle
-      ("X", "Female", false, Array(0, 1)  , Array(0, 0), null       , true, false, false, "unknown_mother_genotype"),
-      ("X", "Female", false, Array(1, 1)  , Array(0, 0), null       , true, false, false, "unknown_mother_genotype"),
-      ("X", "Female", false, Array(0, 0)  , Array(0, 0), Array(0, 0), false, false, false, "non_carrier_proband"),
-      ("X", "Male"  , false, null         , Array(0, 0), Array(0, 0), false, false, false, "unknown_proband_genotype"),
-      ("X", "Male"  , false, Array(-1, -1), Array(0, 0), Array(0, 0), false, false, false, "unknown_proband_genotype"),
-      ("X", "Female", false, Array(0, 1)  , Array(0, 0), Array(0, 0), true, false, false, "x_linked_dominant_de_novo"),
-      ("X", "Male"  , false, Array(0, 1)  , Array(0, 0), Array(0, 0), true, false, false, "x_linked_recessive_de_novo"),
-      ("X", "Female", false, Array(0, 1)  , Array(0, 0), Array(0, 1), true, false, true , "x_linked_dominant"),
-      ("X", "Male"  , false, Array(0, 1)  , Array(0, 0), Array(0, 1), true, false, false, "x_linked_recessive"),
-      ("X", "Male"  , false, Array(0, 1)  , Array(0, 0), Array(1, 1), true, false, true, "x_linked_recessive"),
-      ("X", "Female", false, Array(0, 1)  , Array(0, 1), Array(0, 0), true, true , false, "x_linked_dominant"),
-      ("X", "Female", false, Array(0, 1)  , Array(0, 1), Array(0, 1), true, true , true , "x_linked_dominant"),
-      ("X", "Male"  , false, Array(0, 1)  , Array(0, 1), Array(0, 1), true, true , false, "x_linked_recessive"),
-      ("X", "Male"  , false, Array(0, 1)  , Array(0, 1), Array(1, 1), true, true , true , "x_linked_recessive"),
-      ("X", "Female", false, Array(0, 1)  , Array(1, 1), Array(0, 0), true, true , false, "x_linked_recessive"),
-      ("X", "Female", false, Array(0, 1)  , Array(1, 1), Array(0, 1), true, true , true , "x_linked_dominant"),
-      ("X", "Male"  , false, Array(0, 1)  , Array(1, 1), Array(0, 1), true, true , false, "x_linked_recessive"),
-      ("X", "Male"  , false, Array(0, 1)  , Array(1, 1), Array(1, 1), true, true , true , "x_linked_recessive"),
-      ("X", "Male"  , false, Array(1, 1)  , Array(0, 0), Array(0, 0), true, false, false, "x_linked_recessive_de_novo"),
-      ("X", "Male"  , false, Array(1, 1)  , Array(0, 0), Array(0, 1), true, false, false, "x_linked_recessive"),
-      ("X", "Male"  , false, Array(1, 1)  , Array(0, 0), Array(1, 1), true, false, true , "x_linked_recessive"),
-      ("X", "Female", false, Array(1, 1)  , Array(0, 1), Array(0, 1), true, true , false, "x_linked_recessive"),
-      ("X", "Male"  , false, Array(1, 1)  , Array(0, 1), Array(0, 1), true, true , false, "x_linked_recessive"),
-      ("X", "Female", false, Array(1, 1)  , Array(0, 1), Array(1, 1), true, true , true , "x_linked_recessive"),
-      ("X", "Male"  , false, Array(1, 1)  , Array(0, 1), Array(1, 1), true, true , true , "x_linked_recessive"),
-      ("X", "Female", false, Array(1, 1)  , Array(1, 1), Array(0, 1), true, true , false, "x_linked_recessive"),
-      ("X", "Male"  , false, Array(1, 1)  , Array(1, 1), Array(0, 1), true, true , false, "x_linked_recessive"),
-      ("X", "Female", false, Array(1, 1)  , Array(1, 1), Array(1, 1), true, true , true , "x_linked_recessive"),
-      ("X", "Male"  , false, Array(1, 1)  , Array(1, 1), Array(1, 1), true, true , true , "x_linked_recessive"),
+      // Les 64 combinaisons avec calls=0/0 (affected_status=true) [où 0/1 = 1/0]
+      ("X", "Male", false, Array(0, 0),   Array(0, 0),   Array(0, 0),   true , true , true , "non_carrier_proband"),
+
+      // Les 64 combinaisons avec calls=0/1 (affected_status=true) [où 0/1 = 1/0]
+      ("X", "Male", false, Array(0, 1),   Array(0, 0),   Array(0, 0),   true , false, false, "x_linked_recessive_de_novo"),
+      ("X", "Male", false, Array(0, 1),   Array(0, 0),   Array(0, 0),   true , true , true , null), // Les 3 autres combinaisons (2 booléens)
+      ("X", "Male", false, Array(0, 1),   Array(0, 0),   Array(0, 1),   true , false, false, "x_linked_recessive"),
+      ("X", "Male", false, Array(0, 1),   Array(0, 0),   Array(0, 1),   true , true , true , null), // Les 3 autres combinaisons (2 booléens)
+      ("X", "Male", false, Array(0, 1),   Array(0, 0),   Array(1, 1),   true , false, true , "x_linked_recessive"),
+      ("X", "Male", false, Array(0, 1),   Array(0, 0),   Array(1, 1),   true , true , true , null), // Les 3 autres combinaisons (2 booléens)
+      ("X", "Male", false, Array(0, 1),   Array(0, 0),   Array(-1, -1), true , true , true , null), // Les 4 combinaisons (2 booléens)
+      ("X", "Male", false, Array(0, 1),   Array(0, 1),   Array(0, 0),   true , true , true , null), // Les 4 combinaisons (2 booléens)
+      ("X", "Male", false, Array(0, 1),   Array(0, 1),   Array(0, 1),   true , true , false, "x_linked_recessive"),
+      ("X", "Male", false, Array(0, 1),   Array(0, 1),   Array(0, 1),   true , true , true , null), // Les 3 autres combinaisons (2 booléens)
+      ("X", "Male", false, Array(0, 1),   Array(0, 1),   Array(1, 1),   true , true , true , "x_linked_recessive"),
+      ("X", "Male", false, Array(0, 1),   Array(0, 1),   Array(1, 1),   true , false, false, null), // Les 3 autres combinaisons (2 booléens)
+      ("X", "Male", false, Array(0, 1),   Array(0, 1),   Array(-1, -1), true , true , true , null), // Les 4 combinaisons (2 booléens)
+      ("X", "Male", false, Array(0, 1),   Array(1, 1),   Array(0, 0),   true , true , true , null), // Les 4 combinaisons (2 booléens)
+      ("X", "Male", false, Array(0, 1),   Array(1, 1),   Array(0, 1),   true , true , false, "x_linked_recessive"),
+      ("X", "Male", false, Array(0, 1),   Array(1, 1),   Array(0, 1),   true , true , true , null), // Les 3 autres combinaisons (2 booléens)
+      ("X", "Male", false, Array(0, 1),   Array(1, 1),   Array(1, 1),   true , true , true , "x_linked_recessive"),
+      ("X", "Male", false, Array(0, 1),   Array(1, 1),   Array(1, 1),   true , false, false, null), // Les 3 autres combinaisons (2 booléens)
+      ("X", "Male", false, Array(0, 1),   Array(1, 1),   Array(-1, -1), true , true , true , null), // Les 4 combinaisons (2 booléens)
+      ("X", "Male", false, Array(0, 1),   Array(-1, -1), Array(0, 0),   true , true , true , null), // Les 4 combinaisons (2 booléens)
+      ("X", "Male", false, Array(0, 1),   Array(-1, -1), Array(0, 1),   true , false, false, "x_linked_recessive"),
+      ("X", "Male", false, Array(0, 1),   Array(-1, -1), Array(0, 1),   true , true , false, "x_linked_recessive"),
+      ("X", "Male", false, Array(0, 1),   Array(-1, -1), Array(0, 1),   true , true , true , null), // Les 2 autres combinaisons (1 booléen)
+      ("X", "Male", false, Array(0, 1),   Array(-1, -1), Array(1, 1),   true , false, true , "x_linked_recessive"),
+      ("X", "Male", false, Array(0, 1),   Array(-1, -1), Array(1, 1),   true , true , true , "x_linked_recessive"),
+      ("X", "Male", false, Array(0, 1),   Array(-1, -1), Array(1, 1),   true , false, false, null), // Les 2 autres combinaisons (1 booléen)
+      ("X", "Male", false, Array(0, 1),   Array(-1, -1), Array(-1, -1), true , true , true , null), // Les 4 combinaisons (2 booléens)
+
+      // Les 64 combinaisons avec calls=1/1 (affected_status=true) [où 0/1 = 1/0]
+      ("X", "Male", false, Array(1, 1),   Array(0, 0),   Array(0, 0),   true , false, false, "x_linked_recessive_de_novo"),
+      ("X", "Male", false, Array(1, 1),   Array(0, 0),   Array(0, 0),   true , true , true , null), // Les 3 autres combinaisons (2 booléens)
+      ("X", "Male", false, Array(1, 1),   Array(0, 0),   Array(0, 1),   true , false, false, "x_linked_recessive"),
+      ("X", "Male", false, Array(1, 1),   Array(0, 0),   Array(0, 1),   true , true , true , null), // Les 3 autres combinaisons (2 booléens)
+      ("X", "Male", false, Array(1, 1),   Array(0, 0),   Array(1, 1),   true , false, true , "x_linked_recessive"),
+      ("X", "Male", false, Array(1, 1),   Array(0, 0),   Array(1, 1),   true , true , true , null), // Les 3 autres combinaisons (2 booléens)
+      ("X", "Male", false, Array(1, 1),   Array(0, 0),   Array(-1, -1), true , true , true , null), // Les 4 combinaisons (2 booléens)
+      ("X", "Male", false, Array(1, 1),   Array(0, 1),   Array(0, 0),   true , true , true , null), // Les 4 combinaisons (2 booléens)
+      ("X", "Male", false, Array(1, 1),   Array(0, 1),   Array(0, 1),   true , true , false, "x_linked_recessive"),
+      ("X", "Male", false, Array(1, 1),   Array(0, 1),   Array(0, 1),   true , true , true , null), // Les 3 autres combinaisons (2 booléens)
+      ("X", "Male", false, Array(1, 1),   Array(0, 1),   Array(1, 1),   true , true , true , "x_linked_recessive"),
+      ("X", "Male", false, Array(1, 1),   Array(0, 1),   Array(1, 1),   true , false, false, null), // Les 3 autres combinaisons (2 booléens)
+      ("X", "Male", false, Array(1, 1),   Array(0, 1),   Array(-1, -1), true , true , true , null), // Les 4 combinaisons (2 booléens)
+      ("X", "Male", false, Array(1, 1),   Array(1, 1),   Array(0, 0),   true , true , true , null), // Les 4 combinaisons (2 booléens)
+      ("X", "Male", false, Array(1, 1),   Array(1, 1),   Array(0, 1),   true , true , false, "x_linked_recessive"),
+      ("X", "Male", false, Array(1, 1),   Array(1, 1),   Array(0, 1),   true , true , true , null), // Les 3 autres combinaisons (2 booléens)
+      ("X", "Male", false, Array(1, 1),   Array(1, 1),   Array(1, 1),   true , true , true , "x_linked_recessive"),
+      ("X", "Male", false, Array(1, 1),   Array(1, 1),   Array(1, 1),   true , false, false, null), // Les 3 autres combinaisons (2 booléens)
+      ("X", "Male", false, Array(1, 1),   Array(1, 1),   Array(-1, -1), true , true , true , null), // Les 4 combinaisons (2 booléens)
+      ("X", "Male", false, Array(1, 1),   Array(-1, -1), Array(0, 0),   true , true , true , null), // Les 4 combinaisons (2 booléens)
+      ("X", "Male", false, Array(1, 1),   Array(-1, -1), Array(0, 1),   true , false, false, "x_linked_recessive"),
+      ("X", "Male", false, Array(1, 1),   Array(-1, -1), Array(0, 1),   true , true , false, "x_linked_recessive"),
+      ("X", "Male", false, Array(1, 1),   Array(-1, -1), Array(0, 1),   true , true , true , null), // Les 2 autres combinaisons (1 booléen)
+      ("X", "Male", false, Array(1, 1),   Array(-1, -1), Array(1, 1),   true , false, true , "x_linked_recessive"),
+      ("X", "Male", false, Array(1, 1),   Array(-1, -1), Array(1, 1),   true , true , true , "x_linked_recessive"),
+      ("X", "Male", false, Array(1, 1),   Array(-1, -1), Array(1, 1),   true , false, false, null), // Les 2 autres combinaisons (1 booléen)
+      ("X", "Male", false, Array(1, 1),   Array(-1, -1), Array(-1, -1), true , true , true , null), // Les 4 combinaisons (2 booléens)
+
+      // Les 64 combinaisons avec calls=-1/-1 (affected_status=true) [où 0/1 = 1/0]
+      ("X", "Male", false, Array(-1, -1), Array(0, 0),   Array(0, 0),   true , true , true , "unknown_proband_genotype"),
+
+      // Les 256 combinaisons (affected_status=false) [où 0/1 = 1/0]
+//TODO("X", "Male", false, Array(0, 0),   Array(0, 0),   Array(0, 0),   false, true , true , null),
+
+      // Les cas où les données sont null
+      ("X",  "Male", false, Array(0, 0),  Array(0, 0),   null,          true , true , true , "unknown_mother_genotype"),
+      ("X",  "Male", false, Array(0, 0),  null,          Array(0, 0),   true , true , true , "unknown_father_genotype"),
+      ("X",  "Male", false, null,         Array(0, 0),   Array(0, 0),   true , true , true , "unknown_proband_genotype"),
+      ("X",  null,   false, Array(0, 0),  Array(0, 0),   Array(0, 0),   true , true , true , "non_carrier_proband"),
+      (null, "Male", false, Array(0, 0),  Array(0, 0),   Array(0, 0),   true , true , true , "non_carrier_proband"),
+    )
+      .toDF("chromosome", "gender", "is_multi_allelic", "calls", "father_calls", "mother_calls",
+        "affected_status", "father_affected_status", "mother_affected_status", "expectedResult")
+
+    val result = input_occurrences
+      .withGenotypeTransmission("transmission",
+        "calls",
+        "gender",
+        "affected_status",
+        "father_calls",
+        "father_affected_status",
+        "mother_calls",
+        "mother_affected_status")
+
+    result.show(false)
+    result
+      .where(
+        functions.not(col("expectedResult") === col("transmission")) or
+          (col("expectedResult").isNotNull and col("transmission").isNull) or
+          (col("expectedResult").isNull and col("transmission").isNotNull))
+      .select("expectedResult", "transmission")
+      .as[(String, String)]
+      .collect() shouldBe Array.empty[(String, String)] //makes it easy to debug in case the test fails
+
+  }
+
+  it should "return sexual transmissions for female accordingly" in {
+
+    val input_occurrences = List(
+
+      // Les 64 combinaisons avec calls=0/0 (affected_status=true) [où 0/1 = 1/0]
+      ("X", "Female", false, Array(0, 0),   Array(0, 0),   Array(0, 0),   true , true , true , "non_carrier_proband"),
+
+      // Les 64 combinaisons avec calls=0/1 (affected_status=true) [où 0/1 = 1/0]
+      ("X", "Female", false, Array(0, 1),   Array(0, 0),   Array(0, 0),   true , false, false, "x_linked_dominant_de_novo"),
+      ("X", "Female", false, Array(0, 1),   Array(0, 0),   Array(0, 0),   true , true , true , null), // Les 3 autres combinaisons (2 booléens)
+      ("X", "Female", false, Array(0, 1),   Array(0, 0),   Array(0, 1),   true , false, true , "x_linked_dominant"),
+      ("X", "Female", false, Array(0, 1),   Array(0, 0),   Array(0, 1),   true , true , true , null), // Les 3 autres combinaisons (2 booléens)
+      ("X", "Female", false, Array(0, 1),   Array(0, 0),   Array(1, 1),   true , true , true , null), // Les 4 combinaisons (2 booléens)
+      ("X", "Female", false, Array(0, 1),   Array(0, 0),   Array(-1, -1), true , true , true , null), // Les 4 combinaisons (2 booléens)
+      ("X", "Female", false, Array(0, 1),   Array(0, 1),   Array(0, 0),   true , true , false, "x_linked_dominant"),
+      ("X", "Female", false, Array(0, 1),   Array(0, 1),   Array(0, 0),   true , true , true , null), // Les 3 autres combinaisons (2 booléens)
+      ("X", "Female", false, Array(0, 1),   Array(0, 1),   Array(0, 1),   true , true , true , "x_linked_dominant"),
+      ("X", "Female", false, Array(0, 1),   Array(0, 1),   Array(0, 1),   true , false, false, null), // Les 3 autres combinaisons (2 booléens)
+      ("X", "Female", false, Array(0, 1),   Array(0, 1),   Array(1, 1),   true , true , true , "x_linked_dominant"),
+      ("X", "Female", false, Array(0, 1),   Array(0, 1),   Array(1, 1),   true , false, false, null), // Les 3 autres combinaisons (2 booléens)
+      ("X", "Female", false, Array(0, 1),   Array(0, 1),   Array(-1, -1), true , true , true , null), // Les 4 combinaisons (2 booléens)
+      ("X", "Female", false, Array(0, 1),   Array(1, 1),   Array(0, 0),   true , true , false, "x_linked_dominant"),
+      ("X", "Female", false, Array(0, 1),   Array(1, 1),   Array(0, 0),   true , true , true , null), // Les 3 autres combinaisons (2 booléens)
+      ("X", "Female", false, Array(0, 1),   Array(1, 1),   Array(0, 1),   true , true , true , "x_linked_dominant"),
+      ("X", "Female", false, Array(0, 1),   Array(1, 1),   Array(0, 1),   true , false, false, null), // Les 3 autres combinaisons (2 booléens)
+      ("X", "Female", false, Array(0, 1),   Array(1, 1),   Array(1, 1),   true , true , true , null), // Les 4 combinaisons (2 booléens)
+      ("X", "Female", false, Array(0, 1),   Array(1, 1),   Array(-1, -1), true , true , false, "x_linked_dominant"),
+      ("X", "Female", false, Array(0, 1),   Array(1, 1),   Array(-1, -1), true , true , true , "x_linked_dominant"),
+      ("X", "Female", false, Array(0, 1),   Array(1, 1),   Array(-1, -1), true , false, false, null), // Les 2 autres combinaisons (1 booléen)
+      ("X", "Female", false, Array(0, 1),   Array(-1, -1), Array(0, 0),   true , true , true , null), // Les 4 combinaisons (2 booléens)
+      ("X", "Female", false, Array(0, 1),   Array(-1, -1), Array(0, 1),   true , false, false, "x_linked_dominant"),
+      ("X", "Female", false, Array(0, 1),   Array(-1, -1), Array(0, 1),   true , true , false, "x_linked_dominant"),
+      ("X", "Female", false, Array(0, 1),   Array(-1, -1), Array(0, 1),   true , true , true , null), // Les 2 autres combinaisons (1 booléen)
+      ("X", "Female", false, Array(0, 1),   Array(-1, -1), Array(1, 1),   true , true , true , null), // Les 4 combinaisons (2 booléens)
+      ("X", "Female", false, Array(0, 1),   Array(-1, -1), Array(-1, -1), true , true , true , null), // Les 4 combinaisons (2 booléens)
+
+      // Les 64 combinaisons avec calls=1/1 (affected_status=true) [où 0/1 = 1/0]
+      ("X", "Female", false, Array(1, 1),   Array(0, 0),   Array(0, 0),   true , true , true , null), // Les 4 combinaisons (2 booléens)
+      ("X", "Female", false, Array(1, 1),   Array(0, 0),   Array(0, 1),   true , true , true , null), // Les 4 combinaisons (2 booléens)
+      ("X", "Female", false, Array(1, 1),   Array(0, 0),   Array(1, 1),   true , true , true , null), // Les 4 combinaisons (2 booléens)
+      ("X", "Female", false, Array(1, 1),   Array(0, 0),   Array(-1, -1), true , true , true , null), // Les 4 combinaisons (2 booléens)
+      ("X", "Female", false, Array(1, 1),   Array(0, 1),   Array(0, 0),   true , true , true , null), // Les 4 combinaisons (2 booléens)
+      ("X", "Female", false, Array(1, 1),   Array(0, 1),   Array(0, 1),   true , true , false, "x_linked_recessive"),
+      ("X", "Female", false, Array(1, 1),   Array(0, 1),   Array(0, 1),   true , true , true , null), // Les 3 autres combinaisons (2 booléens)
+      ("X", "Female", false, Array(1, 1),   Array(0, 1),   Array(1, 1),   true , true , true , "x_linked_recessive"),
+      ("X", "Female", false, Array(1, 1),   Array(0, 1),   Array(1, 1),   true , false, false, null), // Les 3 autres combinaisons (2 booléens)
+      ("X", "Female", false, Array(1, 1),   Array(0, 1),   Array(-1, -1), true , true , true , null), // Les 4 combinaisons (2 booléens)
+      ("X", "Female", false, Array(1, 1),   Array(1, 1),   Array(0, 0),   true , true , true , null), // Les 4 combinaisons (2 booléens)
+      ("X", "Female", false, Array(1, 1),   Array(1, 1),   Array(0, 1),   true , true , false, "x_linked_recessive"),
+      ("X", "Female", false, Array(1, 1),   Array(1, 1),   Array(0, 1),   true , true , true , null), // Les 3 autres combinaisons (2 booléens)
+      ("X", "Female", false, Array(1, 1),   Array(1, 1),   Array(1, 1),   true , true , true , "x_linked_recessive"),
+      ("X", "Female", false, Array(1, 1),   Array(1, 1),   Array(1, 1),   true , false, false, null), // Les 3 autres combinaisons (2 booléens)
+      ("X", "Female", false, Array(1, 1),   Array(1, 1),   Array(-1, -1), true , true , true , null), // Les 4 combinaisons (2 booléens)
+      ("X", "Female", false, Array(1, 1),   Array(-1, -1), Array(0, 0),   true , true , true , null), // Les 4 combinaisons (2 booléens)
+      ("X", "Female", false, Array(1, 1),   Array(-1, -1), Array(0, 1),   true , true , true , null), // Les 4 combinaisons (2 booléens)
+      ("X", "Female", false, Array(1, 1),   Array(-1, -1), Array(1, 1),   true , true , true , null), // Les 4 combinaisons (2 booléens)
+      ("X", "Female", false, Array(1, 1),   Array(-1, -1), Array(-1, -1), true , true , true , null), // Les 4 combinaisons (2 booléens)
+      
+      // Les 64 combinaisons avec calls=-1/-1 (affected_status=true) [où 0/1 = 1/0]
+      ("X", "Female", false, Array(-1, -1), Array(0, 0),   Array(0, 0),   true , true , true , "unknown_proband_genotype"),
+
+      // Les 256 combinaisons (affected_status=false) [où 0/1 = 1/0]
+//TODO("X", "Female", false, Array(0, 0),   Array(0, 0),   Array(0, 0),   false, true , true , null),
+
+      // Les cas où les données sont null
+      ("X",  "Female", false, Array(0, 0),  Array(0, 0),   null,          true , true , true , "unknown_mother_genotype"),
+      ("X",  "Female", false, Array(0, 0),  null,          Array(0, 0),   true , true , true , "unknown_father_genotype"),
+      ("X",  "Female", false, null,         Array(0, 0),   Array(0, 0),   true , true , true , "unknown_proband_genotype"),
+      (null, "Female", false, Array(0, 0),  Array(0, 0),   Array(0, 0),   true , true , true , "non_carrier_proband"),
     )
       .toDF("chromosome", "gender", "is_multi_allelic", "calls", "father_calls", "mother_calls",
         "affected_status", "father_affected_status", "mother_affected_status", "expectedResult")
