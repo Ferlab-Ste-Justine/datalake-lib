@@ -9,7 +9,10 @@ case class SHA1(salt: String, override val columns: String*) extends HashTransfo
     columns.foldLeft(df){ case (d, column) =>
       d.withColumn(column,
         when(col(column).isNull, nullValues)
-          .otherwise(sha1(concat_ws("_", col(column).cast(StringType), lit(salt)))))
+          .otherwise(
+            if(salt.nonEmpty) sha1(concat_ws("_", col(column).cast(StringType), lit(salt)))
+            else sha1(col(column).cast(StringType))
+          ))
     }
   }
 }

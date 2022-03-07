@@ -8,6 +8,7 @@ import bio.ferlab.datalake.spark3.file.FileSystemResolver
 import bio.ferlab.datalake.spark3.transformation._
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.functions.col
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.{BeforeAndAfterAll, GivenWhenThen}
@@ -67,7 +68,8 @@ class RawToNormalizedETLSpec extends AnyFlatSpec with GivenWhenThen with Matcher
 
     val input = job.extract()
     val output = job.transform(input, LocalDateTime.now(), LocalDateTime.now())
-    output.as[AirportOutput]
+    val head = output.as[AirportOutput].where(col("airport_id") === 1).collect().head
+    head shouldBe AirportOutput(input_file_name = head.input_file_name, createdOn = head.createdOn)
 
     job.publish()
     val files = FileSystemResolver.resolve(conf.getStorage(srcConf.storageid).filesystem)
