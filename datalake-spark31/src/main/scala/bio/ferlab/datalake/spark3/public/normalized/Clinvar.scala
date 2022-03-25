@@ -80,7 +80,7 @@ class Clinvar()(implicit conf: Configuration) extends ETLP {
     super.load(data.coalesce(1), lastRunDateTime, currentRunDateTime)
   }
 
-  def inheritance_udf: UserDefinedFunction = udf { array: mutable.WrappedArray[String] =>
+  val inheritance_udf: UserDefinedFunction = udf { array: mutable.WrappedArray[String] =>
     val unknown = "unknown"
 
     val labels = Map(

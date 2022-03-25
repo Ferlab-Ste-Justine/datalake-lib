@@ -3,6 +3,7 @@ package bio.ferlab.datalake.spark3.transformation
 import bio.ferlab.datalake.spark3.transformation.PBKDF2.pbkdf2Udf
 import com.roundeights.hasher.Implicits._
 import org.apache.spark.sql._
+import org.apache.spark.sql.expressions.UserDefinedFunction
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.StringType
 
@@ -44,5 +45,5 @@ object PBKDF2 {
     id.pbkdf2(salt, iteration, keyLength).hex
   }
 
-  def pbkdf2Udf = udf((id: String, salt: String, iteration: Int, keyLength: Int) => pbkdf2(id, salt, iteration, keyLength))
+  val pbkdf2Udf: UserDefinedFunction = udf((id: String, salt: String, iteration: Int, keyLength: Int) => pbkdf2(id, salt, iteration, keyLength))
 }

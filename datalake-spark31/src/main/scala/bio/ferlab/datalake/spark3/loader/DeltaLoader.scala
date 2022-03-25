@@ -164,7 +164,7 @@ object DeltaLoader extends Loader {
 
     val deduplicatedData =
       if (updates.select(validFromName).dropDuplicates().count() > 1)
-        newData.withDropDuplicates(Seq(buidName), col(validFromName).desc)
+        newData.dropDuplicates(Seq(buidName), col(validFromName).desc)
       else
         newData
 
