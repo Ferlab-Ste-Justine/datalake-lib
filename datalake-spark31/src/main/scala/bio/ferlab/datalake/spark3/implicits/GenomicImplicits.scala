@@ -229,7 +229,7 @@ object GenomicImplicits {
           when(col(as).isNull and fth_calls.isNull and mth_calls.isNull, lit("unknown_parents_genotype"))
             .when(col(as).isNull and fth_calls.isNull, lit("unknown_father_genotype"))
             .when(col(as).isNull and mth_calls.isNull, lit("unknown_mother_genotype")).otherwise(col(as)))
-        .drop("norm_fth_calls", "norm_mth_calls")
+        .drop("norm_calls", "norm_fth_calls", "norm_mth_calls")
     }
 
     /**
