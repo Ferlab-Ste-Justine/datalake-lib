@@ -66,11 +66,23 @@ object DataProfiling {
   }
 
   def externalDsId(schema: String, tableName: String, idPadTo: Int = 55): String = {
-    s""""${schema}.${tableName}"""".padTo(idPadTo, " ").mkString
+    s""""${schema}.${tableName.replaceAll(" ", "_")}"""".padTo(idPadTo, " ").mkString
   }
 
   def rawDsId(schema: String, tableName: String, idPadTo: Int = 55): String = {
-    s""""raw_${schema.toLowerCase}_${tableName.toLowerCase}"""".padTo(idPadTo, " ").mkString
+    s""""raw_${schema.toLowerCase}_${tableName.toLowerCase.replaceAll(" ", "_")}"""".padTo(idPadTo, " ").mkString
+  }
+
+  def printSourceDatasets(schema: String,
+                          tables: List[String],
+                          format: String,
+                          storageId: String): Unit = {
+
+    val idPadTo = tables.map(t => externalDsId(schema, t, 0).length).max + 1
+    val tablePadTo = tables.map(_.length).max + 1
+    tables.foreach(table =>
+      printSourceDataset(schema, table, format, storageId, idPadTo, tablePadTo)
+    )
   }
 
   def printSourceDataset(schema: String,
@@ -83,6 +95,20 @@ object DataProfiling {
     val id = externalDsId(schema, tableName, idPadTo)
     val table = s""""${tableName}"""".padTo(tablePadTo, " ").mkString
     println(s"""DatasetConf(${id}, $storageId,"", $format, Read, Some(TableConf("${schema}", $table)), readoptions = ${storageId}_options),""")
+  }
+
+  def printRawDatasets(schema: String,
+                       tables: List[String],
+                       storageId: String = "red_raw",
+                       format: String = "DELTA",
+                       loadType: String = "Insert"): Unit = {
+
+    val idPadTo = tables.map(t => externalDsId(schema, t, 0).length).max + 1
+    val pathPadTo = tables.map(t => s"/$schema/${camel2Snake(t)}".length).max + 1
+    val tablePadTo = tables.map(_.length).max + 1
+    tables.foreach(table =>
+      printRawDataset(schema, table, storageId, format, loadType, idPadTo, pathPadTo, tablePadTo)
+    )
   }
 
   def printRawDataset(schema: String,
