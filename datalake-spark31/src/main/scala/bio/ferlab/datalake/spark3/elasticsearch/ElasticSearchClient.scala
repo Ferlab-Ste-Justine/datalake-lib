@@ -19,6 +19,7 @@ class ElasticSearchClient(url: String, username: Option[String] = None, password
   private val indexUrl: String => String = indexName => s"$url/$indexName"
   private val templateUrl: String => String = templateName => s"$url/_index_template/$templateName"
   private val aliasesUrl: String = s"$url/_aliases"
+  private val aliasUrl: String => String = indexName => s"$url/$indexName/_alias"
   val log: Logger = LoggerFactory.getLogger(getClass.getCanonicalName)
 
   def http: CloseableHttpClient = {
@@ -91,6 +92,20 @@ class ElasticSearchClient(url: String, username: Option[String] = None, password
     val status = response.getStatusLine
     if (!status.getStatusCode.equals(200))
       throw new Exception(s"Server could not set template and replied :${status.getStatusCode + " : " + status.getReasonPhrase}")
+    http.close()
+    response
+  }
+
+  /**
+   * Get alias linked to the index or the index linked to the alias itself
+   * @param indexOrAliasName name of the index or the alias
+   * @return the http response sent by ElasticSearch
+   */
+  def getAlias(indexOrAliasName: String): HttpResponse = {
+    val response = http.execute(new HttpGet(aliasUrl(indexOrAliasName)))
+    val status = response.getStatusLine
+    if (!status.getStatusCode.equals(200))
+      throw new Exception(s"Server could not get aliases for '$indexOrAliasName' :${status.getStatusCode + " : " + status.getReasonPhrase}")
     http.close()
     response
   }
