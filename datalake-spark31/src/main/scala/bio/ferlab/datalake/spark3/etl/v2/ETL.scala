@@ -1,6 +1,6 @@
 package bio.ferlab.datalake.spark3.etl.v2
 
-import bio.ferlab.datalake.commons.config.LoadType.{Scd1, Scd2}
+import bio.ferlab.datalake.commons.config.LoadType.{Insert, OverWritePartition, Scd1, Scd2}
 import bio.ferlab.datalake.commons.config.WriteOptions.{UPDATED_ON_COLUMN_NAME, VALID_FROM_COLUMN_NAME}
 import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf, RunStep}
 import bio.ferlab.datalake.spark3.datastore.SqlBinderResolver
@@ -60,12 +60,13 @@ abstract class ETL()(implicit val conf: Configuration) extends Runnable {
    */
   def load(data: Map[String, DataFrame],
            lastRunDateTime: LocalDateTime = minDateTime,
-           currentRunDateTime: LocalDateTime = LocalDateTime.now())(implicit spark: SparkSession): Map[String, DataFrame] = {
+           currentRunDateTime: LocalDateTime = LocalDateTime.now(),
+           repartition: DataFrame => DataFrame = defaultRepartition)(implicit spark: SparkSession): Map[String, DataFrame] = {
     data.map { case (dsid, df) =>
       val ds = conf.getDataset(dsid)
       LoadResolver
         .write(spark, conf)(ds.format -> ds.loadtype)
-        .apply(ds, df)
+        .apply(ds, repartition(df))
 
       log.info(s"Succeeded to load $dsid")
       dsid -> ds.read
@@ -89,13 +90,13 @@ abstract class ETL()(implicit val conf: Configuration) extends Runnable {
                    lastRunDateTime: Option[LocalDateTime] = None,
                    currentRunDateTime: Option[LocalDateTime] = None)(implicit spark: SparkSession): Map[String, DataFrame] = {
 
-    val lastRunDate = lastRunDateTime.getOrElse(if (runSteps.contains(RunStep.reset)) minDateTime else getLastRunDateFor(mainDestination))
-    val currentRunDate = currentRunDateTime.getOrElse(LocalDateTime.now())
-
     if (runSteps.isEmpty)
       log.info(s"WARNING ETL started with no runSteps. Nothing will be executed.")
     else
       log.info(s"RUN steps: \t\t ${runSteps.mkString(" -> ")}")
+
+    val lastRunDate = lastRunDateTime.getOrElse(if (runSteps.contains(RunStep.reset)) minDateTime else getLastRunDateFor(mainDestination))
+    val currentRunDate = currentRunDateTime.getOrElse(LocalDateTime.now())
 
     log.info(s"RUN lastRunDate: \t $lastRunDate")
     log.info(s"RUN currentRunDate: \t $currentRunDate")
@@ -155,6 +156,16 @@ abstract class ETL()(implicit val conf: Configuration) extends Runnable {
           ds.read.select(max(col(ds.writeoptions(VALID_FROM_COLUMN_NAME)))).limit(1).as[Date].head().toLocalDate.atStartOfDay()
         ).getOrElse(minDateTime)
 
+      case Insert =>
+        Try(
+          ds.read.select(max(col(ds.writeoptions(UPDATED_ON_COLUMN_NAME)))).limit(1).as[Date].head().toLocalDate.atStartOfDay()
+        ).getOrElse(minDateTime)
+
+      case OverWritePartition =>
+        Try(
+          ds.read.select(max(col(ds.partitionby.head))).limit(1).as[Date].head().toLocalDate.atStartOfDay()
+        ).getOrElse(minDateTime)
+
       case _ => minDateTime
 
     }
@@ -180,6 +191,14 @@ abstract class ETL()(implicit val conf: Configuration) extends Runnable {
 
   def defaultSampling: PartialFunction[String, DataFrame => DataFrame] = {
     case _ => df => df.sample(0.05)
+  }
+
+  val defaultRowPerPartition: Int = 2000000
+
+  def defaultRepartition: DataFrame => DataFrame = {df =>
+    val persisted = df.persist()
+    val rowCount: Long = persisted.count()
+    persisted.repartition((rowCount.toDouble/defaultRowPerPartition.toDouble).ceil.toInt)
   }
 
 }
