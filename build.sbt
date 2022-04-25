@@ -50,7 +50,7 @@ lazy val `datalake-commons` = (project in file("datalake-commons"))
     libraryDependencies += "com.github.pureconfig" %% "pureconfig"             % pureconfigVersion,
     libraryDependencies += "com.github.pureconfig" %% "pureconfig-enum"        % pureconfigVersion,
     libraryDependencies += "org.typelevel"         %% "cats-core"              % "2.6.1",
-    libraryDependencies += "org.scalatest"         %% "scalatest"              % scalatestVersion % Test,
+    libraryDependencies += "org.scalatest"         %% "scalatest"              % scalatestVersion,
     libraryDependencies += "io.projectglow"        %% "glow-spark3"            % "1.0.1" % Provided exclude ("org.apache.hadoop", "hadoop-client"),
     libraryDependencies += "dev.zio"               %% "zio-config-typesafe"    % zioVersion,
     libraryDependencies += "dev.zio"               %% "zio-config"             % zioVersion,
@@ -74,7 +74,7 @@ lazy val `datalake-spark30` = (project in file("datalake-spark30"))
     libraryDependencies += "com.github.pureconfig" %% "pureconfig"             % pureconfigVersion,
     libraryDependencies += "com.github.pureconfig" %% "pureconfig-enum"        % pureconfigVersion,
     libraryDependencies += "org.typelevel"         %% "cats-core"              % catsVersion,
-    libraryDependencies += "org.scalatest"         %% "scalatest"              % scalatestVersion % Test,
+    libraryDependencies += "org.scalatest"         %% "scalatest"              % scalatestVersion,
     libraryDependencies += "org.apache.spark"      %% "spark-hive"             % spark30Version % Test,
     libraryDependencies += "io.projectglow"        %% "glow-spark3"            % "1.0.1" % Provided exclude ("org.apache.hadoop", "hadoop-client"),
     libraryDependencies += "dev.zio"               %% "zio-config-typesafe"    % zioVersion,
@@ -109,7 +109,7 @@ lazy val `datalake-spark31` = (project in file("datalake-spark31"))
       "com.microsoft.azure"     %  "spark-mssql-connector_2.12"     % "1.1.0"              % Provided,
       "com.dimafeng"            %% "testcontainers-scala-scalatest" % "0.38.8"             % Test,
       "org.testcontainers"      %  "localstack"                     % "1.15.2"             % Test,
-      "org.scalatest"           %% "scalatest"                      % scalatestVersion     % Test,
+      "org.scalatest"           %% "scalatest"                      % scalatestVersion,
       "org.apache.spark"        %% "spark-hive"                     % spark31Version       % Test
 ),
     dependencyOverrides ++= Seq(
