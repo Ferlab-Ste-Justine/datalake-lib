@@ -38,22 +38,24 @@ object ClassGenerator {
     case MapType(StringType,ArrayType(StringType,_),_) =>"Map[String, List[String]]"
   }
 
+  val maxElement: Int = 100
+
   def getValue: PartialFunction[(String, Row, DataType), String] = {
     case (name, values, StringType)                                    => "\"" + values.getAs[String](name).replace("\"", "\\\"").replaceAll("\n", " ").take(512) + "\""
     case (name, values, DateType)                                      => s"""java.sql.Date.valueOf("${values.getAs(name)}")"""
     case (name, values, TimestampType)                                 => s"""java.sql.Timestamp.valueOf("${values.getAs(name)}")"""
-    case (name, values, BinaryType)                                    => values.getAs[Array[Byte]](name).map(b => s"$b.toByte").mkString("Array(", ", ", ")")
+    case (name, values, BinaryType)                                    => values.getAs[Array[Byte]](name).take(maxElement).map(b => s"$b.toByte").mkString("Array(", ", ", ")")
     case (name, values, ArrayType(StringType,_)) if values.getAs[List[String]](name).isEmpty => "List()"
-    case (name, values, ArrayType(StringType,_))                       => values.getAs[List[String]](name).mkString("List(\"", "\", \"", "\")")
-    case (name, values, ArrayType(FloatType,_))                        => values.getAs[List[Float]](name).mkString("List(", ", ", ")")
-    case (name, values, ArrayType(IntegerType,_))                      => values.getAs[List[Int]](name).mkString("List(", ", ", ")")
-    case (name, values, ArrayType(BooleanType,_))                      => values.getAs[List[Boolean]](name).mkString("List(", ", ", ")")
-    case (name, values, ArrayType(DoubleType,_))                       => values.getAs[List[Boolean]](name).mkString("List(", ", ", ")")
-    case (name, values, ArrayType(LongType,_))                         => values.getAs[List[Long]](name).mkString("List(", ", ", ")")
-    case (name, values, MapType(StringType,StringType, _))             => values.getAs[Map[String, String]](name).map{ case (k, v) => s"""\"$k\" -> \"$v\"""" }.mkString("Map(", ", ", ")")
-    case (name, values, MapType(StringType,LongType, _))               => values.getAs[Map[String, Long]](name).mkString("Map(", ", ", ")")
-    case (name, values, MapType(StringType,DecimalType(), _))          => values.getAs[Map[String, BigDecimal]](name).mkString("Map(", ", ", ")")
-    case (name, values, MapType(StringType,ArrayType(StringType,_),_)) => values.getAs[Map[String, List[String]]](name).mkString("Map(", ", ", ")")
+    case (name, values, ArrayType(StringType,_))                       => values.getAs[List[String]](name).take(maxElement).mkString("List(\"", "\", \"", "\")")
+    case (name, values, ArrayType(FloatType,_))                        => values.getAs[List[Float]](name).take(maxElement).mkString("List(", ", ", ")")
+    case (name, values, ArrayType(IntegerType,_))                      => values.getAs[List[Int]](name).take(maxElement).mkString("List(", ", ", ")")
+    case (name, values, ArrayType(BooleanType,_))                      => values.getAs[List[Boolean]](name).take(maxElement).mkString("List(", ", ", ")")
+    case (name, values, ArrayType(DoubleType,_))                       => values.getAs[List[Double]](name).take(maxElement).mkString("List(", ", ", ")")
+    case (name, values, ArrayType(LongType,_))                         => values.getAs[List[Long]](name).take(maxElement).mkString("List(", ", ", ")")
+    case (name, values, MapType(StringType,StringType, _))             => values.getAs[Map[String, String]](name).take(maxElement).map{ case (k, v) => s"""\"$k\" -> \"$v\"""" }.mkString("Map(", ", ", ")")
+    case (name, values, MapType(StringType,LongType, _))               => values.getAs[Map[String, Long]](name).take(maxElement).mkString("Map(", ", ", ")")
+    case (name, values, MapType(StringType,DecimalType(), _))          => values.getAs[Map[String, BigDecimal]](name).take(maxElement).mkString("Map(", ", ", ")")
+    case (name, values, MapType(StringType,ArrayType(StringType,_),_)) => values.getAs[Map[String, List[String]]](name).take(maxElement).mkString("Map(", ", ", ")")
     case (name, values, _)                                             => values.getAs(name)
   }
 
