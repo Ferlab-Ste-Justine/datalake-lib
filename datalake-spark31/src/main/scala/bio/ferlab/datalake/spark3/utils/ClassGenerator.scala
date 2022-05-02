@@ -25,17 +25,17 @@ object ClassGenerator {
     case DateType                             => "Date"
     case TimestampType                        => "Timestamp"
     case BinaryType                           => "Array[Byte]"
-    case ArrayType(StringType, _)             => "List[String]"
-    case ArrayType(FloatType, _)              => "List[Float]"
-    case ArrayType(IntegerType, _)            => "List[Int]"
-    case ArrayType(ShortType, _)              => "List[Short]"
-    case ArrayType(BooleanType, _)            => "List[Boolean]"
-    case ArrayType(DoubleType, _)             => "List[Double]"
-    case ArrayType(LongType, _)               => "List[Long]"
+    case ArrayType(StringType, _)             => "Seq[String]"
+    case ArrayType(FloatType, _)              => "Seq[Float]"
+    case ArrayType(IntegerType, _)            => "Seq[Int]"
+    case ArrayType(ShortType, _)              => "Seq[Short]"
+    case ArrayType(BooleanType, _)            => "Seq[Boolean]"
+    case ArrayType(DoubleType, _)             => "Seq[Double]"
+    case ArrayType(LongType, _)               => "Seq[Long]"
     case MapType(StringType,StringType, _)    => "Map[String,String]"
     case MapType(StringType,LongType, _)      => "Map[String,Long]"
     case MapType(StringType,DecimalType(), _) => "Map[String,BigDecimal]"
-    case MapType(StringType,ArrayType(StringType,_),_) =>"Map[String, List[String]]"
+    case MapType(StringType,ArrayType(StringType,_),_) =>"Map[String, Seq[String]]"
   }
 
   val maxElement: Int = 100
@@ -45,17 +45,17 @@ object ClassGenerator {
     case (name, values, DateType)                                      => s"""java.sql.Date.valueOf("${values.getAs(name)}")"""
     case (name, values, TimestampType)                                 => s"""java.sql.Timestamp.valueOf("${values.getAs(name)}")"""
     case (name, values, BinaryType)                                    => values.getAs[Array[Byte]](name).take(maxElement).map(b => s"$b.toByte").mkString("Array(", ", ", ")")
-    case (name, values, ArrayType(StringType,_)) if values.getAs[List[String]](name).isEmpty => "List()"
-    case (name, values, ArrayType(StringType,_))                       => values.getAs[List[String]](name).take(maxElement).mkString("List(\"", "\", \"", "\")")
-    case (name, values, ArrayType(FloatType,_))                        => values.getAs[List[Float]](name).take(maxElement).mkString("List(", ", ", ")")
-    case (name, values, ArrayType(IntegerType,_))                      => values.getAs[List[Int]](name).take(maxElement).mkString("List(", ", ", ")")
-    case (name, values, ArrayType(BooleanType,_))                      => values.getAs[List[Boolean]](name).take(maxElement).mkString("List(", ", ", ")")
-    case (name, values, ArrayType(DoubleType,_))                       => values.getAs[List[Double]](name).take(maxElement).mkString("List(", ", ", ")")
-    case (name, values, ArrayType(LongType,_))                         => values.getAs[List[Long]](name).take(maxElement).mkString("List(", ", ", ")")
+    case (name, values, ArrayType(StringType,_)) if values.getAs[Seq[String]](name).isEmpty => "Seq()"
+    case (name, values, ArrayType(StringType,_))                       => values.getAs[Seq[String]](name).take(maxElement).mkString("Seq(\"", "\", \"", "\")")
+    case (name, values, ArrayType(FloatType,_))                        => values.getAs[Seq[Float]](name).take(maxElement).mkString("Seq(", ", ", ")")
+    case (name, values, ArrayType(IntegerType,_))                      => values.getAs[Seq[Int]](name).take(maxElement).mkString("Seq(", ", ", ")")
+    case (name, values, ArrayType(BooleanType,_))                      => values.getAs[Seq[Boolean]](name).take(maxElement).mkString("Seq(", ", ", ")")
+    case (name, values, ArrayType(DoubleType,_))                       => values.getAs[Seq[Double]](name).take(maxElement).mkString("Seq(", ", ", ")")
+    case (name, values, ArrayType(LongType,_))                         => values.getAs[Seq[Long]](name).take(maxElement).mkString("Seq(", ", ", ")")
     case (name, values, MapType(StringType,StringType, _))             => values.getAs[Map[String, String]](name).take(maxElement).map{ case (k, v) => s"""\"$k\" -> \"$v\"""" }.mkString("Map(", ", ", ")")
     case (name, values, MapType(StringType,LongType, _))               => values.getAs[Map[String, Long]](name).take(maxElement).mkString("Map(", ", ", ")")
     case (name, values, MapType(StringType,DecimalType(), _))          => values.getAs[Map[String, BigDecimal]](name).take(maxElement).mkString("Map(", ", ", ")")
-    case (name, values, MapType(StringType,ArrayType(StringType,_),_)) => values.getAs[Map[String, List[String]]](name).take(maxElement).mkString("Map(", ", ", ")")
+    case (name, values, MapType(StringType,ArrayType(StringType,_),_)) => values.getAs[Map[String, Seq[String]]](name).take(maxElement).mkString("Map(", ", ", ")")
     case (name, values, _)                                             => values.getAs(name)
   }
 
@@ -65,7 +65,7 @@ object ClassGenerator {
       df.schema.fields.map {
         case StructField(name, dataType, _, _) => s"""`$name`: Option[${getType(dataType)}] = None"""
         case StructField(name, StructType(_), _, _) => s"""`$name`: ${name.toUpperCase}"""
-        case StructField(name, ArrayType(StructType(_), _), _, _) => s"""`$name`: List[${name.toUpperCase}]"""
+        case StructField(name, ArrayType(StructType(_), _), _, _) => s"""`$name`: Seq[${name.toUpperCase}]"""
         case structField: StructField => structField.toString()
       }
     } else {
@@ -78,7 +78,7 @@ object ClassGenerator {
           else
             s"""`$name`: ${getType(dataType)} = ${getValue(name, values, dataType)}"""
         case StructField(name, StructType(_), _, _) => s"""`$name`: ${name.toUpperCase} = ${name.toUpperCase}()"""
-        case StructField(name, ArrayType(StructType(_), _), _, _) => s"""`$name`: List[${name.toUpperCase}] = List(${name.toUpperCase}())"""
+        case StructField(name, ArrayType(StructType(_), _), _, _) => s"""`$name`: Seq[${name.toUpperCase}] = Seq(${name.toUpperCase}())"""
         case structField: StructField => structField.toString()
       }
     }
@@ -89,10 +89,10 @@ object ClassGenerator {
 case class $className(${fields.mkString("", s",\n${spacing.mkString}" , ")")}"""
   }
 
-  private def getNestedClasses: DataFrame => List[String] = {df =>
+  private def getNestedClasses: DataFrame => Seq[String] = {df =>
 
     @tailrec
-    def getNestedRecurse(done: Map[String, DataFrame], todo: List[DataFrame]): Map[String, DataFrame] = {
+    def getNestedRecurse(done: Map[String, DataFrame], todo: Seq[DataFrame]): Map[String, DataFrame] = {
       todo match {
         case Nil => done
         case head :: tail =>
@@ -101,12 +101,12 @@ case class $className(${fields.mkString("", s",\n${spacing.mkString}" , ")")}"""
             case StructField(name, ArrayType(StructType(_), _), _, _) =>
               name.toUpperCase() -> head.withColumn(name, explode(col(name))).select(s"${name}.*")
           }.toMap
-          getNestedRecurse(done ++ toAdd, tail ::: toAdd.values.toList)
+          getNestedRecurse(done ++ toAdd, tail ++ toAdd.values.toSeq)
       }
     }
 
-    getNestedRecurse(Map(), List(df))
-      .map { case (className, df) => oneClassString(className, df)}.toList
+    getNestedRecurse(Map(), Seq(df))
+      .map { case (className, df) => oneClassString(className, df)}.toSeq
 
   }
 
@@ -119,14 +119,14 @@ case class $className(${fields.mkString("", s",\n${spacing.mkString}" , ")")}"""
 
     val nestedClasses = getNestedClasses(df)
 
-    val imports: List[String] =
+    val imports: Seq[String] =
       if ((mainClass + nestedClasses.mkString("\n")).contains("Timestamp") && (mainClass + nestedClasses.mkString("\n")).contains("Date"))
-        List("import java.sql.{Date, Timestamp}")
+        Seq("import java.sql.{Date, Timestamp}")
       else if ((mainClass + nestedClasses.mkString("\n")).contains("Timestamp"))
-        List("import java.sql.Timestamp")
+        Seq("import java.sql.Timestamp")
       else if ((mainClass + nestedClasses.mkString("\n")).contains("Date"))
-        List("import java.sql.Date")
-      else List()
+        Seq("import java.sql.Date")
+      else Seq()
 
     s"""/**
        | * Generated by [[${this.getClass.getCanonicalName.replace("$", "")}]]

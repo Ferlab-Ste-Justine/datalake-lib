@@ -4,7 +4,7 @@ import bio.ferlab.datalake.spark3.implicits.GenomicImplicits._
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns._
 import bio.ferlab.datalake.spark3.testmodels.Genotype
 import bio.ferlab.datalake.spark3.testutils.WithSparkSession
-import org.apache.spark.sql.functions
+import org.apache.spark.sql.{DataFrame, functions}
 import org.apache.spark.sql.functions._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -13,39 +13,27 @@ class GenomicImplicitsSpec extends AnyFlatSpec with WithSparkSession with Matche
 
   import spark.implicits._
 
-  val hom_00: Genotype = Genotype(Array(0, 0))
-  val hom_11: Genotype = Genotype(Array(1, 1))
-  val het_01: Genotype = Genotype(Array(0, 1))
-  val het_10: Genotype = Genotype(Array(1, 0))
-  val hem_1: Genotype = Genotype(Array(1))
-
-  val unk: Genotype = Genotype(Array(-1, 0))
+  val wtDf: DataFrame = Seq(Genotype(Array(0, 0)), Genotype(Array(-1, -1))).toDF()
+  val homDf: DataFrame = Seq(Genotype(Array(1, 1))).toDF()
+  val hetDf: DataFrame = Seq(Genotype(Array(0, 1)), Genotype(Array(1, 0)), Genotype(Array(-1, 1)), Genotype(Array(1, -1))).toDF()
+  val hemDf: DataFrame = Seq(Genotype(Array(1))).toDF()
+  val unkDf: DataFrame = Seq(Genotype(Array(-1, 0))).toDF()
 
   "zygosity" should "return HOM for 1/1" in {
-    val df = Seq(hom_11).toDF("genotypes")
-    df.select(zygosity($"genotypes")).as[String].collect() should contain only "HOM"
+    homDf.select(zygosity($"calls")).as[String].collect() should contain only "HOM"
   }
-
   it should "return HET for 0/1" in {
-    val df = Seq(het_01).toDF("genotypes")
-    df.select(zygosity($"genotypes")).as[String].collect() should contain only "HET"
-  }
-  it should "return HET for 1/0" in {
-    val df = Seq(het_10).toDF("genotypes")
-    df.select(zygosity($"genotypes")).as[String].collect() should contain only "HET"
+    hetDf.select(zygosity($"calls")).as[String].collect() should contain only "HET"
   }
   it should "return WT for 0/0" in {
-    val df = Seq(hom_00).toDF("genotypes")
-    df.select(zygosity($"genotypes")).as[String].collect() should contain only "WT"
+    wtDf.select(zygosity($"calls")).as[String].collect() should contain only "WT"
   }
   it should "return HEM for array(1)" in {
-    val df = Seq(hem_1).toDF("genotypes")
-    df.select(zygosity($"genotypes")).as[String].collect() should contain only "HEM"
+    hemDf.select(zygosity($"calls")).as[String].collect() should contain only "HEM"
   }
 
   it should "return UNK otherwise" in {
-    val df = Seq(unk).toDF("genotypes")
-    df.select(zygosity($"genotypes")).as[String].collect() should contain only "UNK"
+    unkDf.select(zygosity($"calls")).as[String].collect() should contain only "UNK"
   }
 
   "colFromArrayOrField" should "return first element of an array" in {
