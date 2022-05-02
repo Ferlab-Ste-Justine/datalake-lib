@@ -359,9 +359,12 @@ object GenomicImplicits {
     val zygosity: Column => Column = c =>
       when(c(0) === 1 && c(1) === 1, "HOM")
         .when(c(0) === 0 && c(1) === 1, "HET")
-        .when(c(0) === 0 && c(1) === 0, "WT")
         .when(c(0) === 1 && c(1) === 0, "HET")
+        .when(c(0) === 1 && c(1) === -1, "HET")
+        .when(c(0) === -1 && c(1) === 1, "HET")
         .when(c === lit(Array(1)), "HEM")
+        .when(c(0) === 0 && c(1) === 0, "WT")
+        .when(c(1) === -1 && c(1) === -1, "WT")
         .when(c.isNull, lit(null).cast("string"))
         .otherwise("UNK")
 

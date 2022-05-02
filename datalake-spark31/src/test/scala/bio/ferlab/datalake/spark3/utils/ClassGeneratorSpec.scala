@@ -15,7 +15,7 @@ case class TestInput(a: String = "a",
                      c: String =
 """{"c":1,
 "d":2}""",
-                     d: List[String] = List("c", "d"),
+                     d: Seq[String] = Seq("c", "d"),
                      e: Timestamp = Timestamp.valueOf("1900-01-01 00:00:00"),
                      f: Array[Byte] = Array(0.toByte, "2".toByte))
 
@@ -31,14 +31,14 @@ class ClassGeneratorSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
 
     val outputClass = "TestClassOutput"
 
-    val outputStr = ClassGenerator.oneClassString(outputClass, Seq(TestInput(d = List())).toDF)
+    val outputStr = ClassGenerator.oneClassString(outputClass, Seq(TestInput(d = Seq())).toDF)
 
     val expectedResult =
       """
 case class TestClassOutput(`a`: String = "a",
                            `b`: Long = 0,
                            `c`: String = "{\"c\":1, \"d\":2}",
-                           `d`: List[String] = List(),
+                           `d`: Seq[String] = Seq(),
                            `e`: Timestamp = java.sql.Timestamp.valueOf("1900-01-01 00:00:00.0"),
                            `f`: Array[Byte] = Array(0.toByte, 2.toByte))"""
 
@@ -57,7 +57,7 @@ case class TestClassOutput(`a`: String = "a",
 case class TestClassOutput(`a`: String = "a",
                            `b`: Long = 0,
                            `c`: String = "{\"c\":1, \"d\":2}",
-                           `d`: List[String] = List("c", "d"),
+                           `d`: Seq[String] = Seq("c", "d"),
                            `e`: Timestamp = java.sql.Timestamp.valueOf("1900-01-01 00:00:00.0"),
                            `f`: Array[Byte] = Array(0.toByte, 2.toByte))"""
 
@@ -76,7 +76,7 @@ case class TestClassOutput(`a`: String = "a",
 case class TestClassOutput(`a`: Option[String] = None,
                            `b`: Option[Long] = None,
                            `c`: Option[String] = None,
-                           `d`: Option[List[String]] = None,
+                           `d`: Option[Seq[String]] = None,
                            `e`: Option[Timestamp] = None,
                            `f`: Option[Array[Byte]] = None)"""
 
@@ -96,7 +96,7 @@ case class TestClassOutput(`a`: Option[String] = None,
 case class TestClassOutput(`a`: String = "a",
                            `b`: Long = 0,
                            `c`: String = "{\"c\":1, \"d\":2}",
-                           `d`: List[String] = List("c", "d"),
+                           `d`: Seq[String] = Seq("c", "d"),
                            `e`: Timestamp = java.sql.Timestamp.valueOf("1900-01-01 00:00:00.0"),
                            `f`: Array[Byte] = Array(0.toByte, 2.toByte))"""
 
@@ -115,7 +115,7 @@ case class TestClassOutput(`a`: String = "a",
 case class TestClassOutput(`a`: Option[String] = None,
                            `b`: Long = 0,
                            `c`: String = "{\"c\":1, \"d\":2}",
-                           `d`: List[String] = List("c", "d"),
+                           `d`: Seq[String] = Seq("c", "d"),
                            `e`: Timestamp = java.sql.Timestamp.valueOf("1900-01-01 00:00:00.0"),
                            `f`: Array[Byte] = Array(0.toByte, 2.toByte))"""
 
@@ -135,13 +135,13 @@ case class TestClassOutput(`a`: Option[String] = None,
     val outputStr = ClassGenerator.getCaseClassFileContent(
       "ca.test",
       outputClass,
-      Seq(TestInput(d = List())).toDF,
+      Seq(TestInput(d = Seq())).toDF,
       LocalDateTime.of(1900, 1, 1, 0, 0, 0))
 
     ClassGenerator.writeCLassFile(
       "bio.ferlab.datalake.spark3.utils",
       outputClass,
-      Seq(TestInput(d = List())).toDF,
+      Seq(TestInput(d = Seq())).toDF,
       "datalake-spark31/src/test/scala/")
 
     val expectedResult =
@@ -157,7 +157,7 @@ import java.sql.Timestamp
 case class TestClassOutput(`a`: String = "a",
                            `b`: Long = 0,
                            `c`: String = "{\"c\":1, \"d\":2}",
-                           `d`: List[String] = List(),
+                           `d`: Seq[String] = Seq(),
                            `e`: Timestamp = java.sql.Timestamp.valueOf("1900-01-01 00:00:00.0"),
                            `f`: Array[Byte] = Array(0.toByte, 2.toByte))
 
