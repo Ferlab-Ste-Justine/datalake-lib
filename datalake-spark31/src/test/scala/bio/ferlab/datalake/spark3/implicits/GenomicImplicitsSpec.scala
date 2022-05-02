@@ -17,6 +17,7 @@ class GenomicImplicitsSpec extends AnyFlatSpec with WithSparkSession with Matche
   val hom_11: Genotype = Genotype(Array(1, 1))
   val het_01: Genotype = Genotype(Array(0, 1))
   val het_10: Genotype = Genotype(Array(1, 0))
+  val hem_1: Genotype = Genotype(Array(1))
 
   val unk: Genotype = Genotype(Array(-1, 0))
 
@@ -36,6 +37,10 @@ class GenomicImplicitsSpec extends AnyFlatSpec with WithSparkSession with Matche
   it should "return WT for 0/0" in {
     val df = Seq(hom_00).toDF("genotypes")
     df.select(zygosity($"genotypes")).as[String].collect() should contain only "WT"
+  }
+  it should "return HEM for array(1)" in {
+    val df = Seq(hem_1).toDF("genotypes")
+    df.select(zygosity($"genotypes")).as[String].collect() should contain only "HEM"
   }
 
   it should "return UNK otherwise" in {

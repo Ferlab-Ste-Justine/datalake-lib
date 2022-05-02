@@ -361,6 +361,7 @@ object GenomicImplicits {
         .when(c(0) === 0 && c(1) === 1, "HET")
         .when(c(0) === 0 && c(1) === 0, "WT")
         .when(c(0) === 1 && c(1) === 0, "HET")
+        .when(c === lit(Array(1)), "HEM")
         .when(c.isNull, lit(null).cast("string"))
         .otherwise("UNK")
 
