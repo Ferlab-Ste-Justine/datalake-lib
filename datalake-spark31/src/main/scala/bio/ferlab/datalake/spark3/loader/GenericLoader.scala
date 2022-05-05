@@ -35,7 +35,7 @@ object GenericLoader extends Loader {
       case "" =>
         dataFrameWriter.save(location)
       case table =>
-        dataFrameWriter.option("path", location).saveAsTable(s"$databaseName.$table")
+        dataFrameWriter.option("path", location).saveAsTable(s"`$databaseName`.`$table`")
     }
 
     df
