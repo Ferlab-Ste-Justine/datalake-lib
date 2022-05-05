@@ -28,7 +28,7 @@ class HiveSqlBinderSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll
   override def beforeAll(): Unit = {
     Try {
       spark.sql(s"CREATE DATABASE IF NOT EXISTS ${databaseName}")
-      spark.sql(s"DROP TABLE IF EXISTS $databaseName.$tableName")
+      spark.sql(s"DROP TABLE IF EXISTS `$databaseName`.`$tableName`")
       new File(output).delete()
     }
   }

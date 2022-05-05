@@ -1,14 +1,12 @@
 package bio.ferlab.datalake.spark3.utils
 
-import bio.ferlab.datalake.commons.config.{DatasetConf, LoadType, TableConf}
 import bio.ferlab.datalake.commons.config.Format.CSV
+import bio.ferlab.datalake.commons.config.{DatasetConf, LoadType, TableConf}
 import bio.ferlab.datalake.spark3.testutils.WithSparkSession
-import org.apache.spark.sql.SparkSession
-import org.scalatest.{BeforeAndAfterAll, GivenWhenThen}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.{BeforeAndAfterAll, GivenWhenThen}
 
-import java.io.File
 import scala.util.Try
 
 class DatasetConfImplicitsSpec extends AnyFlatSpec with WithSparkSession with GivenWhenThen with Matchers with BeforeAndAfterAll {
