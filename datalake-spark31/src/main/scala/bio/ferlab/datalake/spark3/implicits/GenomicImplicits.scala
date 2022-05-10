@@ -63,7 +63,11 @@ object GenomicImplicits {
     }
 
     val normalizeCall: Column => Column = calls =>
-      sort_array(when(col("is_multi_allelic"), transform(calls, c => when(c === -1, lit(0)).otherwise(c))).otherwise(calls))
+      sort_array(
+        when(col("is_multi_allelic") and array_contains(calls, -1), transform(calls, c => when(c === -1, lit(0)).otherwise(c)))
+          .when(calls === Array(1), Array(1, 1))
+          .when(calls === Array(0), Array(0, 0))
+          .otherwise(calls))
 
     val isHeterozygote: Column = col("zygosity") === "HET"
 

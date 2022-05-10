@@ -4,8 +4,8 @@ import bio.ferlab.datalake.spark3.implicits.GenomicImplicits._
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns._
 import bio.ferlab.datalake.spark3.testmodels.Genotype
 import bio.ferlab.datalake.spark3.testutils.WithSparkSession
-import org.apache.spark.sql.{DataFrame, functions}
 import org.apache.spark.sql.functions._
+import org.apache.spark.sql.{DataFrame, functions}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -78,6 +78,8 @@ class GenomicImplicitsSpec extends AnyFlatSpec with WithSparkSession with Matche
       ("1", true , Array(0, 1), Array(0, 0) , Array(1, 0) , "HET", MTH),
       ("1", true , Array(0, 1), Array(0, 0) , Array(1, 1) , "HET", MTH),
       ("1", true , Array(0, 1), Array(0, 0) , Array(-1, 1), "HET", MTH),
+      //hemizygote Array(0) should be considered as Array(0, 0)
+      ("1", true , Array(0, 1), Array(0)    , Array(-1, 1), "HET", MTH),
 
       ("1", true , Array(0, 1), Array(0, 1) , Array(0, 0) , "HET", FTH),
       ("1", true , Array(0, 1), Array(0, 1) , Array(0, 1) , "HET", null),
@@ -96,6 +98,8 @@ class GenomicImplicitsSpec extends AnyFlatSpec with WithSparkSession with Matche
       ("1", true , Array(0, 1), Array(1, 1) , Array(1, 0) , "HET", FTH),
       ("1", true , Array(0, 1), Array(1, 1) , Array(1, 1) , "HET", null),
       ("1", true , Array(0, 1), Array(1, 1) , Array(-1, 1), "HET", FTH),
+      //hemizygote Array(1) should be considered as Array(1, 1)
+      ("1", true , Array(0, 1), Array(1)    , Array(-1, 1), "HET", FTH),
 
       ("1", true , Array(0, 1), Array(-1, 1), Array(0, 0) , "HET", FTH),
       ("1", true , Array(0, 1), Array(-1, 1), Array(0, 1) , "HET", null),
@@ -384,6 +388,12 @@ class GenomicImplicitsSpec extends AnyFlatSpec with WithSparkSession with Matche
       ("X",  "Male", false, null,         Array(0, 0),   Array(0, 0),   true , true , true , "unknown_proband_genotype"),
       ("X",  null,   false, Array(0, 0),  Array(0, 0),   Array(0, 0),   true , true , true , "non_carrier_proband"),
       (null, "Male", false, Array(0, 0),  Array(0, 0),   Array(0, 0),   true , true , true , "non_carrier_proband"),
+
+      //hemizygotes
+      //Array(1) should be considered as Array(1, 1)
+      ("X", "Male", false, Array(1, 1),   Array(1)   ,   Array(1, 1),   true , true , true , "x_linked_recessive"),
+      //Array(0) should be considered as Array(0, 0)
+      ("X", "Male", false, Array(1, 1),   Array(0)   ,   Array(1, 1),   true , false, true , "x_linked_recessive"),
     )
       .toDF("chromosome", "gender", "is_multi_allelic", "calls", "father_calls", "mother_calls",
         "affected_status", "father_affected_status", "mother_affected_status", "expectedResult")
