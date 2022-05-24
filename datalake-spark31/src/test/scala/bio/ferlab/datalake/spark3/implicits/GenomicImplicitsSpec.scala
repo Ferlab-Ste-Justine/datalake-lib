@@ -13,7 +13,7 @@ class GenomicImplicitsSpec extends AnyFlatSpec with WithSparkSession with Matche
 
   import spark.implicits._
 
-  val wtDf: DataFrame = Seq(Genotype(Array(0, 0)), Genotype(Array(-1, -1))).toDF()
+  val wtDf: DataFrame = Seq(Genotype(Array(0, 0)), Genotype(Array(-1, -1)), Genotype(Array(0))).toDF()
   val homDf: DataFrame = Seq(Genotype(Array(1, 1))).toDF()
   val hetDf: DataFrame = Seq(Genotype(Array(0, 1)), Genotype(Array(1, 0)), Genotype(Array(-1, 1)), Genotype(Array(1, -1))).toDF()
   val hemDf: DataFrame = Seq(Genotype(Array(1))).toDF()
