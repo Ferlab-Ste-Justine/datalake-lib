@@ -339,8 +339,8 @@ object GenomicImplicits {
     val fatherCalls: Column = col("family_info")(col("father_id"))("calls")
     val motherAffectedStatus: Column = col("family_info")(col("mother_id"))("affected_status")
     val fatherAffectedStatus: Column = col("family_info")(col("father_id"))("affected_status")
-    val motherAffectedGQ: Column = col("family_info")(col("mother_id"))("gq")
-    val fatherAffectedGQ: Column = col("family_info")(col("father_id"))("gq")
+    val motherGQ: Column = col("family_info")(col("mother_id"))("gq")
+    val fatherGQ: Column = col("family_info")(col("father_id"))("gq")
 
     /** has_alt return 1 if there is at least one alternative allele. Note : It cannot returned a boolean beacause it's used to partition data.
      * It looks like Glue does not support partition by boolean
