@@ -67,6 +67,7 @@ object GenomicImplicits {
         when(col("is_multi_allelic") and array_contains(calls, -1), transform(calls, c => when(c === -1, lit(0)).otherwise(c)))
           .when(calls === Array(1), Array(1, 1))
           .when(calls === Array(0), Array(0, 0))
+          .when(calls === Array(-1), Array(-1, -1))
           .otherwise(calls))
 
     val isHeterozygote: Column = col("zygosity") === "HET"
@@ -117,70 +118,45 @@ object GenomicImplicits {
 
     val strictSexualTransmissions = List(
       //(gender, proband_calls, father_calls, mother_calls, father_affected, mother_affected, transmission)
-      //(“0/1”, “0/0”, “0/0”) -> 	x_linked_dominant (de_novo) [if female proband with both parents unaffected]
-      //			                    x_linked_recessive (de_novo) [if male proband with both parents unaffected]
+      //(“0/1”, “0”, “0/0”) -> 	x_linked_dominant (de_novo) [if female proband with both parents unaffected]
       ("Female", Array(0, 1), Array(0, 0),   Array(0, 0),   false, false, "x_linked_dominant_de_novo"),
-      ("Male"  , Array(0, 1), Array(0, 0),   Array(0, 0),   false, false, "x_linked_recessive_de_novo"),
-      //(“0/1”, “0/0”, “0/1”) -> 	x_linked_dominant [if female proband with affected mother and unaffected father]
-      //                          x_linked_recessive [if male proband with both parents unaffected]
-      ("Female", Array(0, 1), Array(0, 0),   Array(0, 1),   false, true , "x_linked_dominant"),
-      ("Male"  , Array(0, 1), Array(0, 0),   Array(0, 1),   false, false, "x_linked_recessive"),
-      //(“0/1”, “0/0”, “1/1”) -> 	x_linked_recessive [if male proband with affected mother and unaffected father]
-      ("Male"  , Array(0, 1), Array(0, 0),   Array(1, 1),   false, true , "x_linked_recessive"),
-      //(“0/1”, “0/1”, “0/0”) -> 	x_linked_dominant [if female proband with affected father and unaffected mother]
-      ("Female", Array(0, 1), Array(0, 1),   Array(0, 0),   true , false, "x_linked_dominant"),
-      //(“0/1”, “0/1”, “0/1”) -> 	x_linked_dominant [if female proband with both parents affected]
-      //                          x_linked_recessive [if male proband with affected father and unaffected mother]
-      ("Female", Array(0, 1), Array(0, 1),   Array(0, 1),   true , true , "x_linked_dominant"),
-      ("Male"  , Array(0, 1), Array(0, 1),   Array(0, 1),   true , false, "x_linked_recessive"),
-      //(“0/1”, “0/1”, “1/1”) ->  x_linked_recessive [if male proband with both parents affected]
-      //                          x_linked_dominant [if female proband with both parents affected]
-      ("Male"  , Array(0, 1), Array(0, 1),   Array(1, 1),   true , true , "x_linked_recessive"),
-      ("Female", Array(0, 1), Array(0, 1),   Array(1, 1),   true , true , "x_linked_dominant"),
-      //(“0/1”, “1/1”, “0/0”) -> 	x_linked_dominant [if female proband affected father and unaffected mother]
-      ("Female", Array(0, 1), Array(1, 1),   Array(0, 0),   true , false, "x_linked_dominant"),
-      //(“0/1”, “1/1”, “0/1”) -> 	x_linked_dominant [if female proband with both parents affected]
-      //                          x_linked_recessive [if male proband with affected father and unaffected mother]
-      ("Female", Array(0, 1), Array(1, 1),   Array(0, 1),   true , true , "x_linked_dominant"),
-      ("Male"  , Array(0, 1), Array(1, 1),   Array(0, 1),   true , false, "x_linked_recessive"),
-      //(“0/1”, “1/1”, “1/1”) -> 	x_linked_recessive [if male proband with both parents affected]
-      ("Male"  , Array(0, 1), Array(1, 1),   Array(1, 1),   true , true , "x_linked_recessive"),
-      //(“0/1”, “1/1”, “-1/-1”) -> x_linked_recessive [if female proband with affected father]
-      ("Female", Array(0, 1), Array(1, 1),   Array(-1, -1), true , false, "x_linked_dominant"),
-      ("Female", Array(0, 1), Array(1, 1),   Array(-1, -1), true , true , "x_linked_dominant"),
-      //(“0/1”, -1/-1”, “0/1”) -> x_linked_recessive [if male proband with unaffected mother]
-      //                          x_linked_dominant [if female proband with unaffected mother]
-      ("Male",   Array(0, 1), Array(-1, -1), Array(0, 1),   false, false, "x_linked_recessive"),
-      ("Male",   Array(0, 1), Array(-1, -1), Array(0, 1),   true , false, "x_linked_recessive"),
-      ("Female", Array(0, 1), Array(-1, -1), Array(0, 1),   false, false, "x_linked_dominant"),
-      ("Female", Array(0, 1), Array(-1, -1), Array(0, 1),   true , false, "x_linked_dominant"),
-      //(“0/1”, -1/-1”, “1/1”) -> x_linked_recessive [if affected mother]
-      ("Male",   Array(0, 1), Array(-1, -1), Array(1, 1),   false, true , "x_linked_recessive"),
-      ("Male",   Array(0, 1), Array(-1, -1), Array(1, 1),   true , true , "x_linked_recessive"),
-      //(“1/1”, “0/0”, “0/0”) -> 	x_linked_recessive (de_novo) [if male proband with both parents unaffected]
+      //(“1”, “0”, “0/0”) -> 	x_linked_recessive (de_novo) [if male proband with both parents unaffected]
       ("Male"  , Array(1, 1), Array(0, 0),   Array(0, 0),   false, false, "x_linked_recessive_de_novo"),
-      //(“1/1”, “0/0”, “0/1”) ->	x_linked_recessive [if male proband with both parents unaffected]
-      ("Male"  , Array(1, 1), Array(0, 0),   Array(0, 1),   false, false, "x_linked_recessive"),
-      //(“1/1”, “0/0”, “1/1”) -> 	x_linked_recessive [if male proband with affected mother and unaffected father]
-      ("Male"  , Array(1, 1), Array(0, 0),   Array(1, 1),   false, true , "x_linked_recessive"),
-      //(“1/1”, “0/1”, “0/1”) -> 	x_linked_recessive [if affected father and unaffected mother]
-      ("Female", Array(1, 1), Array(0, 1),   Array(0, 1),   true , false, "x_linked_recessive"),
-      ("Male"  , Array(1, 1), Array(0, 1),   Array(0, 1),   true , false, "x_linked_recessive"),
-      //(“1/1”, “0/1”, “1/1”) -> 	x_linked_recessive [if both parents affected]
-      ("Female", Array(1, 1), Array(0, 1),   Array(1, 1),   true , true , "x_linked_recessive"),
-      ("Male"  , Array(1, 1), Array(0, 1),   Array(1, 1),   true , true , "x_linked_recessive"),
-      //(“1/1”, “1/1”, “0/1”) -> 	x_linked_recessive [if affected father and unaffected mother]
-      ("Female", Array(1, 1), Array(1, 1),   Array(0, 1),   true , false, "x_linked_recessive"),
-      ("Male"  , Array(1, 1), Array(1, 1),   Array(0, 1),   true , false, "x_linked_recessive"),
-      //(“1/1”, “1/1”, “1/1”) -> 	x_linked_recessive [if both parents affected]
-      ("Female", Array(1, 1), Array(1, 1),   Array(1, 1),   true , true , "x_linked_recessive"),
-      ("Male"  , Array(1, 1), Array(1, 1),   Array(1, 1),   true , true , "x_linked_recessive"),
-      //(“1/1”, -1/-1”, “0/1”) -> x_linked_recessive [if male proband with unaffected mother]
-      ("Male",   Array(1, 1), Array(-1, -1), Array(0, 1),   false, false, "x_linked_recessive"),
-      ("Male",   Array(1, 1), Array(-1, -1), Array(0, 1),   true , false, "x_linked_recessive"),
-      //(“1/1”, -1/-1”, “1/1”) -> x_linked_recessive [if male proband with affected mother]
-      ("Male",   Array(1, 1), Array(-1, -1), Array(1, 1),   false, true , "x_linked_recessive"),
-      ("Male",   Array(1, 1), Array(-1, -1), Array(1, 1),   true , true , "x_linked_recessive"),
+      //(“0/1”, “0”, “0/1”) -> 	x_linked_dominant [if female proband with affected mother and unaffected father]
+      ("Female", Array(0, 1), Array(0, 0),   Array(0, 1),   false, true, "x_linked_dominant"),
+      //(“1”, “0”, “0/1”) -> 	x_linked_recessive [if male proband with both parents unaffected]
+      ("Male", Array(1, 1), Array(0, 0),   Array(0, 1),   false, false, "x_linked_recessive"),
+      //(“1”, “0”, “1/1”) -> 	x_linked_recessive [if male proband with affected mother and unaffected father]
+      ("Male", Array(1, 1), Array(0, 0),   Array(1, 1),   false, true, "x_linked_recessive"),
+      //(“0/1”, “1”, “0/0”)   -> x_linked_dominant [if female proband with affected father and unaffected mother]
+      ("Female", Array(0, 1), Array(1, 1), Array(0, 0), true, false, "x_linked_dominant"),
+      //(“1”, “1”, “0/0”)     -> x_linked_recessive [if male proband with affected father and unaffected mother]
+      ("Male", Array(1, 1), Array(1, 1), Array(0, 0), true, false, "x_linked_recessive"),
+      //(“0/1”, “1”, “0/1”)   -> x_linked_dominant [if female proband with both parents affected]
+      ("Female", Array(0, 1), Array(1, 1), Array(0, 1), true, true, "x_linked_dominant"),
+      //(“1”, “1”, “0/1”)     -> x_linked_recessive [if male proband with affected father and unaffected mother]
+      ("Male", Array(1, 1), Array(1, 1), Array(0, 1), true, false, "x_linked_recessive"),
+      //(“0/1”, “1”, “1/1”) -> 	x_linked_recessive [if male proband with both parents affected]
+      ("Male", Array(0, 1), Array(1, 1), Array(0, 1), true, true, "x_linked_recessive"),
+      ("Male", Array(1, 1), Array(1, 1), Array(1, 1), true, true, "x_linked_recessive"),
+      //(“0/1”, “./.”, “0/1”) -> x_linked_dominant [if female proband with affected mother]
+      ("Female", Array(0, 1), Array(-1, -1), Array(0, 1), false, true, "x_linked_dominant"),
+      ("Female", Array(0, 1), Array(-1, -1), Array(0, 1), true, true, "x_linked_dominant"),
+      //(“1”, “./.”, “0/1”)   -> x_linked_recessive [if male proband with unaffected mother]
+      ("Male", Array(1, 1), Array(-1, -1), Array(0, 1), true, false, "x_linked_recessive"),
+      ("Male", Array(1, 1), Array(-1, -1), Array(0, 1), false, false, "x_linked_recessive"),
+      //(“1”, “./.”, “1/1”)   -> x_linked_recessive [if male proband with affected mother]
+      ("Male", Array(1, 1), Array(-1, -1), Array(1, 1), false, true, "x_linked_recessive"),
+      ("Male", Array(1, 1), Array(-1, -1), Array(1, 1), true, true, "x_linked_recessive"),
+      //(“1/1”, “1”, “0/0”)   -> x_linked_recessive [if female proband with affected father and unaffected mother]
+      ("Female", Array(1, 1), Array(1, 1), Array(0, 0), true, false, "x_linked_recessive"),
+      //(“1/1”, “1”, “0/1”)   -> x_linked_recessive [if female proband with affected father and unaffected mother]
+      ("Female", Array(1, 1), Array(1, 1), Array(0, 1), true, false, "x_linked_recessive"),
+      //(“1/1”, “1”, “1/1”)   -> x_linked_recessive [if female proband with both parents affected]
+      ("Female", Array(1, 1), Array(1, 1), Array(1, 1), true, true, "x_linked_recessive"),
+      //(“0/1”, “1”, “./.”) -> 	x_linked_dominant [if female proband with affected father]
+      ("Female", Array(1, 1), Array(1, 1), Array(-1, -1), true, true, "x_linked_dominant"),
+      ("Female", Array(1, 1), Array(1, 1), Array(-1, -1), true, false, "x_linked_dominant"),
     )
 
     def withGenotypeTransmission(as: String,
