@@ -1,5 +1,7 @@
 package bio.ferlab.datalake.spark3.elasticsearch
 
+import bio.ferlab.datalake.spark3.utils.ResourceLoader.loadResource
+import org.apache.commons.io.FilenameUtils
 import org.apache.http.client.methods.{HttpDelete, HttpGet, HttpPost, HttpPut}
 import org.apache.http.entity.StringEntity
 import org.apache.http.impl.client.{CloseableHttpClient, HttpClientBuilder}
@@ -13,6 +15,7 @@ import org.slf4j.{Logger, LoggerFactory}
 import org.sparkproject.guava.io.BaseEncoding
 
 import java.nio.charset.StandardCharsets
+import scala.util.{Failure, Success, Try}
 
 class ElasticSearchClient(url: String, username: Option[String] = None, password: Option[String] = None) {
 
@@ -74,13 +77,20 @@ class ElasticSearchClient(url: String, username: Option[String] = None, password
 
   /**
    * Set a template to ElasticSearch
-   * @param templatePath path of the template.json that is expected to be in the resource folder
+   * @param templatePath path of the template.json that is expected to be in the resource folder or spark
    * @return the http response sent by ElasticSearch
    */
   def setTemplate(templatePath: String)(implicit spark: SparkSession): HttpResponse = {
-    val templateName = templatePath.split('.').dropRight(1).last.split('/').last
+    val templateName = FilenameUtils.getBaseName(templatePath)
 
-    val fileContent = spark.read.option("wholetext", "true").textFile(templatePath).collect().mkString
+    // find template in resources first then with spark if failed
+    val fileContent = Try(loadResource(templatePath)) match {
+      case Success(content) => content
+      case Failure(exception) => {
+        log.warn("Failed to load template from resources: {}, trying with spark", exception.getMessage)
+        spark.read.option("wholetext", "true").textFile(templatePath).collect().mkString
+      }
+    }
 
     log.info(s"SENDING: PUT ${templateUrl(templateName)} with content: $fileContent")
 

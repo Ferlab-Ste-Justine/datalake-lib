@@ -36,6 +36,7 @@ class ConfigurationLoaderSpec extends AnyFlatSpec with GivenWhenThen with Matche
         |  {
         |   id = "default"
         |   path = "spark-local"
+        |   filesystem = "S3"
         |  }
         |]
         |""".stripMargin
