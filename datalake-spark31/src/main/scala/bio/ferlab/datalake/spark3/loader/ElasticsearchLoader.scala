@@ -197,10 +197,10 @@ override def scd2(location: String,
    * Setup an index by checking that ES nodes are up, removing the old index and setting the template for this index.
    *
    * @param indexName full index name
-   * @param templateFilePath absolute path of the template file, it will be read as a whole file by Spark.
+   * @param templateResourcePath resource path of the template
    * @param esClient an instance of [[ElasticSearchClient]]
    */
-  def setupIndex(indexName: String, templateFilePath: String)
+  def setupIndex(indexName: String, templateResourcePath: String)
                 (implicit spark: SparkSession, esClient: ElasticSearchClient): Unit = {
     Try {
       log.info(s"ElasticSearch 'isRunning' status: [${esClient.isRunning}]")
@@ -209,7 +209,7 @@ override def scd2(location: String,
       val respDelete = esClient.deleteIndex(indexName)
       log.info(s"DELETE INDEX[$indexName] : " + respDelete.getStatusLine.getStatusCode + " : " + respDelete.getStatusLine.getReasonPhrase)
     }
-    val response = esClient.setTemplate(templateFilePath)
-    log.info(s"SET TEMPLATE[${templateFilePath}] : " + response.getStatusLine.getStatusCode + " : " + response.getStatusLine.getReasonPhrase)
+    val response = esClient.setTemplate(templateResourcePath)
+    log.info(s"SET TEMPLATE[${templateResourcePath}] : " + response.getStatusLine.getStatusCode + " : " + response.getStatusLine.getReasonPhrase)
   }
 }

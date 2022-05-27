@@ -1,5 +1,7 @@
 package bio.ferlab.datalake.spark3.elasticsearch
 
+import bio.ferlab.datalake.spark3.utils.ResourceLoader.loadResource
+import org.apache.commons.io.FilenameUtils
 import org.apache.http.client.methods.{HttpDelete, HttpGet, HttpPost, HttpPut}
 import org.apache.http.entity.StringEntity
 import org.apache.http.impl.client.{CloseableHttpClient, HttpClientBuilder}
@@ -74,13 +76,13 @@ class ElasticSearchClient(url: String, username: Option[String] = None, password
 
   /**
    * Set a template to ElasticSearch
-   * @param templatePath path of the template.json that is expected to be in the resource folder
+   * @param templateResourcePath resource path of the template
    * @return the http response sent by ElasticSearch
    */
-  def setTemplate(templatePath: String)(implicit spark: SparkSession): HttpResponse = {
-    val templateName = templatePath.split('.').dropRight(1).last.split('/').last
+  def setTemplate(templateResourcePath: String)(implicit spark: SparkSession): HttpResponse = {
+    val templateName = FilenameUtils.getBaseName(templateResourcePath)
 
-    val fileContent = spark.read.option("wholetext", "true").textFile(templatePath).collect().mkString
+    val fileContent = loadResource(templateResourcePath)
 
     log.info(s"SENDING: PUT ${templateUrl(templateName)} with content: $fileContent")
 
