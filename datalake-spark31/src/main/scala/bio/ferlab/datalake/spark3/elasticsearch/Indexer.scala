@@ -61,10 +61,10 @@ class Indexer(jobType: String,
    * Setup an index by checking that ES nodes are up, removing the old index and setting the template for this index.
    *
    * @param indexName full index name
-   * @param templateResourcePath resource path of the template
+   * @param templatePath path of the template.json that is expected to be in the resource folder or spark
    * @param esClient an instance of [[ElasticSearchClient]]
    */
-  def setupIndex(indexName: String, templateResourcePath: String)(implicit esClient: ElasticSearchClient): Unit = {
+  def setupIndex(indexName: String, templatePath: String)(implicit esClient: ElasticSearchClient): Unit = {
     Try {
       log.info(s"ElasticSearch 'isRunning' status: [${esClient.isRunning}]")
       log.info(s"ElasticSearch 'checkNodes' status: [${esClient.checkNodeRoles}]")
@@ -72,8 +72,8 @@ class Indexer(jobType: String,
       val respDelete = esClient.deleteIndex(indexName)
       log.info(s"DELETE INDEX[$indexName] : " + respDelete.getStatusLine.getStatusCode + " : " + respDelete.getStatusLine.getReasonPhrase)
     }
-    val response = esClient.setTemplate(templateResourcePath)
-    log.info(s"SET TEMPLATE[${templateResourcePath}] : " + response.getStatusLine.getStatusCode + " : " + response.getStatusLine.getReasonPhrase)
+    val response = esClient.setTemplate(templatePath)
+    log.info(s"SET TEMPLATE[${templatePath}] : " + response.getStatusLine.getStatusCode + " : " + response.getStatusLine.getReasonPhrase)
   }
 }
 

@@ -10,7 +10,7 @@ object ResourceLoader {
       Source.fromInputStream(is).mkString
     } match {
       case Success(content) => content
-      case Failure(ex) => throw new RuntimeException(s"Failed to load resource: $path", ex)
+      case Failure(exception) => throw new RuntimeException(s"Failed to load resource: $path", exception)
     }
   }
 

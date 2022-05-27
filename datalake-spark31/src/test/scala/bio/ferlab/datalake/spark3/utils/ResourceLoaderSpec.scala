@@ -3,7 +3,7 @@ package bio.ferlab.datalake.spark3.utils
 import bio.ferlab.datalake.spark3.utils.ResourceLoader.loadResource
 import org.scalatest.flatspec.AnyFlatSpec
 
-class ResourceLoaderTest extends AnyFlatSpec {
+class ResourceLoaderSpec extends AnyFlatSpec {
 
   it should "return resource file content" in {
     val content = loadResource("utils/template1.json")

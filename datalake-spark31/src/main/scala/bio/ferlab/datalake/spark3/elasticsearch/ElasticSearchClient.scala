@@ -15,6 +15,7 @@ import org.slf4j.{Logger, LoggerFactory}
 import org.sparkproject.guava.io.BaseEncoding
 
 import java.nio.charset.StandardCharsets
+import scala.util.{Failure, Success, Try}
 
 class ElasticSearchClient(url: String, username: Option[String] = None, password: Option[String] = None) {
 
@@ -76,13 +77,20 @@ class ElasticSearchClient(url: String, username: Option[String] = None, password
 
   /**
    * Set a template to ElasticSearch
-   * @param templateResourcePath resource path of the template
+   * @param templatePath path of the template.json that is expected to be in the resource folder or spark
    * @return the http response sent by ElasticSearch
    */
-  def setTemplate(templateResourcePath: String)(implicit spark: SparkSession): HttpResponse = {
-    val templateName = FilenameUtils.getBaseName(templateResourcePath)
+  def setTemplate(templatePath: String)(implicit spark: SparkSession): HttpResponse = {
+    val templateName = FilenameUtils.getBaseName(templatePath)
 
-    val fileContent = loadResource(templateResourcePath)
+    // find template in resources first then with spark if failed
+    val fileContent = Try(loadResource(templatePath)) match {
+      case Success(content) => content
+      case Failure(exception) => {
+        log.warn("Failed to load template from resources: {}, trying with spark", exception.getMessage)
+        spark.read.option("wholetext", "true").textFile(templatePath).collect().mkString
+      }
+    }
 
     log.info(s"SENDING: PUT ${templateUrl(templateName)} with content: $fileContent")
 
