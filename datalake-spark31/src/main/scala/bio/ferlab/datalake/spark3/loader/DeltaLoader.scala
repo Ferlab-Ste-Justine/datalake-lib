@@ -31,16 +31,17 @@ object DeltaLoader extends Loader {
 
     readTableAsDelta(location, databaseName, tableName) match {
       case Failure(_) =>
-        writeOnce(location, databaseName, tableName, updates, partitioning, format)
+        writeOnce(location, databaseName, tableName, updates, partitioning, format, options)
       case Success(existing) =>
 
         val existingDf = existing.toDF
-        val mergeCondition: Column = primaryKeys.map(c => updates(c) === existingDf(c)).reduce((a, b) => a && b)
+        val keysAreIdentical: Column = primaryKeys.map(c => updates(c) === existingDf(c)).reduce((a, b) => a && b)
+
         /** Merge */
         existing.as("existing")
           .merge(
             updates.as("updates"),
-            mergeCondition
+            keysAreIdentical
           )
           .whenMatched()
           .updateAll()
@@ -72,7 +73,8 @@ object DeltaLoader extends Loader {
            createdOnName: String,
            updatedOnName: String,
            partitioning: List[String],
-           format: String)(implicit spark: SparkSession): DataFrame = {
+           format: String,
+           options: Map[String, String])(implicit spark: SparkSession): DataFrame = {
 
     require(primaryKeys.forall(updates.columns.contains), s"requires column [${primaryKeys.mkString(", ")}]")
     require(updates.columns.exists(_.equals(oidName)), s"requires column [$oidName]")
@@ -80,20 +82,17 @@ object DeltaLoader extends Loader {
     require(updates.columns.exists(_.equals(updatedOnName)), s"requires column [$updatedOnName]")
 
     readTableAsDelta(location, databaseName, tableName) match {
-      case Failure(_) => writeOnce(location, databaseName, tableName, updates, partitioning, format)
+      case Failure(_) => writeOnce(location, databaseName, tableName, updates, partitioning, format, options)
       case Success(existing) =>
         val existingDf = existing.toDF
-        val mergeCondition: Column =
-          primaryKeys
-            .map(c => updates(c) === existingDf(c))
-            .reduce((a, b) => a && b) && updates(oidName) =!= existingDf(oidName)
+        val keysAreIdentical: Column = primaryKeys.map(c => updates(c) === existingDf(c)).reduce((a, b) => a && b)
 
         existing.as("existing")
           .merge(
             updates.as("updates"),
-            mergeCondition
+            keysAreIdentical
           )
-          .whenMatched()
+          .whenMatched(updates(oidName) =!= existingDf(oidName))
           .updateExpr(updates.columns.filterNot(_.equals(createdOnName)).map(c => c -> s"updates.$c").toMap)
           .whenNotMatched()
           .insertAll()
@@ -149,6 +148,7 @@ object DeltaLoader extends Loader {
            format: String,
            validFromName: String,
            validToName: String,
+           options: Map[String, String],
            minValidFromDate: LocalDate = LocalDate.of(1900, 1, 1),
            maxValidToDate: LocalDate = LocalDate.of(9999, 12, 31))(implicit spark: SparkSession): DataFrame = {
 
@@ -169,7 +169,7 @@ object DeltaLoader extends Loader {
         newData
 
     readTableAsDelta(location, databaseName, tableName) match {
-      case Failure(_) => writeOnce(location, databaseName, tableName, deduplicatedData, partitioning, format)
+      case Failure(_) => writeOnce(location, databaseName, tableName, deduplicatedData, partitioning, format, options)
       case Success(existing) =>
         val existingDf = existing.toDF
 

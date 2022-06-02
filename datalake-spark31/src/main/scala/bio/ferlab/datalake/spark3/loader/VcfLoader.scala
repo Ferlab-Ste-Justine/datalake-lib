@@ -43,8 +43,7 @@ object VcfLoader extends Loader {
                          df:  DataFrame,
                          partitioning: List[String],
                          format: String,
-                         options: Map[String, String])
-                        (implicit spark:  SparkSession): DataFrame = ???
+                         options: Map[String, String])(implicit spark:  SparkSession): DataFrame = ???
 
   override def upsert(location: String,
                       databaseName: String,
@@ -53,8 +52,7 @@ object VcfLoader extends Loader {
                       primaryKeys: Seq[String],
                       partitioning: List[String],
                       format: String,
-                      options: Map[String, String])
-                     (implicit spark:  SparkSession): DataFrame = ???
+                      options: Map[String, String])(implicit spark:  SparkSession): DataFrame = ???
 
   override def scd1(location: String,
                     databaseName: String,
@@ -65,8 +63,8 @@ object VcfLoader extends Loader {
                     createdOnName: String,
                     updatedOnName: String,
                     partitioning: List[String],
-                    format: String)
-                   (implicit spark:  SparkSession): DataFrame = ???
+                    format: String,
+                    options: Map[String, String])(implicit spark:  SparkSession): DataFrame = ???
 
   override def insert(location: String,
                       databaseName: String,
@@ -88,6 +86,7 @@ object VcfLoader extends Loader {
                     format: String,
                     validFromName: String,
                     validToName: String,
+                    options: Map[String, String],
                     minValidFromDate: LocalDate,
                     maxValidToDate: LocalDate)(implicit spark: SparkSession): DataFrame = ???
 

@@ -121,7 +121,8 @@ object GenericLoader extends Loader {
                     createdOnName: String,
                     updatedOnName: String,
                     partitioning: List[String],
-                    format: String)
+                    format: String,
+                    options: Map[String, String])
                    (implicit spark:  SparkSession): DataFrame = ???
 
   /**
@@ -152,6 +153,7 @@ object GenericLoader extends Loader {
                     format: String,
                     validFromName: String,
                     validToName: String,
+                    options: Map[String, String],
                     minValidFromDate: LocalDate,
                     maxValidToDate: LocalDate)(implicit spark: SparkSession): DataFrame = ???
 

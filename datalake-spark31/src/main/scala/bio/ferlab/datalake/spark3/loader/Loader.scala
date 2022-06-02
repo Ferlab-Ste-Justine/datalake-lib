@@ -1,6 +1,5 @@
 package bio.ferlab.datalake.spark3.loader
 
-import bio.ferlab.datalake.spark3.loader.ElasticsearchLoader.getClass
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.slf4j
 
@@ -77,7 +76,7 @@ trait Loader {
    * @param tableName the name of the updated/created table
    * @param updates new data to be merged with existing data
    * @param partitioning how the data should be partitioned
-   * @param format spark form
+   * @param format spark format
    * @param options write options
    * @param spark a valid spark session
    * @return the data as a dataframe
@@ -97,6 +96,8 @@ trait Loader {
    * @param tableName the name of the updated/created table
    * @param updates new data to be merged with existing data
    * @param primaryKeys name of the columns holding the unique id
+   * @param format spark format
+   * @param options write options
    * @param spark a valid spark session
    * @return the data as a dataframe
    */
@@ -122,6 +123,9 @@ trait Loader {
    * @param oidName name of the column holding the hash of the column that can change over time (or version number)
    * @param createdOnName name of the column holding the creation timestamp
    * @param updatedOnName name of the column holding the last update timestamp
+   * @param partitioning column(s) used for partitioning
+   * @param format spark format
+   * @param options write options
    * @param spark a valid spark session
    * @return the data as a dataframe
    */
@@ -134,23 +138,27 @@ trait Loader {
            createdOnName: String,
            updatedOnName: String,
            partitioning: List[String],
-           format: String)(implicit spark: SparkSession): DataFrame
+           format: String,
+           options: Map[String, String])(implicit spark: SparkSession): DataFrame
+
 
   /**
    * Update the data only if the data has changed
    * Insert new data
-   * maintains updatedOn and createdOn timestamps for each record
+   * When the data has changed, a new line is created while the old line is kept.
    * usually used for dimension table for which keeping the full historic is required.
    *
    * @param location      full path of where the data will be located
    * @param tableName     the name of the updated/created table
    * @param updates       new data to be merged with existing data
    * @param primaryKeys   name of the columns holding the unique id
+   * @param buidName      name of the column holding the hash of the column that can change over time (or version number)
    * @param oidName       name of the column holding the hash of the column that can change over time (or version number)
-   * @param createdOnName name of the column holding the creation timestamp
-   * @param updatedOnName name of the column holding the last update timestamp
-   * @param spark         a valid spark session
-   * @return the data as a dataframe
+   * @param isCurrentName name of the column for the current version flag
+   * @param partitioning  list of columns used for partition
+   * @param format        spark format
+   * @param spark         a spark session
+   * @return
    */
   def scd2(location: String,
            databaseName: String,
@@ -164,6 +172,7 @@ trait Loader {
            format: String,
            validFromName: String,
            validToName: String,
+           options: Map[String, String],
            minValidFromDate: LocalDate,
            maxValidToDate: LocalDate)(implicit spark: SparkSession): DataFrame
 
