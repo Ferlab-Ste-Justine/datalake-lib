@@ -132,7 +132,8 @@ object JdbcLoader extends Loader {
                     createdOnName: String,
                     updatedOnName: String,
                     partitioning: List[String],
-                    format: String)(implicit spark: SparkSession): DataFrame = ???
+                    format: String,
+                    options: Map[String, String])(implicit spark: SparkSession): DataFrame = ???
 
   /**
    * Update the data only if the data has changed
@@ -162,6 +163,7 @@ object JdbcLoader extends Loader {
                     format: String,
                     validFromName: String,
                     validToName: String,
+                    options: Map[String, String],
                     minValidFromDate: LocalDate,
                     maxValidToDate: LocalDate)(implicit spark: SparkSession): DataFrame = ???
 

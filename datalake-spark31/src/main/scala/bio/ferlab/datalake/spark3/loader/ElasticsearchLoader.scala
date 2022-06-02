@@ -150,7 +150,8 @@ override def scd1(location: String,
                   createdOnName: String,
                   updatedOnName: String,
                   partitioning: List[String],
-                  format: String)(implicit spark: SparkSession): DataFrame = ???
+                  format: String,
+                  options: Map[String, String])(implicit spark: SparkSession): DataFrame = ???
 
   /**
    * Update the data only if the data has changed
@@ -180,6 +181,7 @@ override def scd2(location: String,
                   format: String,
                   validFromName: String,
                   validToName: String,
+                  options: Map[String, String],
                   minValidFromDate: LocalDate,
                   maxValidToDate: LocalDate)(implicit spark: SparkSession): DataFrame = ???
 

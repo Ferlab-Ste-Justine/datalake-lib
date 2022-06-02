@@ -59,7 +59,7 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
     val day2 = day1.plusDays(1)
 
     val existing: DataFrame = Seq(
-      TestData("a", "a", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1),
+      TestData("a"  , "a", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1),
       TestData("aaa", "aaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1)
     ).toDF
 
@@ -74,18 +74,19 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
         "createdOn",
         "updatedOn",
         List(),
-        "delta"
+        "delta",
+        Map()
       )
 
     val updates: DataFrame = Seq(
-      TestData("a", "b", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),
-      TestData("aa", "bb", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),
+      TestData("a"  , "b", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),
+      TestData("aa" , "bb", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),
       TestData("aaa", "aaa", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2)
     ).toDF
 
     val expectedResult: Seq[TestData] = Seq(
-      TestData("a", "b", Timestamp.valueOf(day1), Timestamp.valueOf(day2), 2),   //updated only will be updated
-      TestData("aa", "bb", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2), //will be inserted
+      TestData("a"  , "b", Timestamp.valueOf(day1), Timestamp.valueOf(day2), 2), //will be updated
+      TestData("aa" , "bb", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),//will be inserted
       TestData("aaa", "aaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1)//will stay the same
     )
 
@@ -99,12 +100,14 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
       "createdOn",
       "updatedOn",
       List(),
-      "delta"
+      "delta",
+      Map()
     )
 
 
-    DeltaLoader.read(output, DELTA.sparkFormat, Map(), Some("default"), Some(tableName))
-      .as[TestData].collect() should contain allElementsOf expectedResult
+    val df = DeltaLoader.read(output, DELTA.sparkFormat, Map(), Some("default"), Some(tableName))
+    df.count() shouldBe 3
+    df.as[TestData].collect() should contain allElementsOf expectedResult
 
   }
 
@@ -134,7 +137,7 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
 
     DeltaLoader
       .scd2(scd2Output, "default", "scd2table", existing, Seq("id"),
-        buidName, oidName, isCurrentName, List(), DELTA.sparkFormat, validFromName, validToName, maxDate)
+        buidName, oidName, isCurrentName, List(), DELTA.sparkFormat, validFromName, validToName, Map(), maxDate)
 
     val updates: DataFrame = Seq(
       ("1", "c", "cc", Date.valueOf(day2), Date.valueOf(day2)),
@@ -145,7 +148,7 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
 
     DeltaLoader
       .scd2(scd2Output, "default", "scd2table", updates, Seq("id"),
-        buidName, oidName, isCurrentName, List(), DELTA.sparkFormat, validFromName, validToName, maxDate)
+        buidName, oidName, isCurrentName, List(), DELTA.sparkFormat, validFromName, validToName, Map(), maxDate)
 
     val updates2: DataFrame = Seq(
       ("1", "c", "cc", Date.valueOf(day3), Date.valueOf(day3)),
@@ -156,7 +159,7 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
 
     DeltaLoader
       .scd2(scd2Output, "default", "scd2table", updates2, Seq("id"),
-        buidName, oidName, isCurrentName, List(), DELTA.sparkFormat, validFromName, validToName, maxDate)
+        buidName, oidName, isCurrentName, List(), DELTA.sparkFormat, validFromName, validToName, Map(), maxDate)
 
     //since day2 and day3 are the same, no data should have day3 as 'valid_from' date
     //all current rows should have 'valid_to' date set to 9999-12-31
@@ -166,7 +169,7 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
     // 4 was added on day2 with no original value from day 1
 
     val finalDf = DeltaLoader.read(scd2Output, DELTA.sparkFormat, Map(), Some("default"), Some("scd2table")).as[Scd2Table]
-    finalDf.show(false)
+    finalDf.count() shouldBe 5
     finalDf
       .collect() should contain allElementsOf Seq(
       Scd2Table("1", "356a192b7913b04c54574d18c28d46e6395428ab", "a", "aa", Date.valueOf("2020-01-01"), Date.valueOf("2020-01-01"), Date.valueOf("2020-01-01"), false),
@@ -217,6 +220,7 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
     val day1 = Date.valueOf("1900-01-01")
     val day2 = Date.valueOf("1900-01-02")
     val day3 = Date.valueOf("1900-01-03")
+    val tableName = "testtableoverwite"
 
     val existing: DataFrame = Seq(
       ("1", day1),
@@ -229,12 +233,12 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
       ("5", day3)
     ).toDF("id", "ingested_on")
 
-    DeltaLoader.writeOnce(testtableoverwite, "default", "testtableoverwite", existing, List("ingested_on"), "delta")
-    spark.table("testtableoverwite").show(false)
+    DeltaLoader.writeOnce(testtableoverwite, "default", tableName, existing, List("ingested_on"), "delta")
+    spark.table(tableName).show(false)
 
-    DeltaLoader.overwritePartition(testtableoverwite, "default", "testtableoverwite", updates, List("ingested_on"), "delta")
+    DeltaLoader.overwritePartition(testtableoverwite, "default", tableName, updates, List("ingested_on"), "delta")
 
-    spark.table("testtableoverwite").as[(String, Date)].collect() should contain allElementsOf Seq(
+    spark.table(tableName).as[(String, Date)].collect() should contain allElementsOf Seq(
       ("1", day1),
       ("3", day2),
       ("4", day2),
@@ -249,6 +253,7 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
 
     val day1 = LocalDateTime.of(2020, 1, 1, 1, 1, 1)
     val day2 = day1.plusDays(1)
+    val tableName = "inserttable"
 
     val existing = Seq(
       TestData("a", "a", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1),
@@ -256,7 +261,7 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
       TestData("aaaa", "aaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1)
     )
 
-    DeltaLoader.writeOnce(output, "default", "testtable", existing.toDF(), List(), "delta")
+    DeltaLoader.writeOnce(output, "default", tableName, existing.toDF(), List(), "delta", Map("mergeSchema" -> "true"))
 
     val updates: Seq[TestData] = Seq(
       TestData("a", "b", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),
@@ -270,7 +275,7 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
     DeltaLoader.insert(
       output,
       "default",
-      "testtable",
+      tableName,
       updatedDF,
       List(),
       "delta",
@@ -278,7 +283,7 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
     )
 
     DeltaTable
-      .forName("testtable")
+      .forName(tableName)
       .toDF.as[TestData].collect() should contain allElementsOf expectedResult
 
   }
@@ -289,6 +294,7 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
 
     val day1 = LocalDateTime.of(2020, 1, 1, 1, 1, 1)
     val day2 = day1.plusDays(1)
+    val tableName = "upserttable"
 
     val existing: DataFrame = Seq(
       TestData("a", "a", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1),
@@ -296,7 +302,7 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
       TestData("aaaa", "aaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1)
     ).toDF
 
-    DeltaLoader.writeOnce(output, "default", "testtable", existing, List(), "delta")
+    DeltaLoader.writeOnce(output, "default", tableName, existing, List(), "delta")
 
     val updates: Seq[TestData] = Seq(
       TestData("a", "b", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),
@@ -310,7 +316,7 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
     DeltaLoader.upsert(
       output,
       "default",
-      "testtable",
+      tableName,
       updatedDF,
       Seq("uid"),
       List(),
@@ -319,7 +325,7 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
     )
 
     DeltaTable
-      .forName("testtable")
+      .forName(tableName)
       .toDF.as[TestData].collect() should contain allElementsOf expectedResult
 
   }
