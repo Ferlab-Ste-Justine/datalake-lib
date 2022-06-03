@@ -21,7 +21,7 @@ object ClassGenerator {
     case BooleanType                          => "Boolean"
     case DoubleType                           => "Double"
     case LongType                             => "Long"
-    case DecimalType()                        => "Double"
+    case DecimalType()                        => "BigDecimal"
     case DateType                             => "Date"
     case TimestampType                        => "Timestamp"
     case BinaryType                           => "Array[Byte]"
