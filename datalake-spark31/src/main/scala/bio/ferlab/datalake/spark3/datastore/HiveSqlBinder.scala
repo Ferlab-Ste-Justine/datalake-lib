@@ -49,8 +49,9 @@ object HiveSqlBinder extends SqlBinder {
                     databaseName: String,
                     tableName: String,
                     fileSystemType: FileSystemType)(implicit spark: SparkSession): DataFrame = {
+    val df = spark.sql(s"DROP TABLE IF EXISTS `$databaseName`.`$tableName`")
     FileSystemResolver.resolve(fileSystemType).remove(location)
-    spark.sql(s"DROP TABLE IF EXISTS `$databaseName`.`$tableName`")
+    df
   }
 
   /**
