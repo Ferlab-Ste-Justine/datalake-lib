@@ -20,7 +20,7 @@ object WriteOptions {
   final val DEFAULT_UPDATED_ON_PAIR: (String, String) = UPDATED_ON_COLUMN_NAME -> DEFAULT_UPDATED_ON
   final val DEFAULT_VALID_FROM_PAIR: (String, String) = VALID_FROM_COLUMN_NAME -> DEFAULT_VALID_FROM
   final val DEFAULT_VALID_TO_PAIR: (String, String) = VALID_TO_COLUMN_NAME -> DEFAULT_VALID_TO
-  final val DEFAULT_IS_CURRENT_PAIR: (String, String) = VALID_TO_COLUMN_NAME -> DEFAULT_VALID_TO
+  final val DEFAULT_IS_CURRENT_PAIR: (String, String) = IS_CURRENT_COLUMN_NAME -> DEFAULT_IS_CURRENT
 
   final val DEFAULT_OPTIONS: Map[String, String] =
     List(
