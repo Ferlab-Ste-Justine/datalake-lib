@@ -173,8 +173,7 @@ class ETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers with BeforeAn
   "skip" should "not run the etl" in {
     HadoopFileSystem.remove(job.mainDestination.location)
     val finalDf = job.run(RunStep.getSteps("skip"))
-    finalDf(destConf.id).show(false)
-    finalDf(destConf.id).count() shouldBe 0
+    finalDf.isDefinedAt(destConf.id) shouldBe false
   }
 
   "first_load" should "run the ETL as if it was the first time running" in {

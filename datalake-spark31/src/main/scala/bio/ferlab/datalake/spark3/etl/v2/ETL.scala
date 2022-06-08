@@ -132,7 +132,7 @@ abstract class ETL()(implicit val conf: Configuration) extends Runnable {
       publish()
     }
     //read all outputDf
-    (output.keys.toList ++ List(mainDestination.id))
+    output.keys.toList
       .map(dsid => dsid -> Try(conf.getDataset(dsid).read).getOrElse(spark.emptyDataFrame))
       .toMap
   }
