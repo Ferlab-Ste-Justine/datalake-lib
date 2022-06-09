@@ -64,31 +64,7 @@ lazy val `datalake-commons` = (project in file("datalake-commons"))
     )
   )
 
-lazy val `datalake-spark30` = (project in file("datalake-spark30"))
-  .settings(
-    scalaVersion := scala212,
-    libraryDependencies += "org.apache.spark"      %% "spark-core"             % spark30Version % Provided,
-    libraryDependencies += "org.apache.spark"      %% "spark-sql"              % spark30Version % Provided,
-    libraryDependencies += "io.delta"              %% "delta-core"             % "0.8.0" % Provided,
-    libraryDependencies += "org.elasticsearch"     %% "elasticsearch-spark-30" % elasticsearchVersion % Provided,
-    libraryDependencies += "com.github.pureconfig" %% "pureconfig"             % pureconfigVersion,
-    libraryDependencies += "com.github.pureconfig" %% "pureconfig-enum"        % pureconfigVersion,
-    libraryDependencies += "org.typelevel"         %% "cats-core"              % catsVersion,
-    libraryDependencies += "org.scalatest"         %% "scalatest"              % scalatestVersion,
-    libraryDependencies += "org.apache.spark"      %% "spark-hive"             % spark30Version % Test,
-    libraryDependencies += "io.projectglow"        %% "glow-spark3"            % "1.0.1" % Provided exclude ("org.apache.hadoop", "hadoop-client"),
-    libraryDependencies += "dev.zio"               %% "zio-config-typesafe"    % zioVersion,
-    libraryDependencies += "dev.zio"               %% "zio-config"             % zioVersion,
-    libraryDependencies += "dev.zio"               %% "zio-config-magnolia"    % zioVersion,
-    dependencyOverrides ++= Seq(
-      "org.apache.commons"    % "commons-lang3"           % "3.9",
-      "org.antlr"    % "antlr4"           % "4.8",
-      "org.antlr"    % "antlr4-tool"      % "4.8",
-      "org.antlr"    % "antlr4-runtime"   % "4.8"
-    )
-  )
-
-lazy val `datalake-spark31` = (project in file("datalake-spark31"))
+lazy val `datalake-spark3` = (project in file("datalake-spark3"))
   .settings(
     scalaVersion := scala212,
     libraryDependencies ++= Seq(
@@ -117,8 +93,6 @@ lazy val `datalake-spark31` = (project in file("datalake-spark31"))
       "org.antlr"              % "antlr4-runtime"                   % "4.8",
       "org.antlr"              % "antlr4-tool"                      % "4.7.1",
     ),
-
-
   )
   .dependsOn(`datalake-commons`)
 
