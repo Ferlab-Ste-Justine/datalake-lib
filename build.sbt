@@ -18,31 +18,7 @@ val zioVersion = "1.0.6"
 val pureconfigVersion = "0.16.0"
 val elasticsearchVersion = "7.15.0"
 
-import ReleaseTransformations._
-val releaseSteps = Seq[ReleaseStep](
-  checkSnapshotDependencies,
-  inquireVersions,
-  runClean,
-  //runTest,
-  setReleaseVersion,
-  commitReleaseVersion,
-  tagRelease,
-  //releaseStepCommand("publishSigned"),
-  //releaseStepCommandAndRemaining("+publishSigned"),
-  //releaseStepCommand(";project `datalake-spark3`; sonatypeBundleRelease"),
-  //releaseStepCommand(";project `datalake-spark2`; sonatypeBundleRelease"),
-  //releaseStepCommand("sonatypeBundleClean"),
-  setNextVersion,
-  commitNextVersion,
-  pushChanges
-)
-
-ThisBuild / sonatypeCredentialHost := "s01.oss.sonatype.org"
-ThisBuild / releaseProcess := releaseSteps
-ThisBuild / credentials += Credentials(Path.userHome / ".sbt" / "sonatype_credentials")
-ThisBuild / releasePublishArtifactsAction := PgpKeys.publishSigned.value
-ThisBuild / fork := true
-ThisBuild / versionScheme := Some("semver-spec")
+updateOptions := updateOptions.value.withGigahorse(false)
 
 lazy val `datalake-commons` = (project in file("datalake-commons"))
   .settings(

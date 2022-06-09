@@ -1,0 +1,40 @@
+name: Publish Artifact
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: '11'
+      - name: Import GPG key
+        id: import_gpg
+        uses: crazy-max/ghaction-import-gpg@v5
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+          git_user_signingkey: true
+      - name: List keys
+        run: gpg -K
+      - name: Publish Artifact
+        shell: bash
+        env:
+          SONATYPE_REALM: ${{ secrets.SONATYPE_REALM }}
+          SONATYPE_HOST: ${{ secrets.SONATYPE_HOST }}
+          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+        run: |
+          mkdir /home/runner/.sbt
+          echo $SONATYPE_REALM >> /home/runner/.sbt/sonatype_credentials
+          echo $SONATYPE_HOST >> /home/runner/.sbt/sonatype_credentials
+          echo $SONATYPE_USERNAME >> /home/runner/.sbt/sonatype_credentials
+          echo $SONATYPE_PASSWORD >> /home/runner/.sbt/sonatype_credentials
+          sbt 'publishSigned; sonatypeRelease'
