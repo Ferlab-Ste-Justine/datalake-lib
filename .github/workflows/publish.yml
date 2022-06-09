@@ -1,0 +1,25 @@
+name: Scala CI
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: '11'
+      - shell: bash
+        env:
+          SONATYPE_CREDENTIALS: ${{ secrets.SONATYPE_CREDENTIALS }}
+        run: |
+          echo $SONATYPE_CREDENTIALS > ~/.sbt/sonatype_credentials
+      - name: Run tests
+        run: sbt 'publishSigned; sonatypeRelease'
+
