@@ -18,4 +18,4 @@ jobs:
         distribution: 'adopt'
         java-version: '11'
     - name: Run tests
-      run: sbt 'project datalake-spark31' 'test'
+      run: sbt 'project datalake-spark3' 'test'
