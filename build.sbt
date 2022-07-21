@@ -10,10 +10,9 @@ lazy val supportedScalaVersions = List(scala212)
 scalacOptions ++= Seq("-deprecation", "-Ypartial-unification")
 javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
 
-val spark30Version = "3.0.3"
-val spark31Version = "3.1.2"
-val catsVersion = "2.6.1"
-val scalatestVersion = "3.2.9"
+val spark31Version = "3.1.3"
+val catsVersion = "2.7.0"
+val scalatestVersion = "3.2.12"
 val zioVersion = "1.0.6"
 val pureconfigVersion = "0.16.0"
 val elasticsearchVersion = "7.15.0"
@@ -25,7 +24,7 @@ lazy val `datalake-commons` = (project in file("datalake-commons"))
     scalaVersion := scala212,
     libraryDependencies += "com.github.pureconfig" %% "pureconfig"             % pureconfigVersion,
     libraryDependencies += "com.github.pureconfig" %% "pureconfig-enum"        % pureconfigVersion,
-    libraryDependencies += "org.typelevel"         %% "cats-core"              % "2.6.1",
+    libraryDependencies += "org.typelevel"         %% "cats-core"              % catsVersion,
     libraryDependencies += "org.scalatest"         %% "scalatest"              % scalatestVersion,
     libraryDependencies += "io.projectglow"        %% "glow-spark3"            % "1.0.1" % Provided exclude ("org.apache.hadoop", "hadoop-client"),
     libraryDependencies += "dev.zio"               %% "zio-config-typesafe"    % zioVersion,
@@ -65,7 +64,7 @@ lazy val `datalake-spark3` = (project in file("datalake-spark3"))
       "org.apache.spark"        %% "spark-hive"                     % spark31Version       % Test
 ),
     dependencyOverrides ++= Seq(
-      "org.apache.commons"     %  "commons-lang3"                   % "3.9",
+      "org.apache.commons"     % "commons-lang3"                    % "3.9",
       "org.antlr"              % "antlr4-runtime"                   % "4.8",
       "org.antlr"              % "antlr4-tool"                      % "4.7.1",
     ),
