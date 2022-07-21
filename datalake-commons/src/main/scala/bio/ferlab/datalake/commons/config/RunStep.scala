@@ -7,7 +7,7 @@ sealed trait RunStep {
 }
 
 /**
- * List of all LoadTypes supported
+ * List of all RunStep supported by an [[ETL]]
  */
 object RunStep {
   case object sample    extends RunStep { override val order = 0 }
@@ -33,6 +33,22 @@ object RunStep {
     }
   }
 
+  /**
+   * Parse steps passed in argument.
+   * {{{
+   *   'skip' will be parse as a empty list of steps to run
+   *   'sample' will effectively run all steps including the sampling steps
+   *   'default' will be parsed as Seq(extract, transform, load, publish)
+   *   'initial' will be parsed as Seq(reset, extract, transform, load, publish)
+   * }}}
+   *
+   * It is also possible to use custom steps and pass the first and last step as argument. For instance:
+   * {{{
+   *   'extract_load' will run all the steps between extract and load and skip 'published'
+   * }}}
+   * @param str steps as a string
+   * @return
+   */
   def getSteps(str: String): Seq[RunStep] = {
     str.split("_").toList match {
       case Nil => allSteps

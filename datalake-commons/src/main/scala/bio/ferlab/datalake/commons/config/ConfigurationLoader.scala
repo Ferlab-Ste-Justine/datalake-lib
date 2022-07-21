@@ -5,6 +5,8 @@ import pureconfig._
 import pureconfig.generic.auto._
 import pureconfig.module.enum._
 
+import scala.language.implicitConversions
+
 object ConfigurationLoader {
 
 
