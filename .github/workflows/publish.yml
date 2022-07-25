@@ -21,7 +21,17 @@ jobs:
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.GPG_PASSPHRASE }}
-          git_user_signingkey: true
+          git_user_signingkey: false
+      # trust myself
+      - name: Update Trust = Trust myself
+        id: trust_myself
+        run: |
+          gpg --no-tty --command-fd 0 --edit-key 0xE724EF0569016032 << EOTRUST
+          trust
+          5
+          y
+          quit
+          EOTRUST
       - name: List keys
         run: gpg -K
       - name: Publish Artifact
