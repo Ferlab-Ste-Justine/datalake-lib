@@ -19,9 +19,19 @@ jobs:
         id: import_gpg
         uses: crazy-max/ghaction-import-gpg@v5
         with:
-          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
-          passphrase: ${{ secrets.GPG_PASSPHRASE }}
-          git_user_signingkey: true
+          gpg_private_key: ${{ secrets.PGP_SECRET }}
+          passphrase: ${{ secrets.PGP_PASSPHRASE }}
+          git_user_signingkey: false
+      # trust myself
+      - name: Update Trust = Trust myself
+        id: trust_myself
+        run: |
+          gpg --no-tty --command-fd 0 --edit-key 0xDC6E42F534B118C9 << EOTRUST
+          trust
+          5
+          y
+          quit
+          EOTRUST
       - name: List keys
         run: gpg -K
       - name: Publish Artifact
