@@ -26,7 +26,7 @@ jobs:
       - name: Update Trust = Trust myself
         id: trust_myself
         run: |
-          gpg --no-tty --command-fd 0 --edit-key 0xE724EF0569016032 << EOTRUST
+          gpg --no-tty --command-fd 0 --edit-key ${{ secrets.GPG_PRIVATE_KEY }} << EOTRUST
           trust
           5
           y
