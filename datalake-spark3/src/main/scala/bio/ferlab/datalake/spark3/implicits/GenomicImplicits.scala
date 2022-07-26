@@ -397,6 +397,9 @@ object GenomicImplicits {
       .otherwise(lit(false)) as "original_canonical"
     val is_multi_allelic: Column = col("splitFromMultiAllelic") as "is_multi_allelic"
     val old_multi_allelic: Column = col("INFO_OLD_MULTIALLELIC") as "old_multi_allelic"
+    val sortChromosome: Column = when(col("chromosome") === "X", 100).when(col("chromosome") === "Y", 101)
+      .when(col("chromosome") === "M", 102)
+      .otherwise(col("chromosome").cast("int")) as "sort_chromosome"
 
     def optional_info(df: DataFrame,
                       colName: String,

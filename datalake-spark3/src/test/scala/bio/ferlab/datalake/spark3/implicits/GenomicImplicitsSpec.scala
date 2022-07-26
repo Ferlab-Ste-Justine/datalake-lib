@@ -535,5 +535,18 @@ class GenomicImplicitsSpec extends AnyFlatSpec with WithSparkSession with Matche
 
   }
 
+  "sortChromosome" should "return chromosome as integers" in {
+    val occurrences: DataFrame = Seq(
+      "1",
+      "10",
+      "X",
+      "Y",
+      "M"
+    ).toDF("chromosome")
+    val frame: DataFrame = occurrences.select(sortChromosome)
+    val res: Array[Int] = frame.as[Int].collect()
+    res should contain theSameElementsAs Seq(1, 10, 100, 101, 102)
+  }
+
 }
 
