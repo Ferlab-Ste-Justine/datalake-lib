@@ -4,6 +4,23 @@
  * information regarding copyright ownership.
  */
 
+inThisBuild(List(
+  organization := "bio.ferlab",
+  homepage := Some(url("https://github.com/Ferlab-Ste-Justine")),
+  licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
+  developers := List(
+    Developer(
+      "Christophe",
+      "Botek",
+      "cbotek@ferlab.bio",
+      url("https://github.com/botekchristophe")
+    )
+  )
+))
+
+sonatypeCredentialHost := "s01.oss.sonatype.org"
+sonatypeRepository := "https://s01.oss.sonatype.org/service/local"
+
 lazy val scala212 = "2.12.14"
 lazy val supportedScalaVersions = List(scala212)
 

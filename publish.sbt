@@ -1,3 +1,4 @@
+/*
 ThisBuild / sonatypeCredentialHost := "s01.oss.sonatype.org"
 ThisBuild / credentials += Credentials(Path.userHome / ".sbt" / "sonatype_credentials")
 ThisBuild / releasePublishArtifactsAction := PgpKeys.publishSigned.value
@@ -35,3 +36,5 @@ ThisBuild / publishTo := {
   else Some("releases" at nexus + "service/local/staging/deploy/maven2")
 }
 ThisBuild / publishMavenStyle := true
+
+*/
