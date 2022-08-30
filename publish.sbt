@@ -19,6 +19,12 @@ ThisBuild / developers := List(
     name  = "Christophe Botek",
     email = "cbotek@ferlab.bio",
     url   = url("https://github.com/botekchristophe")
+  ),
+  Developer(
+    id    = "jecos",
+    name  = "Jeremy Costanza",
+    email = "jcostanza@ferlab.bio",
+    url   = url("https://github.com/jecos")
   )
 )
 ThisBuild / description := "Library built on top of Apache Spark to speed-up data lakes development.."
