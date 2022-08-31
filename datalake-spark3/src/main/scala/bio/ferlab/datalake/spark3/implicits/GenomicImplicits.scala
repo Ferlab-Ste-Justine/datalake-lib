@@ -1,10 +1,13 @@
 package bio.ferlab.datalake.spark3.implicits
 
+import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.ParentalOrigin._
 import io.projectglow.Glow
 import org.apache.spark.sql.expressions.{Window, WindowSpec}
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.{DecimalType, DoubleType, StringType}
 import org.apache.spark.sql.{Column, DataFrame, RelationalGroupedDataset, SparkSession}
+
+import scala.collection.immutable
 
 object GenomicImplicits {
 
@@ -65,12 +68,17 @@ object GenomicImplicits {
     val normalizeCall: Column => Column = calls =>
       sort_array(
         when(col("is_multi_allelic") and array_contains(calls, -1), transform(calls, c => when(c === -1, lit(0)).otherwise(c)))
-          .when(calls === Array(1), Array(1, 1))
-          .when(calls === Array(0), Array(0, 0))
-          .when(calls === Array(-1), Array(-1, -1))
           .otherwise(calls))
 
+    val normalizeMonosomy: Column => Column = calls =>
+      when(calls === Array(1), Array(1, 1))
+        .when(calls === Array(0), Array(0, 0))
+        .when(calls === Array(-1), Array(-1, -1))
+        .otherwise(calls)
+
     val isHeterozygote: Column = col("zygosity") === "HET"
+
+    val isWildType: Column = col("zygosity") === "WT"
 
     val isSexualGenotype: Column = col("chromosome").isin("X", "Y")
 
@@ -172,9 +180,9 @@ object GenomicImplicits {
       val mth_calls = col(mother_calls_name)
 
       val normalizedCallsDf =
-        df.withColumn("norm_calls", normalizeCall(calls))
-          .withColumn("norm_fth_calls", normalizeCall(fth_calls))
-          .withColumn("norm_mth_calls", normalizeCall(mth_calls))
+        df.withColumn("norm_calls", normalizeCall(normalizeMonosomy(calls)))
+          .withColumn("norm_fth_calls", normalizeCall(normalizeMonosomy(fth_calls)))
+          .withColumn("norm_mth_calls", normalizeCall(normalizeMonosomy(mth_calls)))
 
       val static_transmissions = {
         when(col("norm_fth_calls").isNull or col("norm_mth_calls").isNull, lit(null))
@@ -229,59 +237,131 @@ object GenomicImplicits {
     }
 
 
-    def withParentalOrigin(as: String, fth_calls: Column, mth_calls: Column, gender_name: String = "gender", MTH: String = "mother", FTH: String = "father"): DataFrame = {
+    def withParentalOrigin(as: String, calls: Column, fth_calls: Column, mth_calls: Column): DataFrame = {
+
+      val normalized: Column => Column = c => sort_array(when(c.isNull, array(lit(-1), lit(-1))).otherwise(c))
+
       val normalizedCallsDf =
-        df.withColumn("norm_fth_calls", normalizeCall(fth_calls))
-          .withColumn("norm_mth_calls", normalizeCall(mth_calls))
+        df.withColumn("norm_calls", normalized(calls))
+          .withColumn("norm_fth_calls", normalized(fth_calls))
+          .withColumn("norm_mth_calls", normalized(mth_calls))
 
       val autosomalOriginsMatrix = List(
-        //(father_calls, mother_calls, origin)
-        (Array(0, 1), Array(0, 0), FTH),
-        (Array(0, 0), Array(0, 1), MTH),
-        (Array(1, 1), Array(0, 0), FTH),
-        (Array(0, 0), Array(1, 1), MTH),
-        (Array(1, 1), Array(0, 1), FTH),
-        (Array(0, 1), Array(1, 1), MTH),
-        (Array(1, 1), Array(1, 0), FTH),
-        (Array(1, 0), Array(1, 1), MTH),
-        (Array(1, 0), Array(0, 0), FTH),
-        (Array(0, 0), Array(1, 0), MTH)
+        //(proband_calls, father_calls, mother_calls, origin)
+        (Array(0, 1), Array(0, 0), Array(0, 0), DENOVO),
+        (Array(0, 1), Array(0, 0), Array(0, 1), MTH),
+        (Array(0, 1), Array(0, 0), Array(1, 1), MTH),
+        (Array(0, 1), Array(0, 1), Array(0, 0), FTH),
+        (Array(0, 1), Array(0, 1), Array(0, 1), AMBIGUOUS),
+        (Array(0, 1), Array(0, 1), Array(1, 1), MTH),
+        (Array(0, 1), Array(0, 1), Array(-1, -1), POSSIBLE_FATHER),
+        (Array(0, 1), Array(1, 1), Array(0, 0), FTH),
+        (Array(0, 1), Array(1, 1), Array(0, 1), FTH),
+        (Array(0, 1), Array(1, 1), Array(1, 1), AMBIGUOUS),
+        (Array(0, 1), Array(1, 1), Array(-1, -1), FTH),
+        (Array(0, 1), Array(-1, -1), Array(0, 0), POSSIBLE_DENOVO),
+        (Array(0, 1), Array(-1, -1), Array(0, 1), POSSIBLE_MOTHER),
+        (Array(0, 1), Array(-1, -1), Array(1, 1), MTH),
+        (Array(0, 1), Array(-1, -1), Array(-1, -1), UNKNOWN),
+        (Array(1, 1), Array(0, 0), Array(0, 0), DENOVO),
+        (Array(1, 1), Array(0, 0), Array(0, 1), MTH),
+        (Array(1, 1), Array(0, 0), Array(1, 1), MTH),
+        (Array(1, 1), Array(0, 0), Array(-1, -1), POSSIBLE_DENOVO),
+        (Array(1, 1), Array(0, 1), Array(0, 0), FTH),
+        (Array(1, 1), Array(0, 1), Array(0, 1), BOTH),
+        (Array(1, 1), Array(0, 1), Array(1, 1), BOTH),
+        (Array(1, 1), Array(0, 1), Array(-1, -1), FTH),
+        (Array(1, 1), Array(1, 1), Array(0, 0), FTH),
+        (Array(1, 1), Array(1, 1), Array(0, 1), BOTH),
+        (Array(1, 1), Array(1, 1), Array(1, 1), BOTH),
+        (Array(1, 1), Array(1, 1), Array(-1, -1), FTH),
+        (Array(1, 1), Array(-1, -1), Array(0, 0), POSSIBLE_DENOVO),
+        (Array(1, 1), Array(-1, -1), Array(0, 1), MTH),
+        (Array(1, 1), Array(-1, -1), Array(1, 1), MTH),
+        (Array(1, 1), Array(-1, -1), Array(-1, -1), UNKNOWN)
       )
 
-      val sexualOriginsMatrix = List(
-        //(gender, father_calls, mother_calls, origin)
-        ("Female", Array(0, 1), Array(0, 0), FTH),
-        ("Female", Array(0, 0), Array(0, 1), MTH),
-        ("Female", Array(1, 1), Array(0, 0), FTH),
-        ("Female", Array(0, 0), Array(1, 1), MTH),
-        ("Female", Array(1, 1), Array(0, 1), FTH),
-        ("Female", Array(0, 1), Array(1, 1), MTH),
-        ("Female", Array(1, 1), Array(1, 0), FTH),
-        ("Female", Array(1, 0), Array(1, 1), MTH),
-        ("Female", Array(1, 0), Array(0, 0), FTH),
-        ("Female", Array(0, 0), Array(1, 0), MTH)
+      val XOriginsMatrix: immutable.Seq[(Array[Int], Array[Int], Array[Int], String)] = List(
+        //(proband_calls, father_calls, mother_calls, origin)
+        (Array(0, 1), Array(0), Array(0, 0), DENOVO),
+        (Array(1), Array(0), Array(0, 0), DENOVO),
+        (Array(1, 1), Array(0), Array(0, 0), DENOVO),
+        (Array(0, 1), Array(0), Array(0, 1), MTH),
+        (Array(1), Array(0), Array(0, 1), MTH),
+        (Array(1, 1), Array(0), Array(0, 1), MTH),
+        (Array(0, 1), Array(0), Array(1, 1), MTH),
+        (Array(1), Array(0), Array(1, 1), MTH),
+        (Array(1, 1), Array(0), Array(1, 1), MTH),
+        (Array(0, 1), Array(1), Array(0, 0), FTH),
+        (Array(1), Array(1), Array(0, 0), FTH),
+        (Array(1, 1), Array(1), Array(0, 0), FTH),
+        (Array(0, 1), Array(1), Array(0, 1), FTH),
+        (Array(1), Array(1), Array(0, 1), MTH),
+        (Array(1, 1), Array(1), Array(0, 1), BOTH),
+        (Array(0, 1), Array(1), Array(1, 1), AMBIGUOUS),
+        (Array(1), Array(1), Array(1, 1), MTH),
+        (Array(1, 1), Array(1), Array(1, 1), BOTH),
+        (Array(0, 1), Array(0), Array(-1, -1), POSSIBLE_DENOVO),
+        (Array(0, 1), Array(1), Array(-1, -1), FTH),
+        (Array(0, 1), Array(-1), Array(0, 0), POSSIBLE_DENOVO),
+        (Array(0, 1), Array(-1), Array(0, 1), POSSIBLE_MOTHER),
+        (Array(0, 1), Array(-1), Array(1, 1), MTH),
+        (Array(0, 1), Array(-1), Array(-1, -1), UNKNOWN),
+        (Array(1, 1), Array(0), Array(-1, -1), POSSIBLE_DENOVO),
+        (Array(1, 1), Array(1), Array(-1, -1), FTH),
+        (Array(1, 1), Array(-1), Array(0, 0), POSSIBLE_DENOVO),
+        (Array(1, 1), Array(-1), Array(0, 1), MTH),
+        (Array(1, 1), Array(-1), Array(1, 1), MTH),
+        (Array(1, 1), Array(-1), Array(-1, -1), UNKNOWN),
+        (Array(1), Array(0), Array(-1, -1), POSSIBLE_DENOVO),
+        (Array(1), Array(1), Array(-1, -1), POSSIBLE_FATHER),
+        (Array(1), Array(-1), Array(0, 0), POSSIBLE_DENOVO),
+        (Array(1), Array(-1), Array(0, 1), MTH),
+        (Array(1), Array(-1), Array(1, 1), MTH),
+        (Array(1), Array(-1), Array(-1, -1), UNKNOWN),
       )
-      val static_origins = when(not(isHeterozygote), lit(null).cast(StringType))
 
-      val autosomalParentalOrigin = autosomalOriginsMatrix.foldLeft[Column](static_origins) {
-        case (c, (fth, mth, origin)) => c.when(col("norm_fth_calls") === fth and col("norm_mth_calls") === mth, lit(origin))
-      }
+      val YOriginsMatrix = List(
+        //(proband_calls, father_calls, mother_calls, origin)
+        (Array(1), Array(1), Array(-1, -1), FTH),
+        (Array(1), Array(0), Array(-1, -1), DENOVO),
+        (Array(1, 1), Array(1), Array(-1, -1), FTH),
+        (Array(1), Array(1, 1), Array(-1, -1), FTH),
+        (Array(1, 1), Array(1, 1), Array(-1, -1), FTH),
+        (Array(1, 1), Array(0), Array(-1, -1), DENOVO),
+        (Array(1), Array(0, 0), Array(-1, -1), DENOVO),
+        (Array(1, 1), Array(0, 0), Array(-1, -1), DENOVO)
+      )
+      val static_origins = when(isWildType, lit(null).cast(StringType))
 
-      val sexualParentalOrigin: Column = sexualOriginsMatrix.foldLeft[Column](static_origins) {
-        case (c, (gender, fth_calls, mth_calls, origin)) =>
-          c.when(
-            col(gender_name) === gender and
-              col("norm_fth_calls") === fth_calls and
-              col("norm_mth_calls") === mth_calls, lit(origin))
-      }
+      def matchOrigin(matrix: Seq[(Array[Int], Array[Int], Array[Int], String)]) = matrix.foldLeft[Column](static_origins) {
+        case (c, (proband, fth, mth, origin)) => c.when(col("norm_calls") === proband and col("norm_fth_calls") === fth and col("norm_mth_calls") === mth, lit(origin))
+      }.otherwise(lit(null).cast(StringType))
 
+      val autosomalParentalOrigin = matchOrigin(autosomalOriginsMatrix)
+      val XParentalOrigin: Column = matchOrigin(XOriginsMatrix)
+      val YParentalOrigin: Column = matchOrigin(YOriginsMatrix)
 
       normalizedCallsDf
-        .withColumn(as, when(isSexualGenotype, sexualParentalOrigin).otherwise(autosomalParentalOrigin))
-        .drop("norm_fth_calls", "norm_mth_calls")
+        .withColumn(as,
+          when(col("chromosome") === "X", XParentalOrigin)
+            .when(col("chromosome") === "Y", YParentalOrigin)
+            .otherwise(autosomalParentalOrigin))
+        .drop("norm_calls", "norm_fth_calls", "norm_mth_calls")
     }
   }
 
+  object ParentalOrigin{
+    val MTH: String = "mother"
+    val FTH: String = "father"
+    val DENOVO: String = "denovo"
+    val POSSIBLE_DENOVO: String = "possible_denovo"
+    val POSSIBLE_FATHER: String = "possible_father"
+    val POSSIBLE_MOTHER: String = "possible_mother"
+    val BOTH: String = "both"
+    val AMBIGUOUS: String = "ambiguous"
+    val UNKNOWN: String = "unknown"
+  }
   object columns {
     val chromosome: Column = ltrim(col("contigName"), "chr") as "chromosome"
     val reference: Column = col("referenceAllele") as "reference"
