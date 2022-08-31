@@ -251,6 +251,7 @@ object GenomicImplicits {
         (Array(0, 1), Array(0, 0), Array(0, 0), DENOVO),
         (Array(0, 1), Array(0, 0), Array(0, 1), MTH),
         (Array(0, 1), Array(0, 0), Array(1, 1), MTH),
+        (Array(0, 1), Array(0, 0), Array(-1, -1), POSSIBLE_DENOVO),
         (Array(0, 1), Array(0, 1), Array(0, 0), FTH),
         (Array(0, 1), Array(0, 1), Array(0, 1), AMBIGUOUS),
         (Array(0, 1), Array(0, 1), Array(1, 1), MTH),
