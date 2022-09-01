@@ -1,10 +1,13 @@
 package bio.ferlab.datalake.spark3.implicits
 
+import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.ParentalOrigin._
 import io.projectglow.Glow
 import org.apache.spark.sql.expressions.{Window, WindowSpec}
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.{DecimalType, DoubleType, StringType}
 import org.apache.spark.sql.{Column, DataFrame, RelationalGroupedDataset, SparkSession}
+
+import scala.collection.immutable
 
 object GenomicImplicits {
 
@@ -28,7 +31,7 @@ object GenomicImplicits {
     }
 
     def groupByLocus(): RelationalGroupedDataset = {
-      df.groupBy(locus:_*)
+      df.groupBy(locus: _*)
     }
 
     def selectLocus(cols: Column*): DataFrame = {
@@ -65,69 +68,74 @@ object GenomicImplicits {
     val normalizeCall: Column => Column = calls =>
       sort_array(
         when(col("is_multi_allelic") and array_contains(calls, -1), transform(calls, c => when(c === -1, lit(0)).otherwise(c)))
-          .when(calls === Array(1), Array(1, 1))
-          .when(calls === Array(0), Array(0, 0))
-          .when(calls === Array(-1), Array(-1, -1))
           .otherwise(calls))
 
+    val normalizeMonosomy: Column => Column = calls =>
+      when(calls === Array(1), Array(1, 1))
+        .when(calls === Array(0), Array(0, 0))
+        .when(calls === Array(-1), Array(-1, -1))
+        .otherwise(calls)
+
     val isHeterozygote: Column = col("zygosity") === "HET"
+
+    val isWildType: Column = col("zygosity") === "WT"
 
     val isSexualGenotype: Column = col("chromosome").isin("X", "Y")
 
     val strictAutosomalTransmissions = List(
       //(proband_calls, father_calls, mother_calls, father_affected, mother_affected, transmission)
       //(“0/1”, “0/0”, “0/0”) -> 	autosomal_dominant (de_novo) [if both parents unaffected]
-      (Array(0, 1), Array(0, 0),   Array(0, 0),   false, false, "autosomal_dominant_de_novo"),
+      (Array(0, 1), Array(0, 0), Array(0, 0), false, false, "autosomal_dominant_de_novo"),
       //(“0/1”, “0/0”, “0/1”) -> 	autosomal_dominant [if affected mother and unaffected father]
-      (Array(0, 1), Array(0, 0),   Array(0, 1),   false, true , "autosomal_dominant"),
+      (Array(0, 1), Array(0, 0), Array(0, 1), false, true, "autosomal_dominant"),
       //(“0/1”, “0/0”, “1/1”) -> 	autosomal_dominant [if affected mother and unaffected father]
-      (Array(0, 1), Array(0, 0),   Array(1, 1),   false, true , "autosomal_dominant"),
+      (Array(0, 1), Array(0, 0), Array(1, 1), false, true, "autosomal_dominant"),
       //(“0/1”, “0/1”, “0/0”) -> 	autosomal_dominant [if affected father and unaffected mother]
-      (Array(0, 1), Array(0, 1),   Array(0, 0),   true , false, "autosomal_dominant"),
+      (Array(0, 1), Array(0, 1), Array(0, 0), true, false, "autosomal_dominant"),
       //(“0/1”, “0/1”, “0/1”) -> 	autosomal_dominant [if both parents affected]
-      (Array(0, 1), Array(0, 1),   Array(1, 1),   true , true , "autosomal_dominant"),
+      (Array(0, 1), Array(0, 1), Array(1, 1), true, true, "autosomal_dominant"),
       //(“0/1”, “0/1”, “0/1”) -> 	autosomal_dominant [if both parents affected]
-      (Array(0, 1), Array(0, 1),   Array(0, 1),   true , true , "autosomal_dominant"),
+      (Array(0, 1), Array(0, 1), Array(0, 1), true, true, "autosomal_dominant"),
       //(“0/1”, “0/1”, “-1/-1”) -> 	autosomal_dominant [if affected father]
-      (Array(0, 1), Array(0, 1),   Array(-1, -1), true , true , "autosomal_dominant"),
-      (Array(0, 1), Array(0, 1),   Array(-1, -1), true , false, "autosomal_dominant"),
+      (Array(0, 1), Array(0, 1), Array(-1, -1), true, true, "autosomal_dominant"),
+      (Array(0, 1), Array(0, 1), Array(-1, -1), true, false, "autosomal_dominant"),
       //(“0/1”, “1/1”, “*/*”) -> 	autosomal_dominant [if affected father]
-      (Array(0, 1), Array(1, 1),   Array(0, 0),   true , true , "autosomal_dominant"),
-      (Array(0, 1), Array(1, 1),   Array(0, 0),   true , false, "autosomal_dominant"),
-      (Array(0, 1), Array(1, 1),   Array(0, 1),   true , true , "autosomal_dominant"),
-      (Array(0, 1), Array(1, 1),   Array(0, 1),   true , false, "autosomal_dominant"),
-      (Array(0, 1), Array(1, 1),   Array(1, 1),   true , true , "autosomal_dominant"),
-      (Array(0, 1), Array(1, 1),   Array(1, 1),   true , false, "autosomal_dominant"),
-      (Array(0, 1), Array(1, 1),   Array(-1, -1), true , true , "autosomal_dominant"),
-      (Array(0, 1), Array(1, 1),   Array(-1, -1), true , false, "autosomal_dominant"),
+      (Array(0, 1), Array(1, 1), Array(0, 0), true, true, "autosomal_dominant"),
+      (Array(0, 1), Array(1, 1), Array(0, 0), true, false, "autosomal_dominant"),
+      (Array(0, 1), Array(1, 1), Array(0, 1), true, true, "autosomal_dominant"),
+      (Array(0, 1), Array(1, 1), Array(0, 1), true, false, "autosomal_dominant"),
+      (Array(0, 1), Array(1, 1), Array(1, 1), true, true, "autosomal_dominant"),
+      (Array(0, 1), Array(1, 1), Array(1, 1), true, false, "autosomal_dominant"),
+      (Array(0, 1), Array(1, 1), Array(-1, -1), true, true, "autosomal_dominant"),
+      (Array(0, 1), Array(1, 1), Array(-1, -1), true, false, "autosomal_dominant"),
       //(“0/1”, “-1/-1”, “0/1”) -> 	autosomal_dominant [if affected mother]
-      (Array(0, 1), Array(-1, -1), Array(0, 1),   true , true , "autosomal_dominant"),
-      (Array(0, 1), Array(-1, -1), Array(0, 1),   false, true , "autosomal_dominant"),
+      (Array(0, 1), Array(-1, -1), Array(0, 1), true, true, "autosomal_dominant"),
+      (Array(0, 1), Array(-1, -1), Array(0, 1), false, true, "autosomal_dominant"),
       //(“0/1”, “-1/-1”, “1/1”) -> 	autosomal_dominant [if affected mother]
-      (Array(0, 1), Array(-1, -1), Array(1, 1),   true , true , "autosomal_dominant"),
-      (Array(0, 1), Array(-1, -1), Array(1, 1),   false, true , "autosomal_dominant"),
+      (Array(0, 1), Array(-1, -1), Array(1, 1), true, true, "autosomal_dominant"),
+      (Array(0, 1), Array(-1, -1), Array(1, 1), false, true, "autosomal_dominant"),
       //(“1/1”, “0/1”, “0/1”) -> 	autosomal_recessive [if both parents unaffected]
-      (Array(1, 1), Array(0, 1),   Array(0, 1),   false, false, "autosomal_recessive"),
+      (Array(1, 1), Array(0, 1), Array(0, 1), false, false, "autosomal_recessive"),
       //(“1/1”, “0/1”, “1/1”) -> 	autosomal_recessive [if affected mother and unaffected father]
-      (Array(1, 1), Array(0, 1),   Array(1, 1),   false, true , "autosomal_recessive"),
+      (Array(1, 1), Array(0, 1), Array(1, 1), false, true, "autosomal_recessive"),
       //(“1/1”, “1/1”, “0/1”) -> 	autosomal_recessive [if affected father and unaffected mother]
-      (Array(1, 1), Array(1, 1),   Array(0, 1),   true , false, "autosomal_recessive"),
+      (Array(1, 1), Array(1, 1), Array(0, 1), true, false, "autosomal_recessive"),
       //(“1/1”, “1/1”, “1/1”) -> 	autosomal_recessive [if both parents affected]
-      (Array(1, 1), Array(1, 1),   Array(1, 1),   true , true , "autosomal_recessive"),
+      (Array(1, 1), Array(1, 1), Array(1, 1), true, true, "autosomal_recessive"),
     )
 
     val strictSexualTransmissions = List(
       //(gender, proband_calls, father_calls, mother_calls, father_affected, mother_affected, transmission)
       //(“0/1”, “0”, “0/0”) -> 	x_linked_dominant (de_novo) [if female proband with both parents unaffected]
-      ("Female", Array(0, 1), Array(0, 0),   Array(0, 0),   false, false, "x_linked_dominant_de_novo"),
+      ("Female", Array(0, 1), Array(0, 0), Array(0, 0), false, false, "x_linked_dominant_de_novo"),
       //(“1”, “0”, “0/0”) -> 	x_linked_recessive (de_novo) [if male proband with both parents unaffected]
-      ("Male"  , Array(1, 1), Array(0, 0),   Array(0, 0),   false, false, "x_linked_recessive_de_novo"),
+      ("Male", Array(1, 1), Array(0, 0), Array(0, 0), false, false, "x_linked_recessive_de_novo"),
       //(“0/1”, “0”, “0/1”) -> 	x_linked_dominant [if female proband with affected mother and unaffected father]
-      ("Female", Array(0, 1), Array(0, 0),   Array(0, 1),   false, true, "x_linked_dominant"),
+      ("Female", Array(0, 1), Array(0, 0), Array(0, 1), false, true, "x_linked_dominant"),
       //(“1”, “0”, “0/1”) -> 	x_linked_recessive [if male proband with both parents unaffected]
-      ("Male", Array(1, 1), Array(0, 0),   Array(0, 1),   false, false, "x_linked_recessive"),
+      ("Male", Array(1, 1), Array(0, 0), Array(0, 1), false, false, "x_linked_recessive"),
       //(“1”, “0”, “1/1”) -> 	x_linked_recessive [if male proband with affected mother and unaffected father]
-      ("Male", Array(1, 1), Array(0, 0),   Array(1, 1),   false, true, "x_linked_recessive"),
+      ("Male", Array(1, 1), Array(0, 0), Array(1, 1), false, true, "x_linked_recessive"),
       //(“0/1”, “1”, “0/0”)   -> x_linked_dominant [if female proband with affected father and unaffected mother]
       ("Female", Array(0, 1), Array(1, 1), Array(0, 0), true, false, "x_linked_dominant"),
       //(“1”, “1”, “0/0”)     -> x_linked_recessive [if male proband with affected father and unaffected mother]
@@ -172,9 +180,9 @@ object GenomicImplicits {
       val mth_calls = col(mother_calls_name)
 
       val normalizedCallsDf =
-        df.withColumn("norm_calls", normalizeCall(calls))
-          .withColumn("norm_fth_calls", normalizeCall(fth_calls))
-          .withColumn("norm_mth_calls", normalizeCall(mth_calls))
+        df.withColumn("norm_calls", normalizeCall(normalizeMonosomy(calls)))
+          .withColumn("norm_fth_calls", normalizeCall(normalizeMonosomy(fth_calls)))
+          .withColumn("norm_mth_calls", normalizeCall(normalizeMonosomy(mth_calls)))
 
       val static_transmissions = {
         when(col("norm_fth_calls").isNull or col("norm_mth_calls").isNull, lit(null))
@@ -182,7 +190,7 @@ object GenomicImplicits {
           .when(col("norm_calls").isNull or col("norm_calls") === Array(-1, -1), lit("unknown_proband_genotype"))
       }
 
-      val autosomal_transmissions: Column = strictAutosomalTransmissions.foldLeft[Column](static_transmissions){
+      val autosomal_transmissions: Column = strictAutosomalTransmissions.foldLeft[Column](static_transmissions) {
         case (c, (proband_calls, fth_calls, mth_calls, fth_affected_status, mth_affected_status, transmission)) =>
           c.when(
             col(mother_affected_status_name) === mth_affected_status and
@@ -192,7 +200,7 @@ object GenomicImplicits {
               col("norm_mth_calls") === mth_calls, lit(transmission))
       }
 
-      val sexual_transmissions: Column = strictSexualTransmissions.foldLeft[Column](static_transmissions){
+      val sexual_transmissions: Column = strictSexualTransmissions.foldLeft[Column](static_transmissions) {
         case (c, (gender, proband_calls, fth_calls, mth_calls, fth_affected_status, mth_affected_status, transmission)) =>
           c.when(
             col(gender_name) === gender and
@@ -215,56 +223,153 @@ object GenomicImplicits {
     /**
      * Compute transmission per locus given an existing column containing the transmission for this particular occurrence.
      *
-     * @param locusColumnNames list of locus columns
+     * @param locusColumnNames       list of locus columns
      * @param transmissionColumnName name of the transmission column
-     * @param resultColumnName name of the resulting computation
+     * @param resultColumnName       name of the resulting computation
      * @return a dataframe with a new column containing the number of transmission per locus as a Map of transmission type -> count per type.
      */
     def withTransmissionPerLocus(locusColumnNames: Seq[String],
                                  transmissionColumnName: String,
                                  resultColumnName: String): DataFrame = {
-      df.groupBy(transmissionColumnName, locusColumnNames:_*).count()
-        .groupBy(locusColumnNames.map(col):_*)
+      df.groupBy(transmissionColumnName, locusColumnNames: _*).count()
+        .groupBy(locusColumnNames.map(col): _*)
         .agg(map_from_entries(collect_list(struct(col(transmissionColumnName), col("count")))) as resultColumnName)
     }
 
 
-    def withParentalOrigin(as: String, fth_calls: Column, mth_calls: Column, MTH: String = "mother", FTH: String = "father"): DataFrame = {
+    def withParentalOrigin(as: String, calls: Column, fth_calls: Column, mth_calls: Column): DataFrame = {
+
+      val normalized: Column => Column = c => sort_array(when(c.isNull, array(lit(-1), lit(-1))).otherwise(c))
+
       val normalizedCallsDf =
-        df.withColumn("norm_fth_calls", normalizeCall(fth_calls))
-          .withColumn("norm_mth_calls", normalizeCall(mth_calls))
+        df.withColumn("norm_calls", normalized(calls))
+          .withColumn("norm_fth_calls", normalized(fth_calls))
+          .withColumn("norm_mth_calls", normalized(mth_calls))
 
-      val origins = List(
-        //(father_calls, mother_calls, origin)
-        (Array(0, 1), Array(0, 0), FTH),
-        (Array(0, 0), Array(0, 1), MTH),
-        (Array(1, 1), Array(0, 0), FTH),
-        (Array(0, 0), Array(1, 1), MTH),
-        (Array(1, 1), Array(0, 1), FTH),
-        (Array(0, 1), Array(1, 1), MTH),
-        (Array(1, 1), Array(1, 0), FTH),
-        (Array(1, 0), Array(1, 1), MTH),
-        (Array(1, 0), Array(0, 0), FTH),
-        (Array(0, 0), Array(1, 0), MTH)
+      val autosomalOriginsMatrix = List(
+        //(proband_calls, father_calls, mother_calls, origin)
+        (Array(0, 1), Array(0, 0), Array(0, 0), DENOVO),
+        (Array(0, 1), Array(0, 0), Array(0, 1), MTH),
+        (Array(0, 1), Array(0, 0), Array(1, 1), MTH),
+        (Array(0, 1), Array(0, 0), Array(-1, -1), POSSIBLE_DENOVO),
+        (Array(0, 1), Array(0, 1), Array(0, 0), FTH),
+        (Array(0, 1), Array(0, 1), Array(0, 1), AMBIGUOUS),
+        (Array(0, 1), Array(0, 1), Array(1, 1), MTH),
+        (Array(0, 1), Array(0, 1), Array(-1, -1), POSSIBLE_FATHER),
+        (Array(0, 1), Array(1, 1), Array(0, 0), FTH),
+        (Array(0, 1), Array(1, 1), Array(0, 1), FTH),
+        (Array(0, 1), Array(1, 1), Array(1, 1), AMBIGUOUS),
+        (Array(0, 1), Array(1, 1), Array(-1, -1), FTH),
+        (Array(0, 1), Array(-1, -1), Array(0, 0), POSSIBLE_DENOVO),
+        (Array(0, 1), Array(-1, -1), Array(0, 1), POSSIBLE_MOTHER),
+        (Array(0, 1), Array(-1, -1), Array(1, 1), MTH),
+        (Array(0, 1), Array(-1, -1), Array(-1, -1), UNKNOWN),
+        (Array(1, 1), Array(0, 0), Array(0, 0), DENOVO),
+        (Array(1, 1), Array(0, 0), Array(0, 1), MTH),
+        (Array(1, 1), Array(0, 0), Array(1, 1), MTH),
+        (Array(1, 1), Array(0, 0), Array(-1, -1), POSSIBLE_DENOVO),
+        (Array(1, 1), Array(0, 1), Array(0, 0), FTH),
+        (Array(1, 1), Array(0, 1), Array(0, 1), BOTH),
+        (Array(1, 1), Array(0, 1), Array(1, 1), BOTH),
+        (Array(1, 1), Array(0, 1), Array(-1, -1), FTH),
+        (Array(1, 1), Array(1, 1), Array(0, 0), FTH),
+        (Array(1, 1), Array(1, 1), Array(0, 1), BOTH),
+        (Array(1, 1), Array(1, 1), Array(1, 1), BOTH),
+        (Array(1, 1), Array(1, 1), Array(-1, -1), FTH),
+        (Array(1, 1), Array(-1, -1), Array(0, 0), POSSIBLE_DENOVO),
+        (Array(1, 1), Array(-1, -1), Array(0, 1), MTH),
+        (Array(1, 1), Array(-1, -1), Array(1, 1), MTH),
+        (Array(1, 1), Array(-1, -1), Array(-1, -1), UNKNOWN)
       )
-      val static_origins = when(not(isHeterozygote), lit(null).cast(StringType))
 
-      val parental_origin = origins.foldLeft[Column](static_origins){
-        case (c, (fth, mth, origin)) => c.when(col("norm_fth_calls") === fth and col("norm_mth_calls") === mth, lit(origin))
-      }
+      val XOriginsMatrix: immutable.Seq[(Array[Int], Array[Int], Array[Int], String)] = List(
+        //(proband_calls, father_calls, mother_calls, origin)
+        (Array(0, 1), Array(0), Array(0, 0), DENOVO),
+        (Array(1), Array(0), Array(0, 0), DENOVO),
+        (Array(1, 1), Array(0), Array(0, 0), DENOVO),
+        (Array(0, 1), Array(0), Array(0, 1), MTH),
+        (Array(1), Array(0), Array(0, 1), MTH),
+        (Array(1, 1), Array(0), Array(0, 1), MTH),
+        (Array(0, 1), Array(0), Array(1, 1), MTH),
+        (Array(1), Array(0), Array(1, 1), MTH),
+        (Array(1, 1), Array(0), Array(1, 1), MTH),
+        (Array(0, 1), Array(1), Array(0, 0), FTH),
+        (Array(1), Array(1), Array(0, 0), FTH),
+        (Array(1, 1), Array(1), Array(0, 0), FTH),
+        (Array(0, 1), Array(1), Array(0, 1), FTH),
+        (Array(1), Array(1), Array(0, 1), MTH),
+        (Array(1, 1), Array(1), Array(0, 1), BOTH),
+        (Array(0, 1), Array(1), Array(1, 1), AMBIGUOUS),
+        (Array(1), Array(1), Array(1, 1), MTH),
+        (Array(1, 1), Array(1), Array(1, 1), BOTH),
+        (Array(0, 1), Array(0), Array(-1, -1), POSSIBLE_DENOVO),
+        (Array(0, 1), Array(1), Array(-1, -1), FTH),
+        (Array(0, 1), Array(-1), Array(0, 0), POSSIBLE_DENOVO),
+        (Array(0, 1), Array(-1), Array(0, 1), POSSIBLE_MOTHER),
+        (Array(0, 1), Array(-1), Array(1, 1), MTH),
+        (Array(0, 1), Array(-1), Array(-1, -1), UNKNOWN),
+        (Array(1, 1), Array(0), Array(-1, -1), POSSIBLE_DENOVO),
+        (Array(1, 1), Array(1), Array(-1, -1), FTH),
+        (Array(1, 1), Array(-1), Array(0, 0), POSSIBLE_DENOVO),
+        (Array(1, 1), Array(-1), Array(0, 1), MTH),
+        (Array(1, 1), Array(-1), Array(1, 1), MTH),
+        (Array(1, 1), Array(-1), Array(-1, -1), UNKNOWN),
+        (Array(1), Array(0), Array(-1, -1), POSSIBLE_DENOVO),
+        (Array(1), Array(1), Array(-1, -1), POSSIBLE_FATHER),
+        (Array(1), Array(-1), Array(0, 0), POSSIBLE_DENOVO),
+        (Array(1), Array(-1), Array(0, 1), MTH),
+        (Array(1), Array(-1), Array(1, 1), MTH),
+        (Array(1), Array(-1), Array(-1, -1), UNKNOWN),
+      )
 
-      normalizedCallsDf.withColumn(as, parental_origin)
-        .drop("norm_fth_calls", "norm_mth_calls")
+      val YOriginsMatrix = List(
+        //(proband_calls, father_calls, mother_calls, origin)
+        (Array(1), Array(1), Array(-1, -1), FTH),
+        (Array(1), Array(0), Array(-1, -1), DENOVO),
+        (Array(1, 1), Array(1), Array(-1, -1), FTH),
+        (Array(1), Array(1, 1), Array(-1, -1), FTH),
+        (Array(1, 1), Array(1, 1), Array(-1, -1), FTH),
+        (Array(1, 1), Array(0), Array(-1, -1), DENOVO),
+        (Array(1), Array(0, 0), Array(-1, -1), DENOVO),
+        (Array(1, 1), Array(0, 0), Array(-1, -1), DENOVO)
+      )
+      val static_origins = when(isWildType, lit(null).cast(StringType))
+
+      def matchOrigin(matrix: Seq[(Array[Int], Array[Int], Array[Int], String)]) = matrix.foldLeft[Column](static_origins) {
+        case (c, (proband, fth, mth, origin)) => c.when(col("norm_calls") === proband and col("norm_fth_calls") === fth and col("norm_mth_calls") === mth, lit(origin))
+      }.otherwise(lit(null).cast(StringType))
+
+      val autosomalParentalOrigin = matchOrigin(autosomalOriginsMatrix)
+      val XParentalOrigin: Column = matchOrigin(XOriginsMatrix)
+      val YParentalOrigin: Column = matchOrigin(YOriginsMatrix)
+
+      normalizedCallsDf
+        .withColumn(as,
+          when(col("chromosome") === "X", XParentalOrigin)
+            .when(col("chromosome") === "Y", YParentalOrigin)
+            .otherwise(autosomalParentalOrigin))
+        .drop("norm_calls", "norm_fth_calls", "norm_mth_calls")
     }
   }
 
+  object ParentalOrigin{
+    val MTH: String = "mother"
+    val FTH: String = "father"
+    val DENOVO: String = "denovo"
+    val POSSIBLE_DENOVO: String = "possible_denovo"
+    val POSSIBLE_FATHER: String = "possible_father"
+    val POSSIBLE_MOTHER: String = "possible_mother"
+    val BOTH: String = "both"
+    val AMBIGUOUS: String = "ambiguous"
+    val UNKNOWN: String = "unknown"
+  }
   object columns {
     val chromosome: Column = ltrim(col("contigName"), "chr") as "chromosome"
-    val reference: Column  = col("referenceAllele") as "reference"
-    val start: Column      = (col("start") + 1) as "start"
-    val end: Column        = (col("end") + 1) as "end"
-    val alternate: Column  = col("alternateAlleles")(0) as "alternate"
-    val name: Column       = col("names")(0) as "name"
+    val reference: Column = col("referenceAllele") as "reference"
+    val start: Column = (col("start") + 1) as "start"
+    val end: Column = (col("end") + 1) as "end"
+    val alternate: Column = col("alternateAlleles")(0) as "alternate"
+    val name: Column = col("names")(0) as "name"
 
     val calculated_duo_af: String => Column = duo => {
       val ac = col(s"${duo}_ac")
@@ -335,7 +440,7 @@ object GenomicImplicits {
       when(col("zygosity") === "HOM" or col("zygosity") === "HET" or col("zygosity") === "WT", 2)
         .otherwise(0) as "an_lower_bound_kf"
 
-    val homozygotes: Column   = when(col("zygosity") === "HOM", 1).otherwise(0) as "homozygotes"
+    val homozygotes: Column = when(col("zygosity") === "HOM", 1).otherwise(0) as "homozygotes"
     val heterozygotes: Column = when(col("zygosity") === "HET", 1).otherwise(0) as "heterozygotes"
 
     val zygosity: Column => Column = c =>
@@ -418,9 +523,9 @@ object GenomicImplicits {
    *  - split_multiallelics
    *  - optionally normalize_variants if a path to a reference genome is given
    *
-   * @param input where the vcf files are located
+   * @param input               where the vcf files are located
    * @param referenceGenomePath reference genome path. This path has to be local for each executors
-   * @param spark a Spark session
+   * @param spark               a Spark session
    * @return data into a dataframe
    */
   def vcf(input: String, referenceGenomePath: Option[String])(implicit spark: SparkSession): DataFrame = {
