@@ -1,15 +1,17 @@
 package bio.ferlab.datalake.spark3.public
 
-import bio.ferlab.datalake.commons.config.ConfigurationLoader
-import bio.ferlab.datalake.commons.config.{Configuration, ConfigurationLoader, StorageConf}
+import bio.ferlab.datalake.commons.config.{Configuration, ConfigurationLoader, SimpleConfiguration, StorageConf}
 import bio.ferlab.datalake.commons.file.FileSystemType.S3
+import pureconfig.generic.auto._
+import pureconfig.module.enum._
 
 package object normalized {
 
   val alias = "public_database"
-
+  private val sc: SimpleConfiguration = ConfigurationLoader.loadFromResources[SimpleConfiguration]("config/reference_kf.conf")
   implicit val conf: Configuration =
-    ConfigurationLoader.loadFromResources("config/reference_kf.conf")
-      .copy(storages = List(StorageConf(alias, getClass.getClassLoader.getResource(".").getFile, S3)))
+    sc
+      .copy(datalake = sc.datalake.copy(storages = List(StorageConf(alias, getClass.getClassLoader.getResource(".").getFile, S3))))
+
 
 }

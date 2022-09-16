@@ -7,10 +7,13 @@ package bio.ferlab.datalake.commons.config
  * @param args arguments passed to the job
  * @param sparkconf extra configuration for the spark conf
  */
-case class Configuration(storages: List[StorageConf] = List(),
-                         sources: List[DatasetConf] = List(),
-                         args: List[String] = List.empty[String],
-                         sparkconf: Map[String, String] = Map()) {
+trait Configuration {
+
+  def storages: List[StorageConf]
+  def sources: List[DatasetConf]
+  def args: List[String]
+  def sparkconf: Map[String, String]
+
 
   /**
    * Fetch a dataset based on its database and table name.
@@ -41,20 +44,5 @@ case class Configuration(storages: List[StorageConf] = List(),
       .getOrElse(throw new IllegalArgumentException(s"storage with alias [$alias] not found"))
   }
 
-  /**
-   * Concatenate this Configuration with that Configuration.
-   * @param that the other Configuration object to concatenate with.
-   * @return a single Configuration object.
-   */
-  def +(that: Configuration): Configuration =
-    Configuration(
-      this.storages ++ that.storages,
-      this.sources ++ that.sources,
-      this.args ++ that.args,
-      this.sparkconf ++ that.sparkconf,
-    )
-}
 
-object Configuration {
-  def empty: Configuration = Configuration()
 }

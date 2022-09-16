@@ -1,40 +1,10 @@
 package bio.ferlab.datalake.spark3.public
 
-import bio.ferlab.datalake.commons.config.{Configuration, ConfigurationLoader, RunStep}
-import org.apache.spark.SparkConf
-import org.apache.spark.sql.SparkSession
-import org.apache.log4j.Logger
-import org.apache.log4j.Level
-import org.slf4j
+import bio.ferlab.datalake.commons.config.SimpleConfiguration
 
-trait SparkApp extends App {
+import pureconfig.generic.auto._
+import pureconfig.module.enum._
 
-  val log: slf4j.Logger = slf4j.LoggerFactory.getLogger(getClass.getCanonicalName)
-
-  def init(appName: String = "SparkApp"): (Configuration, Seq[RunStep], SparkSession) = init(args(0), args(1), appName)
-
-  def init(configurationPath: String, runSteps: String, appName: String = "SparkApp"): (Configuration, Seq[RunStep], SparkSession) = {
-
-    log.info(s"Loading config file: [${configurationPath}]")
-
-    val conf: Configuration = ConfigurationLoader.loadFromResources(configurationPath)
-
-    val sparkConf: SparkConf = conf.sparkconf.foldLeft(new SparkConf()){ case (c, (k, v)) => c.set(k, v) }
-
-    val rt = RunStep.getSteps(runSteps)
-
-    val spark: SparkSession =
-      SparkSession
-        .builder
-        .config(sparkConf)
-        .enableHiveSupport()
-        .appName(appName)
-        .getOrCreate()
-
-    Logger.getLogger("org").setLevel(Level.OFF)
-    Logger.getLogger("akka").setLevel(Level.OFF)
-
-    (conf, rt, spark)
-  }
+abstract class SparkApp extends SparkAppWithConfig[SimpleConfiguration] {
 
 }

@@ -2,7 +2,7 @@ package bio.ferlab.datalake.spark3.implicits
 
 import bio.ferlab.datalake.commons.config.Format.{CSV, DELTA}
 import bio.ferlab.datalake.commons.config.LoadType.{OverWritePartition, Scd2}
-import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf, LoadType, StorageConf, TableConf, WriteOptions}
+import bio.ferlab.datalake.commons.config.{Configuration, DatalakeConf, DatasetConf, LoadType, SimpleConfiguration, StorageConf, TableConf, WriteOptions}
 import bio.ferlab.datalake.commons.file.FileSystemType.LOCAL
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import bio.ferlab.datalake.spark3.testutils.WithSparkSession
@@ -23,7 +23,7 @@ class DatasetConfImplicitsSpec extends AnyFlatSpec with WithSparkSession with Gi
 
   val output: String = Files.createTempDirectory("DatasetConfImplicitsSpec").toAbsolutePath.toString
 
-  implicit val conf: Configuration = Configuration(
+  implicit val conf: Configuration = SimpleConfiguration(DatalakeConf(
     sources = List(
       DatasetConf("overwritepartition_table", "storageid", "path", DELTA, OverWritePartition, partitionby = List("date")),
       DatasetConf("scd2_table", "storageid", "path2", DELTA, Scd2, writeoptions = WriteOptions.DEFAULT_OPTIONS)
@@ -31,7 +31,7 @@ class DatasetConfImplicitsSpec extends AnyFlatSpec with WithSparkSession with Gi
     storages = List(
       StorageConf("storageid", output, LOCAL)
     )
-  )
+  ))
 
   withOutputFolder("output") { output =>
     val df =

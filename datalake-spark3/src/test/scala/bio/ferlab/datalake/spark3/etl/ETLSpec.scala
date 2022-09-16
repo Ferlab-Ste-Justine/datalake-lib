@@ -31,11 +31,11 @@ class ETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers with BeforeAn
   Logger.getLogger("akka").setLevel(Level.OFF)
 
 
-  implicit val conf: Configuration = Configuration(storages = List(
+  implicit val conf: Configuration = SimpleConfiguration(DatalakeConf(storages = List(
     StorageConf("raw", getClass.getClassLoader.getResource("raw/landing").getFile, LOCAL),
     StorageConf("normalized", getClass.getClassLoader.getResource("normalized/").getFile, LOCAL)),
     sources = List()
-  )
+  ))
 
   val srcConf: DatasetConf =  DatasetConf("raw_airports", "raw"       , "/airports.csv", CSV  , OverWrite, Some(TableConf("raw_db" , "raw_airports")), readoptions = Map("header" -> "true", "delimiter" -> "|"))
   val destConf: DatasetConf = DatasetConf("airport"     , "normalized", "/airports"    , DELTA, Upsert, Some(TableConf("normalized_db", "airport")), keys = List("airport_id"))

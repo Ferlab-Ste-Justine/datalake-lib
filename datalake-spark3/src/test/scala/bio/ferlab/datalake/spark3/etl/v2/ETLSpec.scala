@@ -34,11 +34,11 @@ class ETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers with BeforeAn
   val destConf: DatasetConf = DatasetConf("airport"     , "normalized", "/airports"    , DELTA, Upsert, Some(TableConf("normalized_db", "airport")), keys = List("airport_id"))
 
 
-  implicit val conf: Configuration = Configuration(storages = List(
+  implicit val conf: Configuration = SimpleConfiguration(DatalakeConf(storages = List(
     StorageConf("raw", getClass.getClassLoader.getResource("raw/landing").getFile, LOCAL),
     StorageConf("normalized", getClass.getClassLoader.getResource("normalized").getFile, LOCAL)),
     sources = List(srcConf, destConf)
-  )
+  ))
 
 
   case class TestETL() extends ETL() {
