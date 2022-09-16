@@ -11,9 +11,9 @@ trait SparkApp extends App {
 
   val log: slf4j.Logger = slf4j.LoggerFactory.getLogger(getClass.getCanonicalName)
 
-  def init(): (Configuration, Seq[RunStep], SparkSession) = init(args(0), args(1))
+  def init(appName: String = "SparkApp"): (Configuration, Seq[RunStep], SparkSession) = init(args(0), args(1), appName)
 
-  def init(configurationPath: String, runSteps: String): (Configuration, Seq[RunStep], SparkSession) = {
+  def init(configurationPath: String, runSteps: String, appName: String = "SparkApp"): (Configuration, Seq[RunStep], SparkSession) = {
 
     log.info(s"Loading config file: [${configurationPath}]")
 
@@ -28,7 +28,7 @@ trait SparkApp extends App {
         .builder
         .config(sparkConf)
         .enableHiveSupport()
-        .appName("SparkApp")
+        .appName(appName)
         .getOrCreate()
 
     Logger.getLogger("org").setLevel(Level.OFF)
