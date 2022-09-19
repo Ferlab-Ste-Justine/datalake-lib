@@ -8,6 +8,7 @@ import bio.ferlab.datalake.spark3.etl.Runnable
 import bio.ferlab.datalake.spark3.file.FileSystemResolver
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import bio.ferlab.datalake.spark3.loader.LoadResolver
+import bio.ferlab.datalake.spark3.utils.DynamicRepartition
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.slf4j.{Logger, LoggerFactory}
@@ -195,10 +196,5 @@ abstract class ETL()(implicit val conf: Configuration) extends Runnable {
 
   val defaultRowPerPartition: Int = 2000000
 
-  def defaultRepartition: DataFrame => DataFrame = {df =>
-    val persisted = df.persist()
-    val rowCount: Long = persisted.count()
-    persisted.repartition((rowCount.toDouble/defaultRowPerPartition.toDouble).ceil.toInt)
-  }
-
+  def defaultRepartition: DataFrame => DataFrame = DynamicRepartition(defaultRowPerPartition)
 }

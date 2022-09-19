@@ -62,7 +62,7 @@ implicit val conf = ConfigurationLoader.loadFromResources[SimpleConfiguration]("
 
 You can slo define your own case class, if you want for example extend the datalake configuraion.
 
-1. Define your case class, it must extends `ConfigurationWrapper` :
+1. Define your case class, it must extend `ConfigurationWrapper` :
 
 ```scala
 case class ExtraConf(extraOption: String, datalake: DatalakeConf) extends ConfigurationWrapper(datalake)
