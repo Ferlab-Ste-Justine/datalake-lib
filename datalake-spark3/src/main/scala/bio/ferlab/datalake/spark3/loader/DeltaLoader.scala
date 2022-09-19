@@ -121,10 +121,13 @@ object DeltaLoader extends Loader {
     if (partitioning.isEmpty)
       throw new IllegalArgumentException(s"Cannot use loadType 'OverWritePartition' without partitions.")
 
-    val partitionValues = df.select(partitioning.head).distinct.collect().map(_.get(0))
-    val replaceWhereClause = s"${partitioning.head} in ('${partitionValues.mkString("', '")}')"
-
-    writeOnce(location, databaseName, tableName, df, partitioning, format, options + ("replaceWhere" -> replaceWhereClause))
+    if (options.contains("replaceWhere")) {
+      writeOnce(location, databaseName, tableName, df, partitioning, format, options)
+    } else {
+      val partitionValues = df.select(partitioning.head).distinct.collect().map(_.get(0))
+      val replaceWhereClause = s"${partitioning.head} in ('${partitionValues.mkString("', '")}')"
+      writeOnce(location, databaseName, tableName, df, partitioning, format, options + ("replaceWhere" -> replaceWhereClause))
+    }
   }
 
   override def read(location: String,
@@ -158,7 +161,7 @@ object DeltaLoader extends Loader {
 
     val newData =
       updates
-        .withColumn(buidName, sha1(concat_ws("_", primaryKeys.map(col):_*)))
+        .withColumn(buidName, sha1(concat_ws("_", primaryKeys.map(col): _*)))
         .withColumn(validToName, lit(maxValidToDate))
         .withColumn(isCurrentName, lit(true))
 
