@@ -2,8 +2,6 @@ package bio.ferlab.datalake.commons.config
 
 import pureconfig.ConfigReader.Result
 import pureconfig._
-import pureconfig.generic.auto._
-import pureconfig.module.enum._
 
 import scala.language.implicitConversions
 
@@ -19,9 +17,9 @@ object ConfigurationLoader {
    * @param result result from an attempt to load a configuration file
    * @return the configuration file or a fallback configuration.
    */
-  implicit def resultToConfiguration(result: Result[Configuration]): Configuration = {
+  def resultToConfiguration[T <: Configuration](result: Result[T])(implicit cr: ConfigReader[T]): T = {
     result
-      .fold(_ => ConfigSource.default.load[Configuration], conf => Right(conf))
+      .fold(_ => ConfigSource.default.load[T], conf => Right(conf))
       .fold(failure => throw new IllegalArgumentException(failure.prettyPrint()), conf => conf)
   }
 
@@ -32,10 +30,11 @@ object ConfigurationLoader {
    * @param name the name of the resource
    * @return the configuration loaded as [[Configuration]]
    */
-  def loadFromResources(name: String): Configuration = {
-    ConfigSource
+  def loadFromResources[T <: Configuration](name: String)(implicit cr: ConfigReader[T]): T = {
+    resultToConfiguration[T](ConfigSource
       .resources(name)
-      .load[Configuration]
+      .load[T]
+    )
   }
 
   /**
@@ -45,10 +44,12 @@ object ConfigurationLoader {
    * @param path the path where the config file is located.
    * @return the configuration loaded as [[Configuration]]
    */
-  def loadFromPath(path: String): Configuration = {
-    ConfigSource
-      .file(path)
-      .load[Configuration]
+  def loadFromPath[T <: Configuration](path: String)(implicit cr: ConfigReader[T]): T = {
+    resultToConfiguration[T](
+      ConfigSource
+        .file(path)
+        .load[T]
+    )
   }
 
   /**
@@ -57,9 +58,11 @@ object ConfigurationLoader {
    * @param configString the configuration as a string.
    * @return the configuration loaded as [[Configuration]]
    */
-  def loadFromString(configString: String): Configuration = {
-    ConfigSource
-      .string(configString)
-      .load[Configuration]
+  def loadFromString[T <: Configuration](configString: String)(implicit cr: ConfigReader[T]): T = {
+    resultToConfiguration[T](
+      ConfigSource
+        .string(configString)
+        .load[T]
+    )
   }
 }

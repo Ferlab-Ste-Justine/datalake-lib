@@ -9,16 +9,17 @@ Library built on top of Apache Spark to speed-up data lakes development.
 ```scala
 val raw = "raw"
 val curated = "curated"
-val config = Configuration(
-  sources = List(
-    DatasetConf("raw_data1"    , raw    , "/data1", JSON , OverWrite),
-    DatasetConf("raw_data2"    , raw    , "/data2", JSON , OverWrite),
-    
-    DatasetConf("curated_data1", curated, "/data1", DELTA, OverWrite),
-    DatasetConf("curated_data2", curated, "/data2", DELTA, OverWrite)
-  ),
-  sparkconf = Map(
-    "spark.hadoop.fs.s3a.endpoint" -> "https://example.com"
+val config = SimpleConfiguration(
+  datalake = DatalakeConf(
+    sources = List(
+      DatasetConf("raw_data1"    , raw    , "/data1", JSON , OverWrite),
+      DatasetConf("raw_data2"    , raw    , "/data2", JSON , OverWrite),
+      DatasetConf("curated_data1", curated, "/data1", DELTA, OverWrite),
+      DatasetConf("curated_data2", curated, "/data2", DELTA, OverWrite)
+    ),
+    sparkconf = Map(
+      "spark.hadoop.fs.s3a.endpoint" -> "https://example.com"
+    )
   )
 )
 ```
@@ -39,9 +40,9 @@ val prodStorages = List(
   StorageConf(raw    , "s3a://prod-raw"    , S3),
   StorageConf(curated, "s3a://prod-curated", S3)
 )
-val localConf = config.copy(storages = localStorages)
-val devConf = config.copy(storages = devStorages)
-val prodConf = config.copy(storages = devStorages)
+val localConf = config.copy(config.datalake.copy(storages = localStorages))
+val devConf = config.copy(config.datalake.copy(storages = devStorages))
+val prodConf = config.copy(config.datalake.copy(storages = devStorages))
 ```
 3. Generate a configuration file as HOCON format
 
@@ -54,7 +55,29 @@ ConfigurationWriter.writeTo("src/main/resources/config/prod.conf", prodConf)
 4. Load the configuration file and make it available in your unit tests or ETLs
 
 ```scala
-implicit val conf = ConfigurationLoader.loadFromResources("config/local.conf")
+implicit val conf = ConfigurationLoader.loadFromResources[SimpleConfiguration]("config/local.conf")
+```
+
+### Define your own configuration case class
+
+You can also define your own case class, if you want for example extend the datalake configuraion.
+
+1. Define your case class, it must extend `ConfigurationWrapper` :
+
+```scala
+case class ExtraConf(extraOption: String, datalake: DatalakeConf) extends ConfigurationWrapper(datalake)
+```
+
+2. For writing your configuration, use ConfigurationWriter
+
+```scala   
+ConfigurationWriter.writeTo("src/test/resources/config/local.conf", localConf)
+```
+
+3. For loading your configuration 
+
+```scala
+implicit val conf = ConfigurationLoader.loadFromResources[ExtraConf]("config/local.conf")
 ```
 
 ### ETL class

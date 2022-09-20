@@ -8,6 +8,7 @@ import bio.ferlab.datalake.spark3.etl.Runnable
 import bio.ferlab.datalake.spark3.file.FileSystemResolver
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import bio.ferlab.datalake.spark3.loader.LoadResolver
+import bio.ferlab.datalake.spark3.utils.{DynamicRepartition, IdentityRepartition}
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.slf4j.{Logger, LoggerFactory}
@@ -20,6 +21,7 @@ import scala.util.Try
 /**
  * Defines a common workflow for ETL jobs.
  * By definition an ETL can take 1..n sources as input and can produce only 1 output.
+ *
  * @param conf application configuration
  */
 abstract class ETL()(implicit val conf: Configuration) extends Runnable {
@@ -33,6 +35,7 @@ abstract class ETL()(implicit val conf: Configuration) extends Runnable {
   /**
    * Reads data from a file system and produce a Map[DatasetConf, DataFrame].
    * This method should avoid transformation and joins but can implement filters in order to make the ETL more efficient.
+   *
    * @param spark an instance of SparkSession
    * @return all the data needed to pass to the transform method and produce the desired output.
    */
@@ -43,7 +46,7 @@ abstract class ETL()(implicit val conf: Configuration) extends Runnable {
    * Takes a Map[DatasetConf, DataFrame] as input and apply a set of transformation to it to produce the ETL output.
    * It is recommended to not read any additional data but to use the extract() method instead to inject input data.
    *
-   * @param data input data
+   * @param data  input data
    * @param spark an instance of SparkSession
    * @return
    */
@@ -55,27 +58,30 @@ abstract class ETL()(implicit val conf: Configuration) extends Runnable {
    * Loads the output data into a persistent storage.
    * The output destination can be any of: object store, database or flat files...
    *
-   * @param data output data produced by the transform method.
+   * @param data  output data produced by the transform method.
    * @param spark an instance of SparkSession
    */
   def load(data: Map[String, DataFrame],
            lastRunDateTime: LocalDateTime = minDateTime,
            currentRunDateTime: LocalDateTime = LocalDateTime.now(),
-           repartition: DataFrame => DataFrame = defaultRepartition)(implicit spark: SparkSession): Map[String, DataFrame] = {
+           repartition: DataFrame => DataFrame = defaultRepartition
+          )(implicit spark: SparkSession): Map[String, DataFrame] = {
     data.map { case (dsid, df) =>
       val ds = conf.getDataset(dsid)
+      val dsWithReplaceWhere = replaceWhere.map(r => ds.copy(writeoptions = ds.writeoptions + ("replaceWhere" -> r))).getOrElse(ds)
       LoadResolver
-        .write(spark, conf)(ds.format -> ds.loadtype)
-        .apply(ds, repartition(df))
+        .write(spark, conf)(dsWithReplaceWhere.format -> dsWithReplaceWhere.loadtype)
+        .apply(dsWithReplaceWhere, repartition(df))
 
       log.info(s"Succeeded to load $dsid")
-      dsid -> ds.read
+      dsid -> dsWithReplaceWhere.read
     }
   }
 
   /**
    * OPTIONAL - Contains all actions needed to be done in order to make the data available to users
    * like creating a view with the data.
+   *
    * @param spark an instance of SparkSession
    */
   def publish()(implicit spark: SparkSession): Unit = {
@@ -84,6 +90,7 @@ abstract class ETL()(implicit val conf: Configuration) extends Runnable {
 
   /**
    * Entry point of the etl - execute this method in order to run the whole ETL
+   *
    * @param spark an instance of SparkSession
    */
   override def run(runSteps: Seq[RunStep] = RunStep.default_load,
@@ -139,7 +146,8 @@ abstract class ETL()(implicit val conf: Configuration) extends Runnable {
 
   /**
    * If possible, fetch the last run date time from the dataset passed in argument
-   * @param ds dataset
+   *
+   * @param ds    dataset
    * @param spark a spark session
    * @return the last run date or the [[minDateTime]]
    */
@@ -185,6 +193,7 @@ abstract class ETL()(implicit val conf: Configuration) extends Runnable {
 
   /**
    * Logic used when the ETL is run as a [[SAMPLE_LOAD]]
+   *
    * @return
    */
   def sampling: PartialFunction[String, DataFrame => DataFrame] = defaultSampling
@@ -193,12 +202,12 @@ abstract class ETL()(implicit val conf: Configuration) extends Runnable {
     case _ => df => df.sample(0.05)
   }
 
-  val defaultRowPerPartition: Int = 2000000
+  def defaultRepartition: DataFrame => DataFrame = IdentityRepartition
 
-  def defaultRepartition: DataFrame => DataFrame = {df =>
-    val persisted = df.persist()
-    val rowCount: Long = persisted.count()
-    persisted.repartition((rowCount.toDouble/defaultRowPerPartition.toDouble).ceil.toInt)
-  }
-
+  /**
+   * replaceWhere is used in for OverWriteStaticPartition load. It avoids to compute dataframe to infer which partitions to replace.
+   * Most of the time, these partitions can be inferred statically. Always prefer that to dynamically overwrite partitions.
+   * @return
+   */
+  def replaceWhere: Option[String] = None
 }

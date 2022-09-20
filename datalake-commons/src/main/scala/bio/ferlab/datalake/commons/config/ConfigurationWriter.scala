@@ -9,7 +9,7 @@ import java.io.{File, PrintWriter}
 
 object ConfigurationWriter {
 
-  implicit val configDescriptor: Descriptor[Configuration] = Descriptor.getDescriptor[Configuration]
+//  implicit val configDescriptor: Descriptor[SimpleConfiguration] = Descriptor.getDescriptor[SimpleConfiguration]
   val log: slf4j.Logger = slf4j.LoggerFactory.getLogger(getClass.getCanonicalName)
 
   /**
@@ -17,9 +17,9 @@ object ConfigurationWriter {
    * @param conf configuration to convert
    * @return a configuration as HOCON string
    */
-  def toHocon(conf: Configuration): String = {
+  def toHocon[T <: Configuration](conf: T)(implicit configDescriptor: Descriptor[T]): String = {
 
-    val d: ConfigDescriptor[Configuration] = descriptor[Configuration]
+    val d: ConfigDescriptor[T] = descriptor[T]
 
     val written: PropertyTree[String, String] = write(d, conf).getOrElse(throw new Exception("bad conf"))
     written.toHoconString
@@ -30,10 +30,10 @@ object ConfigurationWriter {
    * @param path path of the resulting file.
    * @param conf configuration to write.
    */
-  def writeTo(path: String,
-              conf: Configuration): Unit = {
+  def writeTo[T <: Configuration](path: String,
+              conf: T)(implicit configDescriptor: Descriptor[T]): Unit = {
 
-    val content = toHocon(conf)
+    val content:String = toHocon[T](conf)
 
     val contentWithEnvVariable = content
       .replaceAll("\"\\$\\{", "\\$\\{")
