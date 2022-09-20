@@ -207,7 +207,10 @@ abstract class ETL()(implicit val conf: Configuration) extends Runnable {
   /**
    * replaceWhere is used in for OverWriteStaticPartition load. It avoids to compute dataframe to infer which partitions to replace.
    * Most of the time, these partitions can be inferred statically. Always prefer that to dynamically overwrite partitions.
+   *
    * @return
    */
   def replaceWhere: Option[String] = None
+
+  def toMain(df: => DataFrame): Map[String, DataFrame] = Map(mainDestination.id -> df)
 }
