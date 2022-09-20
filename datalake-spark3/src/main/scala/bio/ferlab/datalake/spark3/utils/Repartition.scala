@@ -42,7 +42,7 @@ case class RepartitionByRange(columnNames: Seq[String], n: Option[Int] = None, s
   }
 }
 
-case class DynamicRepartition(n: Int) extends Repartition {
+case class DynamicRepartition(n: Int = 2000000) extends Repartition {
   override def repartition(df: DataFrame): DataFrame = {
     val persisted = df.persist()
     val rowCount: Long = persisted.count()

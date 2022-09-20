@@ -8,7 +8,7 @@ import bio.ferlab.datalake.spark3.etl.Runnable
 import bio.ferlab.datalake.spark3.file.FileSystemResolver
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import bio.ferlab.datalake.spark3.loader.LoadResolver
-import bio.ferlab.datalake.spark3.utils.DynamicRepartition
+import bio.ferlab.datalake.spark3.utils.{DynamicRepartition, IdentityRepartition}
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.slf4j.{Logger, LoggerFactory}
@@ -202,9 +202,7 @@ abstract class ETL()(implicit val conf: Configuration) extends Runnable {
     case _ => df => df.sample(0.05)
   }
 
-  val defaultRowPerPartition: Int = 2000000
-
-  def defaultRepartition: DataFrame => DataFrame = DynamicRepartition(defaultRowPerPartition)
+  def defaultRepartition: DataFrame => DataFrame = IdentityRepartition
 
   /**
    * replaceWhere is used in for OverWriteStaticPartition load. It avoids to compute dataframe to infer which partitions to replace.
