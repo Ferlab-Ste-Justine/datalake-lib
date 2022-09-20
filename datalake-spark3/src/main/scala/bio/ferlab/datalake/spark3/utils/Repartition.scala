@@ -6,9 +6,9 @@ import org.apache.spark.sql.functions.col
 trait Repartition extends Function[DataFrame, DataFrame] {
   def repartition(df: DataFrame): DataFrame
 
-  protected def sort(unsortedDF: DataFrame, sortColumns: Seq[Column]): DataFrame = sortColumns match {
+  protected def sortWithinPartition(unsortedDF: DataFrame, sortColumns: Seq[Column]): DataFrame = sortColumns match {
     case Nil => unsortedDF
-    case _ => unsortedDF.sort(sortColumns: _*)
+    case _ => unsortedDF.sortWithinPartitions(sortColumns: _*)
   }
 
   override def apply(df: DataFrame): DataFrame = repartition(df)
@@ -19,7 +19,7 @@ case object IdentityRepartition extends Repartition {
 }
 
 case class FixedRepartition(n: Int, sortColumns: Seq[Column] = Nil) extends Repartition {
-  override def repartition(df: DataFrame): DataFrame = sort(df.repartition(n), sortColumns)
+  override def repartition(df: DataFrame): DataFrame = sortWithinPartition(df.repartition(n), sortColumns)
 }
 
 case class RepartitionByColumns(columnNames: Seq[String], n: Option[Int] = None, sortColumns: Seq[Column] = Nil) extends Repartition {
@@ -28,7 +28,7 @@ case class RepartitionByColumns(columnNames: Seq[String], n: Option[Int] = None,
       case Some(i) => df.repartition(i, columnNames.map(col): _*)
       case _ => df.repartition(columnNames.map(col): _*)
     }
-    sort(unsortedDF, sortColumns)
+    sortWithinPartition(unsortedDF, sortColumns)
   }
 }
 
@@ -38,7 +38,7 @@ case class RepartitionByRange(columnNames: Seq[String], n: Option[Int] = None, s
       case Some(i) => df.repartitionByRange(i, columnNames.map(col): _*)
       case _ => df.repartitionByRange(columnNames.map(col): _*)
     }
-    sort(unsortedDF, sortColumns)
+    sortWithinPartition(unsortedDF, sortColumns)
   }
 }
 
