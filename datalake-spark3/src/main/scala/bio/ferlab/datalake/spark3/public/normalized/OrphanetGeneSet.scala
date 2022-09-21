@@ -146,12 +146,6 @@ class OrphanetGeneSet()(implicit conf: Configuration) extends ETLP {
     }
   }
 
-  override def loadSingle(data: DataFrame,
-                          lastRunDateTime: LocalDateTime = minDateTime,
-                          currentRunDateTime: LocalDateTime = LocalDateTime.now(),
-                          repartition: DataFrame => DataFrame = defaultRepartition
-                         )(implicit spark: SparkSession): DataFrame = {
-    super.loadSingle(data, lastRunDateTime, currentRunDateTime, Coalesce())
-  }
+  override val defaultRepartition: DataFrame => DataFrame = Coalesce()
 }
 

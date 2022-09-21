@@ -43,10 +43,10 @@ class GenesSpec extends AnyFlatSpec with GivenWhenThen with WithSparkSession wit
     val expectedOrphanet = List(ORPHANET(17601, "Multiple epiphyseal dysplasia, Al-Gazali type", List("Autosomal recessive")))
     val expectedOmim = List(OMIM("Shprintzen-Goldberg syndrome", "182212", List("Autosomal dominant"), List("AD")))
 
-    resultDF.where("symbol='OR4F5'").as[GenesOutput].collect().head shouldBe
+    resultDF(destination.id).where("symbol='OR4F5'").as[GenesOutput].collect().head shouldBe
       GenesOutput(`orphanet` = expectedOrphanet, `omim` = expectedOmim)
 
-    resultDF
+    resultDF(destination.id)
       .where("symbol='OR4F4'")
       .select(
         functions.size(col("orphanet")),
