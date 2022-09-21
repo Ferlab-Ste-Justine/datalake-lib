@@ -60,7 +60,7 @@ lazy val `datalake-spark3` = (project in file("datalake-spark3"))
       "com.microsoft.azure"     %  "spark-mssql-connector_2.12"     % "1.1.0"              % Provided,
       "com.dimafeng"            %% "testcontainers-scala-scalatest" % "0.38.8"             % Test,
       "org.testcontainers"      %  "localstack"                     % "1.15.2"             % Test,
-      "org.scalatest"           %% "scalatest"                      % scalatestVersion,
+      "org.scalatest"           %% "scalatest"                      % scalatestVersion     % Test,
       "org.apache.spark"        %% "spark-hive"                     % spark31Version       % Test
 ),
     dependencyOverrides ++= Seq(
