@@ -35,9 +35,7 @@ object ConfigurationWriter {
 
     val content:String = toHocon[T](conf)
 
-    val contentWithEnvVariable = content
-      .replaceAll("\"\\$\\{", "\\$\\{")
-      .replaceAll("}\"", "}")
+    val contentWithEnvVariable = replaceEnvVariables(content)
 
     log.debug(
       s"""writting configuration: $path :
@@ -49,7 +47,13 @@ object ConfigurationWriter {
     val pw = new PrintWriter(file)
     pw.write(contentWithEnvVariable)
     pw.close()
-
   }
 
+  /**
+   * Remove double quotes around environment variables
+   *
+   * @param content string on which to apply replace
+   * @return the resulting string
+   */
+  def replaceEnvVariables(content: String): String = content.replaceAll("\"(\\$\\{.*})\"", "$1")
 }
