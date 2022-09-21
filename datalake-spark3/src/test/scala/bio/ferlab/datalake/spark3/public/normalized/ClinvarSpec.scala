@@ -28,7 +28,7 @@ class ClinvarSpec extends AnyFlatSpec with GivenWhenThen with WithSparkSession w
   "transform" should "transform ClinvarInput to ClinvarOutput" in {
     val inputData = Map(source.id -> Seq(ClinvarInput("2"), ClinvarInput("3")).toDF())
 
-    val resultDF = new Clinvar().transform(inputData)
+    val resultDF = new Clinvar().transformSingle(inputData)
 
     val expectedResults = Seq(ClinvarOutput("2"), ClinvarOutput("3"))
 
@@ -41,12 +41,12 @@ class ClinvarSpec extends AnyFlatSpec with GivenWhenThen with WithSparkSession w
     val expectedResults = Seq(ClinvarOutput("1", name = "second"), ClinvarOutput("2"), ClinvarOutput("3"))
 
     val job = new Clinvar()
-    job.load(firstLoad.toDF())
+    job.loadSingle(firstLoad.toDF())
     val firstResult = spark.read.format("delta").load(destination.location)
     firstResult.select("chromosome", "start", "end", "reference", "alternate", "name").show(false)
     firstResult.as[ClinvarOutput].collect() should contain allElementsOf firstLoad
 
-    job.load(secondLoad.toDF())
+    job.loadSingle(secondLoad.toDF())
     val secondResult = spark.read.format("delta").load(destination.location)
     secondResult.select("chromosome", "start", "end", "reference", "alternate", "name").show(false)
     secondResult.as[ClinvarOutput].collect() should contain allElementsOf expectedResults

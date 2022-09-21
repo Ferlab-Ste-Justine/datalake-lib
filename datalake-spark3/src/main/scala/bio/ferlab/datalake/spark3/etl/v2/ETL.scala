@@ -28,7 +28,7 @@ abstract class ETL()(implicit val conf: Configuration) extends Runnable {
 
   val minDateTime: LocalDateTime = LocalDateTime.of(1900, 1, 1, 0, 0, 0)
   val maxDateTime: LocalDateTime = LocalDateTime.of(9999, 12, 31, 23, 59, 55)
-  val mainDestination: DatasetConf
+  def mainDestination: DatasetConf
 
   val log: Logger = LoggerFactory.getLogger(getClass.getCanonicalName)
 
@@ -67,15 +67,18 @@ abstract class ETL()(implicit val conf: Configuration) extends Runnable {
            repartition: DataFrame => DataFrame = defaultRepartition
           )(implicit spark: SparkSession): Map[String, DataFrame] = {
     data.map { case (dsid, df) =>
-      val ds = conf.getDataset(dsid)
-      val dsWithReplaceWhere = replaceWhere.map(r => ds.copy(writeoptions = ds.writeoptions + ("replaceWhere" -> r))).getOrElse(ds)
-      LoadResolver
-        .write(spark, conf)(dsWithReplaceWhere.format -> dsWithReplaceWhere.loadtype)
-        .apply(dsWithReplaceWhere, repartition(df))
-
-      log.info(s"Succeeded to load $dsid")
-      dsid -> dsWithReplaceWhere.read
+      dsid -> loadDataset(df, conf.getDataset(dsid), repartition)
     }
+  }
+
+  def loadDataset(df: DataFrame, ds: DatasetConf, repartition: DataFrame => DataFrame)(implicit spark: SparkSession): DataFrame = {
+    val dsWithReplaceWhere = replaceWhere.map(r => ds.copy(writeoptions = ds.writeoptions + ("replaceWhere" -> r))).getOrElse(ds)
+    LoadResolver
+      .write(spark, conf)(dsWithReplaceWhere.format -> dsWithReplaceWhere.loadtype)
+      .apply(dsWithReplaceWhere, repartition(df))
+
+    log.info(s"Succeeded to load ${ds.id}")
+    dsWithReplaceWhere.read
   }
 
   /**

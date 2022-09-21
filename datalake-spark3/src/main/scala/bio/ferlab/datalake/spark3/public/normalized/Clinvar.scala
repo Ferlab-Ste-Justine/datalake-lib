@@ -5,6 +5,7 @@ import bio.ferlab.datalake.spark3.etl.ETLP
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns._
 import bio.ferlab.datalake.spark3.implicits.SparkUtils._
+import bio.ferlab.datalake.spark3.utils.Coalesce
 import org.apache.spark.sql._
 import org.apache.spark.sql.expressions.UserDefinedFunction
 import org.apache.spark.sql.functions._
@@ -14,7 +15,7 @@ import scala.collection.mutable
 
 class Clinvar()(implicit conf: Configuration) extends ETLP {
 
-  override val destination: DatasetConf = conf.getDataset("normalized_clinvar")
+  override val mainDestination: DatasetConf = conf.getDataset("normalized_clinvar")
 
   val clinvar_vcf: DatasetConf = conf.getDataset("raw_clinvar")
 
@@ -23,7 +24,7 @@ class Clinvar()(implicit conf: Configuration) extends ETLP {
     Map(clinvar_vcf.id -> clinvar_vcf.read)
   }
 
-  override def transform(data: Map[String, DataFrame],
+  override def transformSingle(data: Map[String, DataFrame],
                          lastRunDateTime: LocalDateTime,
                          currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): DataFrame = {
 
@@ -74,27 +75,29 @@ class Clinvar()(implicit conf: Configuration) extends ETLP {
 
   }
 
-  override def load(data: DataFrame,
-                    lastRunDateTime: LocalDateTime,
-                    currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): DataFrame = {
-    super.load(data.coalesce(1), lastRunDateTime, currentRunDateTime)
+  override def loadSingle(data: DataFrame,
+                          lastRunDateTime: LocalDateTime = minDateTime,
+                          currentRunDateTime: LocalDateTime = LocalDateTime.now(),
+                          repartition: DataFrame => DataFrame = defaultRepartition
+                         )(implicit spark: SparkSession): DataFrame = {
+    super.loadSingle(data, lastRunDateTime, currentRunDateTime, Coalesce())
   }
 
   val inheritance_udf: UserDefinedFunction = udf { array: mutable.WrappedArray[String] =>
     val unknown = "unknown"
 
     val labels = Map(
-      0          -> unknown,
-      1          -> "germline",
-      2          -> "somatic",
-      4          -> "inherited",
-      8          -> "paternal",
-      16         -> "maternal",
-      32         -> "de-novo",
-      64         -> "biparental",
-      128        -> "uniparental",
-      256        -> "not-tested",
-      512        -> "tested-inconclusive",
+      0 -> unknown,
+      1 -> "germline",
+      2 -> "somatic",
+      4 -> "inherited",
+      8 -> "paternal",
+      16 -> "maternal",
+      32 -> "de-novo",
+      64 -> "biparental",
+      128 -> "uniparental",
+      256 -> "not-tested",
+      512 -> "tested-inconclusive",
       1073741824 -> "other"
     )
 
@@ -109,7 +112,7 @@ class Clinvar()(implicit conf: Configuration) extends ETLP {
           .map(_.toInt)
           .flatMap { number =>
             labels.collect {
-              case (_, _) if number == 0                 => unknown
+              case (_, _) if number == 0 => unknown
               case (digit, str) if (number & digit) != 0 => str
             }
           }

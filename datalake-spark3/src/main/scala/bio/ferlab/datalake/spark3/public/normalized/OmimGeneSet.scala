@@ -4,6 +4,7 @@ import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf}
 import bio.ferlab.datalake.spark3.etl.ETLP
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import bio.ferlab.datalake.spark3.public.normalized.OmimPhenotype.parse_pheno
+import bio.ferlab.datalake.spark3.utils.Coalesce
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
@@ -11,7 +12,7 @@ import java.time.LocalDateTime
 
 class OmimGeneSet()(implicit conf: Configuration) extends ETLP {
 
-  override val destination: DatasetConf = conf.getDataset("normalized_omim_gene_set")
+  override val mainDestination: DatasetConf = conf.getDataset("normalized_omim_gene_set")
   val raw_omim_genemap: DatasetConf = conf.getDataset("raw_omim_genemap")
 
   override def extract(lastRunDateTime: LocalDateTime,
@@ -19,7 +20,7 @@ class OmimGeneSet()(implicit conf: Configuration) extends ETLP {
     Map(raw_omim_genemap.id -> raw_omim_genemap.read)
   }
 
-  override def transform(data: Map[String, DataFrame],
+  override def transformSingle(data: Map[String, DataFrame],
                          lastRunDateTime: LocalDateTime,
                          currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): DataFrame = {
     val intermediateDf =
@@ -59,10 +60,13 @@ class OmimGeneSet()(implicit conf: Configuration) extends ETLP {
       .unionByName(nullPhenotypes)
   }
 
-  override def load(data: DataFrame,
-                    lastRunDateTime: LocalDateTime,
-                    currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): DataFrame =
-    super.load(data.coalesce(1), lastRunDateTime, currentRunDateTime)
+  override def loadSingle(data: DataFrame,
+                          lastRunDateTime: LocalDateTime = minDateTime,
+                          currentRunDateTime: LocalDateTime = LocalDateTime.now(),
+                          repartition: DataFrame => DataFrame = defaultRepartition
+                         )(implicit spark: SparkSession): DataFrame = {
+    super.loadSingle(data, lastRunDateTime, currentRunDateTime, Coalesce())
+  }
 }
 
 

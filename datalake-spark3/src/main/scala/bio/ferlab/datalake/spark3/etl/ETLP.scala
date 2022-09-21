@@ -7,19 +7,19 @@ import org.apache.spark.sql.functions.{col, lit, regexp_extract, trim}
 
 import scala.util.Try
 
-@deprecated("use [[v2.ETL]] instead", "0.2.0")
-abstract class ETLP()(implicit conf: Configuration) extends ETL {
+
+abstract class ETLP()(implicit conf: Configuration) extends ETLSingleDestination {
 
   override def publish()(implicit spark: SparkSession): Unit = {
 
-    if (destination.documentationpath.nonEmpty && destination.table.nonEmpty) {
-      val t = destination.table.get
-      UpdateTableComments.run(t.database, t.name, destination.documentationpath.get)
+    if (mainDestination.documentationpath.nonEmpty && mainDestination.table.nonEmpty) {
+      val t = mainDestination.table.get
+      UpdateTableComments.run(t.database, t.name, mainDestination.documentationpath.get)
     }
 
-    if (destination.view.nonEmpty && destination.table.nonEmpty) {
-      val v = destination.view.get
-      val t = destination.table.get
+    if (mainDestination.view.nonEmpty && mainDestination.table.nonEmpty) {
+      val v = mainDestination.view.get
+      val t = mainDestination.table.get
 
       Try { spark.sql(s"drop table if exists ${v.fullName}") }
       spark.sql(s"create or replace view ${v.fullName} as select * from ${t.fullName}")
@@ -29,7 +29,7 @@ abstract class ETLP()(implicit conf: Configuration) extends ETL {
 
   private def regexp_extractFromCreateStatement[T](regex: String, defaultValue: T)(implicit spark: SparkSession): T = {
     Try {
-      val table = destination.table.get
+      val table = mainDestination.table.get
       spark.sql(s"show create table ${table.fullName}")
         .withColumn("extracted_value", regexp_extract(col("createtab_stmt"), regex, 1))
         .where(trim(col("extracted_value")) =!= lit(""))

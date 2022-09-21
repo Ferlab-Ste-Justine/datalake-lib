@@ -29,7 +29,7 @@ class AnnovarScoresSpec extends AnyFlatSpec with GivenWhenThen with WithSparkSes
   "transform" should "transform AnnovarScoresInput to AnnovarScoresOutput" in {
     val inputData = Map(source.id -> Seq(AnnovarScoresInput("2"), AnnovarScoresInput("3")).toDF())
 
-    val resultDF = job.transform(inputData)
+    val resultDF = job.transformSingle(inputData)
 
     //ClassGenerator
     //  .writeCLassFile(
@@ -48,11 +48,11 @@ class AnnovarScoresSpec extends AnyFlatSpec with GivenWhenThen with WithSparkSes
     val secondLoad = Seq(AnnovarScoresOutput("1", SIFT_pred = "second"), AnnovarScoresOutput("3"))
     val expectedResults = Seq(AnnovarScoresOutput("1", SIFT_pred = "second"), AnnovarScoresOutput("2"), AnnovarScoresOutput("3"))
 
-    job.load(firstLoad.toDF())
+    job.loadSingle(firstLoad.toDF())
     val firstResult = destination.read
     firstResult.as[AnnovarScoresOutput].collect() should contain allElementsOf firstLoad
 
-    job.load(secondLoad.toDF())
+    job.loadSingle(secondLoad.toDF())
     val secondResult = destination.read
     secondResult.as[AnnovarScoresOutput].collect() should contain allElementsOf expectedResults
     secondResult.show(false)
