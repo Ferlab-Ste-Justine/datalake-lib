@@ -6,11 +6,10 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
 
 import java.time.LocalDateTime
 
-@deprecated("use [[v2.ETL]] instead", "0.2.0")
 class RawToNormalizedETL(val source: DatasetConf,
-                         override val destination: DatasetConf,
+                         override val mainDestination: DatasetConf,
                          val transformations: List[Transformation])
-                        (override implicit val conf: Configuration) extends ETL() {
+                        (override implicit val conf: Configuration) extends ETLSingleDestination() {
 
   override def extract(lastRunDateTime: LocalDateTime,
                        currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): Map[String, DataFrame] = {
@@ -26,14 +25,14 @@ class RawToNormalizedETL(val source: DatasetConf,
    * @param spark an instance of SparkSession
    * @return
    */
-  override def transform(data: Map[String, DataFrame],
+  override def transformSingle(data: Map[String, DataFrame],
                          lastRunDateTime: LocalDateTime,
                          currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): DataFrame = {
-    log.info(s"transforming: ${source.id} to ${destination.id}")
+    log.info(s"transforming: ${source.id} to ${mainDestination.id}")
     //apply list of transformations to the input data
     val finalDf = Transformation.applyTransformations(data(source.id), transformations).persist()
 
-    log.info(s"unique ids: ${finalDf.dropDuplicates(destination.keys).count()}")
+    log.info(s"unique ids: ${finalDf.dropDuplicates(mainDestination.keys).count()}")
     log.info(s"rows: ${finalDf.count()}")
     finalDf
   }

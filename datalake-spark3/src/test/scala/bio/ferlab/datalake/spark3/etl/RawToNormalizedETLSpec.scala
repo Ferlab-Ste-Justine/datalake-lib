@@ -67,7 +67,7 @@ class RawToNormalizedETLSpec extends AnyFlatSpec with GivenWhenThen with Matcher
     import spark.implicits._
 
     val input = job.extract()
-    val output = job.transform(input, LocalDateTime.now(), LocalDateTime.now())
+    val output = job.transformSingle(input, LocalDateTime.now(), LocalDateTime.now())
     val head = output.as[AirportOutput].where(col("airport_id") === 1).collect().head
     head shouldBe AirportOutput(input_file_name = head.input_file_name, createdOn = head.createdOn)
 
@@ -83,7 +83,7 @@ class RawToNormalizedETLSpec extends AnyFlatSpec with GivenWhenThen with Matcher
 
     val output = Seq(AirportOutput()).toDF()
 
-    job.load(output)
+    job.loadSingle(output)
 
     val table = spark.table(s"${destConf.table.get.fullName}")
     table.as[AirportOutput].collect().head shouldBe AirportOutput()

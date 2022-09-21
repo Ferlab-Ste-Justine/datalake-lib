@@ -49,3 +49,7 @@ case class DynamicRepartition(n: Int = 2000000) extends Repartition {
     persisted.repartition((rowCount.toDouble / n.toDouble).ceil.toInt)
   }
 }
+
+case class Coalesce(n: Int = 1) extends Repartition{
+  override def repartition(df: DataFrame): DataFrame = df.coalesce(n)
+}

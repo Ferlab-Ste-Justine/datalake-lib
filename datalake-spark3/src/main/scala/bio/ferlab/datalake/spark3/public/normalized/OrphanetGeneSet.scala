@@ -2,15 +2,16 @@ package bio.ferlab.datalake.spark3.public.normalized
 
 import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf}
 import bio.ferlab.datalake.spark3.etl.ETLP
+import bio.ferlab.datalake.spark3.utils.Coalesce
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
 import java.time.LocalDateTime
 import scala.xml.{Elem, Node, XML}
 
 class OrphanetGeneSet()(implicit conf: Configuration) extends ETLP {
-  override val destination: DatasetConf = conf.getDataset("normalized_orphanet_gene_set")
-  val orphanet_gene_association: DatasetConf  = conf.getDataset("raw_orphanet_gene_association")
-  val orphanet_disease_history: DatasetConf  = conf.getDataset("raw_orphanet_disease_history")
+  override val mainDestination: DatasetConf = conf.getDataset("normalized_orphanet_gene_set")
+  val orphanet_gene_association: DatasetConf = conf.getDataset("raw_orphanet_gene_association")
+  val orphanet_disease_history: DatasetConf = conf.getDataset("raw_orphanet_disease_history")
 
   override def extract(lastRunDateTime: LocalDateTime,
                        currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): Map[String, DataFrame] = {
@@ -30,9 +31,9 @@ class OrphanetGeneSet()(implicit conf: Configuration) extends ETLP {
 
   }
 
-  override def transform(data: Map[String, DataFrame],
-                         lastRunDateTime: LocalDateTime,
-                         currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): DataFrame = {
+  override def transformSingle(data: Map[String, DataFrame],
+                               lastRunDateTime: LocalDateTime,
+                               currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): DataFrame = {
     data(orphanet_gene_association.id)
       .join(
         data(orphanet_disease_history.id).select(
@@ -53,11 +54,11 @@ class OrphanetGeneSet()(implicit conf: Configuration) extends ETLP {
         .map(_ \ "Reference")
         .map(_.text)
 
-  val ensembl_gene_id: Node => Option[String]    = genes => getIdFromSourceName(genes, "Ensembl")
-  val genatlas_gene_id: Node => Option[String]   = genes => getIdFromSourceName(genes, "Genatlas")
-  val HGNC_gene_id: Node => Option[String]       = genes => getIdFromSourceName(genes, "HGNC")
-  val omim_gene_id: Node => Option[String]       = genes => getIdFromSourceName(genes, "OMIM")
-  val reactome_gene_id: Node => Option[String]   = genes => getIdFromSourceName(genes, "Reactome")
+  val ensembl_gene_id: Node => Option[String] = genes => getIdFromSourceName(genes, "Ensembl")
+  val genatlas_gene_id: Node => Option[String] = genes => getIdFromSourceName(genes, "Genatlas")
+  val HGNC_gene_id: Node => Option[String] = genes => getIdFromSourceName(genes, "HGNC")
+  val omim_gene_id: Node => Option[String] = genes => getIdFromSourceName(genes, "OMIM")
+  val reactome_gene_id: Node => Option[String] = genes => getIdFromSourceName(genes, "Reactome")
   val swiss_prot_gene_id: Node => Option[String] = genes => getIdFromSourceName(genes, "SwissProt")
 
   val association_type: Node => Option[String] =
@@ -76,17 +77,17 @@ class OrphanetGeneSet()(implicit conf: Configuration) extends ETLP {
 
   def parseProduct6XML(doc: Elem): Seq[OrphanetGeneAssociation] = {
     for {
-      disorder          <- doc \\ "DisorderList" \\ "Disorder"
-      orphaNumber       <- disorder \ "OrphaCode"
-      expertLink        <- disorder \ "ExpertLink"
-      name              <- disorder \ "Name"
-      disorderType      <- disorder \ "DisorderType"
-      disorderTypeName  <- disorderType \ "Name"
-      disorderGroup     <- disorder \ "DisorderGroup"
+      disorder <- doc \\ "DisorderList" \\ "Disorder"
+      orphaNumber <- disorder \ "OrphaCode"
+      expertLink <- disorder \ "ExpertLink"
+      name <- disorder \ "Name"
+      disorderType <- disorder \ "DisorderType"
+      disorderTypeName <- disorderType \ "Name"
+      disorderGroup <- disorder \ "DisorderGroup"
       disorderGroupName <- disorderGroup \ "Name"
-      geneAssociation   <- disorder \ "DisorderGeneAssociationList" \ "DisorderGeneAssociation"
-      genes             <- geneAssociation \ "Gene"
-      locus             <- genes \ "LocusList" \ "Locus"
+      geneAssociation <- disorder \ "DisorderGeneAssociationList" \ "DisorderGeneAssociation"
+      genes <- geneAssociation \ "Gene"
+      locus <- genes \ "LocusList" \ "Locus"
     } yield {
       OrphanetGeneAssociation(
         disorder.attribute("id").get.text.toLong,
@@ -120,13 +121,13 @@ class OrphanetGeneSet()(implicit conf: Configuration) extends ETLP {
 
   def parseProduct9XML(doc: Elem): Seq[OrphanetDiseaseHistory] = {
     for {
-      disorder          <- doc \\ "DisorderList" \\ "Disorder"
-      orphaCode         <- disorder \ "OrphaCode"
-      expertLink        <- disorder \ "ExpertLink"
-      name              <- disorder \ "Name"
-      disorderType      <- disorder \ "DisorderType"
-      disorderTypeName  <- disorderType \ "Name"
-      disorderGroup     <- disorder \ "DisorderGroup"
+      disorder <- doc \\ "DisorderList" \\ "Disorder"
+      orphaCode <- disorder \ "OrphaCode"
+      expertLink <- disorder \ "ExpertLink"
+      name <- disorder \ "Name"
+      disorderType <- disorder \ "DisorderType"
+      disorderTypeName <- disorderType \ "Name"
+      disorderGroup <- disorder \ "DisorderGroup"
       disorderGroupName <- disorderType \ "Name"
     } yield {
       OrphanetDiseaseHistory(
@@ -145,9 +146,12 @@ class OrphanetGeneSet()(implicit conf: Configuration) extends ETLP {
     }
   }
 
-  override def load(data: DataFrame,
-                    lastRunDateTime: LocalDateTime,
-                    currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): DataFrame =
-    super.load(data.coalesce(1), lastRunDateTime, currentRunDateTime)
+  override def loadSingle(data: DataFrame,
+                          lastRunDateTime: LocalDateTime = minDateTime,
+                          currentRunDateTime: LocalDateTime = LocalDateTime.now(),
+                          repartition: DataFrame => DataFrame = defaultRepartition
+                         )(implicit spark: SparkSession): DataFrame = {
+    super.loadSingle(data, lastRunDateTime, currentRunDateTime, Coalesce())
+  }
 }
 

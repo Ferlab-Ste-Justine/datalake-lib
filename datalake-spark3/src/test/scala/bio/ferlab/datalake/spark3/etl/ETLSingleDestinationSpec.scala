@@ -18,7 +18,7 @@ import java.sql.{Date, Timestamp}
 import java.time.{LocalDate, LocalDateTime}
 import scala.util.Try
 
-class ETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers with BeforeAndAfterAll {
+class ETLSingleDestinationSpec extends AnyFlatSpec with GivenWhenThen with Matchers with BeforeAndAfterAll {
 
   implicit lazy val spark: SparkSession = SparkSession.builder()
     .config("spark.ui.enabled", value = false)
@@ -31,25 +31,25 @@ class ETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers with BeforeAn
   Logger.getLogger("akka").setLevel(Level.OFF)
 
 
+  val srcConf: DatasetConf = DatasetConf("raw_airports", "raw", "/airports.csv", CSV, OverWrite, Some(TableConf("raw_db", "raw_airports")), readoptions = Map("header" -> "true", "delimiter" -> "|"))
+  val destConf: DatasetConf = DatasetConf("airport", "normalized", "/airports", DELTA, Upsert, Some(TableConf("normalized_db", "airport")), keys = List("airport_id"))
   implicit val conf: Configuration = SimpleConfiguration(DatalakeConf(storages = List(
     StorageConf("raw", getClass.getClassLoader.getResource("raw/landing").getFile, LOCAL),
     StorageConf("normalized", getClass.getClassLoader.getResource("normalized/").getFile, LOCAL)),
-    sources = List()
+    sources = List(srcConf, destConf)
   ))
 
-  val srcConf: DatasetConf =  DatasetConf("raw_airports", "raw"       , "/airports.csv", CSV  , OverWrite, Some(TableConf("raw_db" , "raw_airports")), readoptions = Map("header" -> "true", "delimiter" -> "|"))
-  val destConf: DatasetConf = DatasetConf("airport"     , "normalized", "/airports"    , DELTA, Upsert, Some(TableConf("normalized_db", "airport")), keys = List("airport_id"))
 
-  case class TestETL() extends ETL() {
+  case class TestETL() extends ETLSingleDestination() {
 
-    override val destination: DatasetConf = destConf
+    override val mainDestination: DatasetConf = destConf
 
     override def extract(lastRunDateTime: LocalDateTime = minDateTime,
                          currentRunDateTime: LocalDateTime = LocalDateTime.now())(implicit spark: SparkSession): Map[String, DataFrame] = {
       Map(srcConf.id -> spark.read.format(srcConf.format.sparkFormat).options(srcConf.readoptions).load(srcConf.location))
     }
 
-    override def transform(data: Map[String, DataFrame],
+    override def transformSingle(data: Map[String, DataFrame],
                            lastRunDateTime: LocalDateTime = minDateTime,
                            currentRunDateTime: LocalDateTime = LocalDateTime.now())(implicit spark: SparkSession): DataFrame = {
       log.info(srcConf.id)
@@ -83,7 +83,7 @@ class ETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers with BeforeAn
 
   }
 
-  val job: ETL = TestETL()
+  val job: ETLSingleDestination = TestETL()
 
   override def beforeAll(): Unit = {
     spark.sql("CREATE DATABASE IF NOT EXISTS raw_db")
@@ -99,21 +99,21 @@ class ETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers with BeforeAn
     data(srcConf.id).show(false)
   }
 
-  "transform" should "return the expected format" in {
+  "transformSingle" should "return the expected format" in {
     import spark.implicits._
 
     val input = job.extract()
-    val output = job.transform(input)
+    val output = job.transformSingle(input)
     output.as[AirportOutput]
     output.show(false)
   }
 
-  "load" should "create the expected table" in {
+  "loadSingle" should "create the expected table" in {
     import spark.implicits._
 
     val output = Seq(AirportOutput()).toDF()
 
-    job.load(output)
+    job.loadSingle(output)
 
     val table = spark.table(s"${destConf.table.get.fullName}")
     table.show(false)
@@ -170,29 +170,31 @@ class ETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers with BeforeAn
   }
 
   "skip" should "not run the etl" in {
-    HadoopFileSystem.remove(job.destination.location)
-    val finalDf = job.run(RunStep.getSteps("skip"))
-    finalDf.show(false)
-    finalDf.count() shouldBe 0
+    HadoopFileSystem.remove(job.mainDestination.location)
+    val finalDataframes = job.run(RunStep.getSteps("skip"))
+    finalDataframes.isDefinedAt(destConf.id) shouldBe false
   }
 
   "first_load" should "run the ETL as if it was the first time running" in {
     import spark.implicits._
 
-    job.load(Seq(AirportOutput(11)).toDF())
+    job.loadSingle(Seq(AirportOutput(11)).toDF())
 
-    val finalDf = job.run(RunStep.initial_load)
+    val finalDataframes = job.run(RunStep.initial_load)
+    val finalDf = finalDataframes(job.mainDestination.id)
     finalDf.show(false)
     finalDf.count() shouldBe 2
     finalDf.where("airport_id=11").count() shouldBe 0
   }
 
+
   "sample_load" should "run the ETL with a sampled data and override the current table" in {
     import spark.implicits._
 
-    job.load(Seq(AirportOutput(11)).toDF())
+    job.loadSingle(Seq(AirportOutput(11)).toDF())
 
-    val finalDf = job.run(RunStep.allSteps)
+    val finalDataframes = job.run(RunStep.allSteps)
+    val finalDf = finalDataframes(job.mainDestination.id)
     finalDf.show(false)
     finalDf.count() shouldBe 1
     finalDf.where("airport_id=11").count() shouldBe 0
@@ -202,11 +204,12 @@ class ETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers with BeforeAn
     import spark.implicits._
 
     job.reset()
-    val firstLoad = job.load(Seq(AirportOutput(999, "test", "test2", "hash", "file")).toDF())
+    val firstLoad = job.loadSingle(Seq(AirportOutput(999, "test", "test2", "hash", "file")).toDF())
     firstLoad.show(false)
-    job.destination.read.show(false)
+    job.mainDestination.read.show(false)
 
-    val finalDf = job.run(RunStep.default_load)
+    val finalDataframes = job.run(RunStep.default_load)
+    val finalDf = finalDataframes(job.mainDestination.id)
     finalDf.show(false)
     finalDf.count() shouldBe 3
     finalDf.where("airport_id=999").count() shouldBe 1

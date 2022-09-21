@@ -4,7 +4,6 @@ import bio.ferlab.datalake.commons.config.LoadType.{Scd1, Scd2}
 import bio.ferlab.datalake.commons.config.WriteOptions.{UPDATED_ON_COLUMN_NAME, VALID_FROM_COLUMN_NAME}
 import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf, RunStep}
 import bio.ferlab.datalake.spark3.datastore.SqlBinderResolver
-import bio.ferlab.datalake.spark3.etl.v2.ETL
 import bio.ferlab.datalake.spark3.file.FileSystemResolver
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import bio.ferlab.datalake.spark3.loader.LoadResolver
@@ -19,7 +18,7 @@ import scala.util.Try
 
 /**
  * @deprecated
- * use [[v2.ETL]] instead
+ * use [[ETLSingleDestination]] instead
  *
  * Defines a common workflow for ETL jobs.
  * By definition an ETL can take 1..n sources as input and can produce only 1 output.
