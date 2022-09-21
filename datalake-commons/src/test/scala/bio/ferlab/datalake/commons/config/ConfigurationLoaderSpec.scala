@@ -5,6 +5,8 @@ import bio.ferlab.datalake.commons.file.FileSystemType.S3
 import org.scalatest.GivenWhenThen
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import pureconfig.generic.ProductHint
+import pureconfig.{CamelCase, ConfigFieldMapping}
 import pureconfig.generic.auto._
 import pureconfig.module.enum._
 class ConfigurationLoaderSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
@@ -51,10 +53,9 @@ class ConfigurationLoaderSpec extends AnyFlatSpec with GivenWhenThen with Matche
   }
 
   it should "load config for an class that extends Configuration" in {
-
     val conf =
       """
-        |extra-option = "hello"
+        |extraOption = "hello"
         |datalake = {
         |   storages = [
         |     {
