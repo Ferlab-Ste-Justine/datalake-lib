@@ -1,17 +1,18 @@
 package bio.ferlab.datalake.spark3.public.enriched
 
 import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf}
-import bio.ferlab.datalake.spark3.etl.ETL
+import bio.ferlab.datalake.spark3.etl.{ETL, ETLSingleDestination}
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import bio.ferlab.datalake.spark3.implicits.SparkUtils.removeEmptyObjectsIn
+import bio.ferlab.datalake.spark3.utils.Coalesce
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
 import java.time.LocalDateTime
 
-class Genes()(implicit conf: Configuration) extends ETL {
+class Genes()(implicit conf: Configuration) extends ETLSingleDestination {
 
-  val destination       : DatasetConf = conf.getDataset("enriched_genes")
+  val mainDestination       : DatasetConf = conf.getDataset("enriched_genes")
   val omim_gene_set     : DatasetConf = conf.getDataset("normalized_omim_gene_set")
   val orphanet_gene_set : DatasetConf = conf.getDataset("normalized_orphanet_gene_set")
   val hpo_gene_set      : DatasetConf = conf.getDataset("normalized_hpo_gene_set")
@@ -31,7 +32,7 @@ class Genes()(implicit conf: Configuration) extends ETL {
     )
   }
 
-  override def transform(data: Map[String, DataFrame],
+  override def transformSingle(data: Map[String, DataFrame],
                          lastRunDateTime: LocalDateTime,
                          currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): DataFrame = {
     import spark.implicits._
@@ -91,11 +92,7 @@ class Genes()(implicit conf: Configuration) extends ETL {
     }
   }
 
-  override def load(data: DataFrame,
-                    lastRunDateTime: LocalDateTime,
-                    currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): DataFrame = {
-    super.load(data.repartition(1), lastRunDateTime, currentRunDateTime)
-  }
+  override def defaultRepartition: DataFrame => DataFrame = Coalesce()
 }
 
 

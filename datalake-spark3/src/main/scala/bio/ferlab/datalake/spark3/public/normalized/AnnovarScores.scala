@@ -20,8 +20,8 @@ class AnnovarScores()(implicit conf: Configuration) extends ETLP {
   }
 
   override def transformSingle(data: Map[String, DataFrame],
-                         lastRunDateTime: LocalDateTime,
-                         currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): DataFrame = {
+                               lastRunDateTime: LocalDateTime,
+                               currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): DataFrame = {
     import spark.implicits._
     data(raw_dbnsfp_annovar.id)
       .select(
@@ -84,16 +84,7 @@ class AnnovarScores()(implicit conf: Configuration) extends ETLP {
       )
   }
 
-  override def loadSingle(data: DataFrame,
-                    lastRunDateTime: LocalDateTime = minDateTime,
-                    currentRunDateTime: LocalDateTime = LocalDateTime.now(),
-                    repartition: DataFrame => DataFrame = defaultRepartition
-          )(implicit spark: SparkSession): DataFrame = {
-    super.loadSingle(data,
-      lastRunDateTime,
-      currentRunDateTime,
-      RepartitionByColumns(columnNames = Seq("chromosome"), sortColumns = Seq(col("start")))
-    )
-  }
+
+  override val defaultRepartition: DataFrame => DataFrame = RepartitionByColumns(columnNames = Seq("chromosome"), sortColumns = Seq(col("start")))
 }
 
