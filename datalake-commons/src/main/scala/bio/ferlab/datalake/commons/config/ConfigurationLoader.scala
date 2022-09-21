@@ -2,12 +2,13 @@ package bio.ferlab.datalake.commons.config
 
 import pureconfig.ConfigReader.Result
 import pureconfig._
+import pureconfig.generic.ProductHint
 
 import scala.language.implicitConversions
 
 object ConfigurationLoader {
 
-
+  implicit def hint[T <: Configuration] = ProductHint[T](ConfigFieldMapping(CamelCase, CamelCase))
   /**
    * Implicit conversion - convert a Result[Configuration] to a Configuration by loading in succession
    * the file passed in argument, the reference.conf or the application.conf.
