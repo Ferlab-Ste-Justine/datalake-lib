@@ -175,4 +175,32 @@ class ConfigurationWriterSpec extends AnyFlatSpec with GivenWhenThen with Matche
 
   }
 
+  "replaceEnvVariables" should "remove double quotes from environment variables" in {
+    val content = """sparkconf {
+      |        "spark.conf1"=v1
+      |        "spark.conf2"="${?v2}"
+      |        "spark.conf3"="${?v3}"
+      |    }""".stripMargin
+
+    ConfigurationWriter.replaceEnvVariables(content) shouldBe
+    """sparkconf {
+      |        "spark.conf1"=v1
+      |        "spark.conf2"=${?v2}
+      |        "spark.conf3"=${?v3}
+      |    }""".stripMargin
+  }
+
+  "replaceEnvVariables" should "not remove double quotes from non environment variables" in {
+    val content =
+      """"{}"
+        |"{{PLACEHOLDER}}"
+        |'${v1}'
+        |"{PLACEHOLDER}"
+        |"__PLACEHOLDER__"
+        |//${v1}//
+        |""".stripMargin
+
+    ConfigurationWriter.replaceEnvVariables(content) shouldBe content
+  }
+
 }
