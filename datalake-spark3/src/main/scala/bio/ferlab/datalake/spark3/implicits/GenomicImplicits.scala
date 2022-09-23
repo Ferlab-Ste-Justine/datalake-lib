@@ -472,13 +472,14 @@ object GenomicImplicits {
     val familyVariantWindow: WindowSpec =
       Window.partitionBy("chromosome", "start", "reference", "alternate", "family_id")
 
-    val familyInfo: Column = when(col("family_id").isNotNull,
-      map_from_entries(
-        collect_list(
-          struct(col("participant_id"), struct(col("calls"), col("affected_status"), col("gq")))
-        ).over(familyVariantWindow)
+    def familyInfo(cols: Seq[Column] = Seq(col("calls"), col("affected_status"), col("gq"))): Column =
+      when(col("family_id").isNotNull,
+        map_from_entries(
+          collect_list(
+            struct(col("participant_id"), struct(cols: _*))
+          ).over(familyVariantWindow)
+        )
       )
-    )
 
     val motherCalls: Column = col("family_info")(col("mother_id"))("calls")
     val motherAffectedStatus: Column = col("family_info")(col("mother_id"))("affected_status")
@@ -491,8 +492,8 @@ object GenomicImplicits {
     val motherADTotal: Column = col("family_info")(col("mother_id"))("ad_total")
     val motherADRatio: Column = col("family_info")(col("mother_id"))("ad_ratio")
 
-    val fatherAffectedStatus: Column = col("family_info")(col("father_id"))("affected_status")
     val fatherCalls: Column = col("family_info")(col("father_id"))("calls")
+    val fatherAffectedStatus: Column = col("family_info")(col("father_id"))("affected_status")
     val fatherGQ: Column = col("family_info")(col("father_id"))("gq")
     val fatherDP: Column = col("family_info")(col("father_id"))("dp")
     val fatherQD: Column = col("family_info")(col("father_id"))("qd")
