@@ -22,6 +22,7 @@ object ReferenceConfiguration extends App {
         sources = List(
           //raw
           DatasetConf("raw_clinvar"                    , alias, "/raw/clinvar/clinvar.vcf.gz"                 , VCF, OverWrite, readoptions = Map("flattenInfoFields" -> "true", "split_multiallelics" -> "true")),
+          DatasetConf("raw_dbnsfp"                     , alias, "/raw/dbNSFP/dbNSFP4.3a.zip"                  , CSV, OverWrite, readoptions = Map("sep" -> "\t", "header" -> "true", "nullValue" -> ".")),
           DatasetConf("raw_dbnsfp_annovar"             , alias, "/raw/annovar/dbNSFP/hg38_dbnsfp41a.txt"      , CSV, OverWrite, readoptions = Map("sep" -> "\t", "header" -> "true", "nullValue" -> ".")),
           DatasetConf("raw_omim_genemap"               , alias, "/raw/omim/genemap2.txt"                      , CSV, OverWrite, readoptions = Map("inferSchema" -> "true", "comment" -> "#", "header" -> "false", "sep" -> "\t")),
           DatasetConf("raw_orphanet_gene_association"  , alias, "/raw/orphanet/en_product6.xml"               , XML, OverWrite),
@@ -33,7 +34,6 @@ object ReferenceConfiguration extends App {
           DatasetConf("normalized_cosmic_gene_set"     , alias, "/public/cosmic_gene_set"                     , DELTA, OverWrite, List(), TableConf("variant", "cosmic_gene_set"), TableConf("variant_live", "cosmic_gene_set")),
           DatasetConf("normalized_dbnsfp"              , alias, "/public/dbnsfp/variant"                      , DELTA, OverWrite, List(), TableConf("variant", "dbnsfp"), TableConf("variant_live", "dbnsfp")),
           DatasetConf("normalized_dbnsfp_annovar"      , alias, "/public/annovar/dbnsfp"                      , DELTA, Upsert, locusColumNames, TableConf("variant", "dbnsfp_annovar"), TableConf("variant_live", "dbnsfp_annovar")),
-          DatasetConf("normalized_dbnsfp_original"     , alias, "/public/dbnsfp/scores"                       , DELTA, OverWrite, List(), TableConf("variant", "dbnsfp_original"), TableConf("variant_live", "dbnsfp_original")),
           DatasetConf("normalized_dbsnp"               , alias, "/public/dbsnp"                               , DELTA, OverWrite, List(), TableConf("variant", "dbsnp"), TableConf("variant_live", "dbsnp")),
           DatasetConf("normalized_ddd_gene_set"        , alias, "/public/ddd_gene_set"                        , DELTA, OverWrite, List(), TableConf("variant", "ddd_gene_set"), TableConf("variant_live", "ddd_gene_set")),
           DatasetConf("normalized_ensembl_mapping"     , alias, "/public/ensembl_mapping"                     , DELTA, OverWrite, List(), TableConf("variant", "ensembl_mapping"), TableConf("variant_live", "ensembl_mapping")),
@@ -47,6 +47,7 @@ object ReferenceConfiguration extends App {
           DatasetConf("normalized_topmed_bravo"        , alias, "/public/topmed_bravo"                        , DELTA, OverWrite, List(), TableConf("variant", "topmed_bravo"), TableConf("variant_live", "topmed_bravo")),
 
           DatasetConf("enriched_genes"                 , alias, "/public/genes"                               , DELTA, OverWrite, List(), TableConf("variant", "genes"), TableConf("variant_live", "genes")),
+          DatasetConf("enriched_dbnsfp"                , alias, "/public/dbnsfp/scores"                       , DELTA, OverWrite, List(), TableConf("variant", "dbnsfp_original"), TableConf("variant_live", "dbnsfp_original")),
 
         ),
         sparkconf = Map("hive.metastore.client.factory.class" -> "com.amazonaws.glue.catalog.metastore.AWSGlueDataCatalogHiveClientFactory")

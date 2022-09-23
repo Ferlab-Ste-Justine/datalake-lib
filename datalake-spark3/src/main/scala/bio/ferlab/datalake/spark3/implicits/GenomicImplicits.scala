@@ -82,7 +82,7 @@ object GenomicImplicits {
 
     val isSexualGenotype: Column = col("chromosome").isin("X", "Y")
 
-    val strictAutosomalTransmissions = List(
+    private val strictAutosomalTransmissions = List(
       //(proband_calls, father_calls, mother_calls, father_affected, mother_affected, transmission)
       //(“0/1”, “0/0”, “0/0”) -> 	autosomal_dominant (de_novo) [if both parents unaffected]
       (Array(0, 1), Array(0, 0), Array(0, 0), false, false, "autosomal_dominant_de_novo"),
@@ -124,7 +124,7 @@ object GenomicImplicits {
       (Array(1, 1), Array(1, 1), Array(1, 1), true, true, "autosomal_recessive"),
     )
 
-    val strictSexualTransmissions = List(
+    private val strictSexualTransmissions = List(
       //(gender, proband_calls, father_calls, mother_calls, father_affected, mother_affected, transmission)
       //(“0/1”, “0”, “0/0”) -> 	x_linked_dominant (de_novo) [if female proband with both parents unaffected]
       ("Female", Array(0, 1), Array(0, 0), Array(0, 0), false, false, "x_linked_dominant_de_novo"),
@@ -472,20 +472,36 @@ object GenomicImplicits {
     val familyVariantWindow: WindowSpec =
       Window.partitionBy("chromosome", "start", "reference", "alternate", "family_id")
 
-    val familyInfo: Column = when(col("family_id").isNotNull,
-      map_from_entries(
-        collect_list(
-          struct(col("participant_id"), struct(col("calls"), col("affected_status"), col("gq")))
-        ).over(familyVariantWindow)
+    def familyInfo(cols: Seq[Column] = Seq(col("calls"), col("affected_status"), col("gq"))): Column =
+      when(col("family_id").isNotNull,
+        map_from_entries(
+          collect_list(
+            struct(col("participant_id"), struct(cols: _*))
+          ).over(familyVariantWindow)
+        )
       )
-    )
 
     val motherCalls: Column = col("family_info")(col("mother_id"))("calls")
-    val fatherCalls: Column = col("family_info")(col("father_id"))("calls")
     val motherAffectedStatus: Column = col("family_info")(col("mother_id"))("affected_status")
-    val fatherAffectedStatus: Column = col("family_info")(col("father_id"))("affected_status")
     val motherGQ: Column = col("family_info")(col("mother_id"))("gq")
+    val motherDP: Column = col("family_info")(col("mother_id"))("dp")
+    val motherQD: Column = col("family_info")(col("mother_id"))("qd")
+    val motherFilters: Column = col("family_info")(col("mother_id"))("filters")
+    val motherADRef: Column = col("family_info")(col("mother_id"))("ad_ref")
+    val motherADAlt: Column = col("family_info")(col("mother_id"))("ad_alt")
+    val motherADTotal: Column = col("family_info")(col("mother_id"))("ad_total")
+    val motherADRatio: Column = col("family_info")(col("mother_id"))("ad_ratio")
+
+    val fatherCalls: Column = col("family_info")(col("father_id"))("calls")
+    val fatherAffectedStatus: Column = col("family_info")(col("father_id"))("affected_status")
     val fatherGQ: Column = col("family_info")(col("father_id"))("gq")
+    val fatherDP: Column = col("family_info")(col("father_id"))("dp")
+    val fatherQD: Column = col("family_info")(col("father_id"))("qd")
+    val fatherFilters: Column = col("family_info")(col("father_id"))("filters")
+    val fatherADRef: Column = col("family_info")(col("father_id"))("ad_ref")
+    val fatherADAlt: Column = col("family_info")(col("father_id"))("ad_alt")
+    val fatherADTotal: Column = col("family_info")(col("father_id"))("ad_total")
+    val fatherADRatio: Column = col("family_info")(col("father_id"))("ad_ratio")
 
     /** has_alt return 1 if there is at least one alternative allele. Note : It cannot returned a boolean beacause it's used to partition data.
      * It looks like Glue does not support partition by boolean
