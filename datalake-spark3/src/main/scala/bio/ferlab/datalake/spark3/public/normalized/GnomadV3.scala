@@ -18,7 +18,7 @@ class GnomadV3()(implicit conf: Configuration) extends ETLP {
 
   override def extract(lastRunDateTime: LocalDateTime = minDateTime,
                        currentRunDateTime: LocalDateTime = LocalDateTime.now())(implicit spark: SparkSession): Map[String, DataFrame] = {
-    Map(gnomad_vcf -> gnomad_vcf.read)
+    Map(gnomad_vcf.id -> gnomad_vcf.read)
   }
 
   override def transformSingle(data: Map[String, DataFrame],

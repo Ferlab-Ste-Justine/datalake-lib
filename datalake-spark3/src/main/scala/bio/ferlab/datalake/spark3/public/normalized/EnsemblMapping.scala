@@ -21,8 +21,7 @@ class EnsemblMapping()(implicit conf: Configuration)
 
   override def extract(lastRunDateTime: LocalDateTime = minDateTime,
                        currentRunDateTime: LocalDateTime = LocalDateTime.now())(implicit spark: SparkSession): Map[String, DataFrame] = {
-    val tsvWithHeaders = Map("header" -> "true", "sep" -> "\t")
-    val tsvWithoutHeaders = Map("header" -> "false", "sep" -> "\t")
+
     Map(
       ensembl_canonical.id -> ensembl_canonical.read,
       ensembl_entrez.id -> ensembl_entrez.read,

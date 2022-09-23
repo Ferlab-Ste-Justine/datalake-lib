@@ -10,8 +10,7 @@ import org.apache.spark.sql.{Column, DataFrame, SparkSession}
 
 import java.time.LocalDateTime
 
-class DBNSFP()(implicit conf: Configuration)
-  extends ETLSingleDestination {
+class DBNSFP()(implicit conf: Configuration) extends ETLSingleDestination {
   override val mainDestination: DatasetConf = conf.getDataset("enriched_dbnsfp")
   val normalized_dbnsfp: DatasetConf = conf.getDataset("normalized_dbnsfp")
 
@@ -34,7 +33,7 @@ class DBNSFP()(implicit conf: Configuration)
   override def extract(lastRunDateTime: LocalDateTime = minDateTime,
                        currentRunDateTime: LocalDateTime = LocalDateTime.now())(implicit spark: SparkSession): Map[String, DataFrame] = {
     Map(
-      normalized_dbnsfp -> normalized_dbnsfp.read
+      normalized_dbnsfp.id-> normalized_dbnsfp.read
     )
   }
 

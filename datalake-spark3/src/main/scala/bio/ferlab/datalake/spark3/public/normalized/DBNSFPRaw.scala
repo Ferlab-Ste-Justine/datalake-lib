@@ -12,11 +12,7 @@ class DBNSFPRaw()(implicit conf: Configuration) extends ETLSingleDestination{
   val raw_dbnsfp: DatasetConf = conf.getDataset("raw_dbnsfp")
   override def extract(lastRunDateTime: LocalDateTime = minDateTime,
                        currentRunDateTime: LocalDateTime = LocalDateTime.now())(implicit spark: SparkSession): Map[String, DataFrame] = {
-    Map(raw_dbnsfp -> raw_dbnsfp.read)
-
-//        .option("sep", "\t")
-//        .option("header", "true")
-//        .option("nullValue", ".")
+    Map(raw_dbnsfp.id -> raw_dbnsfp.read)
   }
 
   override def transformSingle(data: Map[String, DataFrame],

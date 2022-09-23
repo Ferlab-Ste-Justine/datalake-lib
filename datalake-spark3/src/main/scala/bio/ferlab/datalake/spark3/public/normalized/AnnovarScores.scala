@@ -7,8 +7,6 @@ import bio.ferlab.datalake.spark3.utils.RepartitionByRange
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.{FloatType, LongType}
 import org.apache.spark.sql.{Column, DataFrame, SparkSession}
-import org.kidsfirstdrc.dwh.conf.Catalog.{Public, Raw}
-import org.kidsfirstdrc.dwh.jobs.StandardETL
 
 import java.time.LocalDateTime
 
@@ -21,12 +19,6 @@ class AnnovarScores()(implicit conf: Configuration) extends ETLP {
 
   override def extract(lastRunDateTime: LocalDateTime = minDateTime,
                        currentRunDateTime: LocalDateTime = LocalDateTime.now())(implicit spark: SparkSession): Map[String, DataFrame] = {
-
-    //      .option("sep", "\t")
-    //      .option("header", "true")
-    //      .option("nullValue", ".")
-    //      .csv(source.location)
-
     Map(raw_dbnsfp_annovar.id -> raw_dbnsfp_annovar.read)
   }
 
