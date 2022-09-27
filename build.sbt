@@ -54,7 +54,6 @@ lazy val `datalake-spark3` = (project in file("datalake-spark3"))
       "dev.zio"                 %% "zio-config-typesafe"            % zioVersion,
       "dev.zio"                 %% "zio-config"                     % zioVersion,
       "dev.zio"                 %% "zio-config-magnolia"            % zioVersion,
-      "software.amazon.awssdk"  %  "s3"                             % "2.17.71"            % Provided,
       "com.microsoft.sqlserver" %  "mssql-jdbc"                     % "8.4.1.jre8"         % Provided,
       "com.microsoft.aad"       %  "adal4j"                         % "0.0.2"              % Provided,
       "com.microsoft.azure"     %  "spark-mssql-connector_2.12"     % "1.1.0"              % Provided,
