@@ -22,6 +22,7 @@ object ReferenceConfiguration extends App {
         sources = List(
           //raw
           DatasetConf("raw_clinvar"                    , alias, "/raw/clinvar/clinvar.vcf.gz"                 , VCF, OverWrite, readoptions = Map("flattenInfoFields" -> "true", "split_multiallelics" -> "true")),
+          DatasetConf("raw_dbsnp"                      , alias, "/raw/dbsnp/GCF_000001405.39.gz"              , VCF, OverWrite, readoptions = Map("flattenInfoFields" -> "true", "split_multiallelics" -> "true")),
           DatasetConf("raw_dbnsfp"                     , alias, "/raw/dbNSFP/dbNSFP4.3a.zip"                  , CSV, OverWrite, readoptions = Map("sep" -> "\t", "header" -> "true", "nullValue" -> ".")),
           DatasetConf("raw_dbnsfp_annovar"             , alias, "/raw/annovar/dbNSFP/hg38_dbnsfp41a.txt"      , CSV, OverWrite, readoptions = Map("sep" -> "\t", "header" -> "true", "nullValue" -> ".")),
           DatasetConf("raw_omim_genemap"               , alias, "/raw/omim/genemap2.txt"                      , CSV, OverWrite, readoptions = Map("inferSchema" -> "true", "comment" -> "#", "header" -> "false", "sep" -> "\t")),
