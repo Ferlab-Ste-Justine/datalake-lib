@@ -3,6 +3,7 @@ package bio.ferlab.datalake.spark3.publictables.normalized.refseq
 import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf}
 import bio.ferlab.datalake.spark3.etl.ETLP
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits.DatasetConfOperations
+import bio.ferlab.datalake.spark3.utils.{Coalesce, FixedRepartition}
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
 import java.time.LocalDateTime
@@ -33,8 +34,9 @@ class RefSeqAnnotation()(implicit configuration: Configuration) extends ETLP {
     original
       .drop("chromosome")
       .join(regions, Seq("seqId"))
-      .repartition(3)
   }
+
+  override val defaultRepartition: DataFrame => DataFrame = FixedRepartition(3)
 
 }
 
