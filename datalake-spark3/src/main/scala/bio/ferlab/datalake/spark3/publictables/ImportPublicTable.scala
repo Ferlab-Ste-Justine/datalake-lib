@@ -1,5 +1,6 @@
 package bio.ferlab.datalake.spark3.publictables
 
+import bio.ferlab.datalake.spark3.SparkApp
 import bio.ferlab.datalake.spark3.publictables.enriched.{DBNSFP, Genes}
 import bio.ferlab.datalake.spark3.publictables.normalized.omim.OmimGeneSet
 import bio.ferlab.datalake.spark3.publictables.normalized.orphanet.OrphanetGeneSet
