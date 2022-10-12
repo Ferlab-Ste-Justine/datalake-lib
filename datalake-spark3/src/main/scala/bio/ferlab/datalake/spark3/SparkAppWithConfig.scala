@@ -1,10 +1,9 @@
-package bio.ferlab.datalake.spark3.publictables
+package bio.ferlab.datalake.spark3
 
 import bio.ferlab.datalake.commons.config.{Configuration, ConfigurationLoader, RunStep}
+import org.apache.log4j.{Level, Logger}
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.SparkSession
-import org.apache.log4j.Logger
-import org.apache.log4j.Level
 import org.slf4j
 import pureconfig.ConfigReader
 
