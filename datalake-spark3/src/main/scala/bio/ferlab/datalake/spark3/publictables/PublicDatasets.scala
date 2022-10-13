@@ -33,7 +33,7 @@ case class PublicDatasets(alias: String, tableDatabase: Option[String], viewData
           DatasetConf("raw_ensembl_uniprot", alias, "/raw/landing/ensembl/Homo_sapiens.GRCh38.uniprot.tsv", CSV, OverWrite, readoptions = Map("header" -> "true", "sep" -> "\t")),
           DatasetConf("raw_ensembl_ena", alias, "/raw/landing/ensembl/Homo_sapiens.GRCh38.ena.tsv", CSV, OverWrite, readoptions = Map("header" -> "true", "sep" -> "\t")),
           //public
-          DatasetConf("normalized_1000_genomes", alias, "/public/1000_genomes", DELTA, OverWrite, partitionby = List("chromosome"), table = table("1000_genomes"), view= view("variant_live")),
+          DatasetConf("normalized_1000_genomes", alias, "/public/1000_genomes", DELTA, OverWrite, partitionby = List(), table = table("1000_genomes"), view= view("variant_live")),
           DatasetConf("normalized_cancer_hotspots", alias, "/public/cancer_hotspots", DELTA, OverWrite, partitionby = List(), table = table("cancer_hotspots"), view = view("cancer_hotspots")),
           DatasetConf("normalized_clinvar", alias, "/public/clinvar", DELTA, OverWrite, partitionby = List(), table = table("clinvar"), view = view("clinvar")),
           DatasetConf("normalized_cosmic_gene_set", alias, "/public/cosmic_gene_set", DELTA, OverWrite, partitionby = List(), table = table("cosmic_gene_set"), view = view("cosmic_gene_set")),
