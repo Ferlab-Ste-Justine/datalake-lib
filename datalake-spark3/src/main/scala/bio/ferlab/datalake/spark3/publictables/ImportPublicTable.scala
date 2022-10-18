@@ -29,5 +29,6 @@ object ImportPublicTable extends SparkApp {
     case "orphanet" => new OrphanetGeneSet().run(runSteps)
     case "refseq_annotation" => new RefSeqAnnotation().run(runSteps)
     case "refseq_human_genes" => new RefSeqHumanGenes().run(runSteps)
+    case "cosmic_gene_set" => new CosmicGeneSet().run(runSteps)
   }
 }
