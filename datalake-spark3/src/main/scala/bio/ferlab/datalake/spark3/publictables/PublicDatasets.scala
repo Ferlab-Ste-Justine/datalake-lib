@@ -26,7 +26,7 @@ case class PublicDatasets(alias: String, tableDatabase: Option[String], viewData
           DatasetConf("ddd_cosmic_gene_set", alias, "/raw/landing/ddd/DDG2P.csv.gz", CSV, OverWrite, readoptions = Map("header" -> "true")),
           DatasetConf("raw_hpo_gene_set", alias, "/raw/landing/hpo/genes_to_phenotype.txt", CSV, OverWrite, readoptions = Map("inferSchema" -> "true", "comment" -> "#", "header" -> "false", "sep" -> "\t", "nullValue" -> "-")),
           DatasetConf("raw_refseq_human_genes", alias, "/raw/landing/refseq/Homo_sapiens.gene_info.gz", CSV, OverWrite, readoptions = Map("inferSchema" -> "true", "header" -> "true", "sep" -> "\t", "nullValue" -> "-")),
-          DatasetConf("raw_refseq_annotation", alias, "/raw/landing/refseq/GCF_000001405.39_GRCh38.p13_genomic.gff.gz", GFF, OverWrite),
+          DatasetConf("raw_refseq_annotation", alias, "/raw/landing/refseq/GCF_GRCh38_genomic.gff.gz", GFF, OverWrite),
           DatasetConf("raw_ensembl_canonical", alias, "/raw/landing/ensembl/Homo_sapiens.GRCh38.canonical.tsv", CSV, OverWrite, readoptions = Map("header" -> "false", "sep" -> "\t")),
           DatasetConf("raw_ensembl_entrez", alias, "/raw/landing/ensembl/Homo_sapiens.GRCh38.entrez.tsv", CSV, OverWrite, readoptions = Map("header" -> "true", "sep" -> "\t")),
           DatasetConf("raw_ensembl_refseq", alias, "/raw/landing/ensembl/Homo_sapiens.GRCh38.refseq.tsv", CSV, OverWrite, readoptions = Map("header" -> "true", "sep" -> "\t")),
