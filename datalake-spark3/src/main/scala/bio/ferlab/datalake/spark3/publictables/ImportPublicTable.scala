@@ -30,5 +30,6 @@ object ImportPublicTable extends SparkApp {
     case "refseq_annotation" => new RefSeqAnnotation().run(runSteps)
     case "refseq_human_genes" => new RefSeqHumanGenes().run(runSteps)
     case "cosmic_gene_set" => new CosmicGeneSet().run(runSteps)
+    case "topmed_bravo" => new TopMed().run(runSteps)
   }
 }
