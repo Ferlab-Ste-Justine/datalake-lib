@@ -15,7 +15,7 @@ case class PublicDatasets(alias: String, tableDatabase: Option[String], viewData
           DatasetConf("raw_clinvar", alias, "/raw/landing/clinvar/clinvar.vcf.gz", VCF, OverWrite, readoptions = Map("flattenInfoFields" -> "true", "split_multiallelics" -> "true")),
           DatasetConf("raw_dbsnp", alias, "/raw/landing/dbsnp/GCF_000001405.39.gz", VCF, OverWrite, readoptions = Map("flattenInfoFields" -> "true", "split_multiallelics" -> "true")),
           DatasetConf("raw_gnomad_genomes_v3", alias, "/raw/landing/gnomadv3/*.vcf.bgz", VCF, OverWrite, readoptions = Map("flattenInfoFields" -> "true", "split_multiallelics" -> "true")),
-          DatasetConf("raw_topmed_bravo", alias, "/raw/landing/topmed/bravo-dbsnp-all.vcf.gz", VCF, OverWrite, readoptions = Map("flattenInfoFields" -> "true", "split_multiallelics" -> "true")),
+          DatasetConf("raw_topmed_bravo", alias, "/raw/landing/topmed/bravo-dbsnp-*.vcf.gz", VCF, OverWrite, readoptions = Map("flattenInfoFields" -> "true", "split_multiallelics" -> "true")),
           DatasetConf("raw_1000_genomes", alias, "/raw/landing/1000Genomes/ALL.*.sites.vcf.gz", VCF, OverWrite, readoptions = Map("flattenInfoFields" -> "true", "split_multiallelics" -> "true")),
           DatasetConf("raw_dbnsfp", alias, "/raw/landing/dbNSFP/dbNSFP4.3a.zip", CSV, OverWrite, readoptions = Map("sep" -> "\t", "header" -> "true", "nullValue" -> ".")),
           DatasetConf("raw_dbnsfp_annovar", alias, "/raw/landing/annovar/dbNSFP/hg38_dbnsfp41a.txt", CSV, OverWrite, readoptions = Map("sep" -> "\t", "header" -> "true", "nullValue" -> ".")),
