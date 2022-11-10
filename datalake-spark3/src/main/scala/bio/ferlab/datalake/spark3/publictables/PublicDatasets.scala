@@ -50,7 +50,7 @@ case class PublicDatasets(alias: String, tableDatabase: Option[String], viewData
           DatasetConf("normalized_omim_gene_set", alias, "/public/omim_gene_set", DELTA, OverWrite, partitionby = List(), table = table("omim_gene_set"), view = view("omim_gene_set")),
           DatasetConf("normalized_orphanet_gene_set", alias, "/public/orphanet_gene_set", DELTA, OverWrite, partitionby = List(), table = table("orphanet_gene_set"), view = view("orphanet_gene_set")),
           DatasetConf("normalized_topmed_bravo", alias, "/public/topmed_bravo", DELTA, OverWrite,  partitionby = List(), table = table("topmed_bravo"), view = view("topmed_bravo")),
-          DatasetConf("normalized_refseq_annotation", alias, "/public/refseq_annotation", PARQUET, OverWrite, partitionby = List("chromosome"), table = table("refseq_annotation"), view = view("refseq_annotation")),
+          DatasetConf("normalized_refseq_annotation", alias, "/public/refseq_annotation", DELTA, OverWrite, partitionby = List("chromosome"), table = table("refseq_annotation"), view = view("refseq_annotation")),
           DatasetConf("enriched_genes", alias, "/public/genes", DELTA, OverWrite,  partitionby = List(), table = table("genes"), view =view("genes")),
           DatasetConf("enriched_dbnsfp", alias, "/public/dbnsfp/scores", DELTA, OverWrite,  partitionby = List("chromosome"), table = table("dbnsfp_original"), view = view("dbnsfp_original"))
   )
