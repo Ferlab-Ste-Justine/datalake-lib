@@ -2,12 +2,12 @@ package bio.ferlab.datalake.spark3.elasticsearch
 
 import bio.ferlab.datalake.spark3.utils.ResourceLoader.loadResource
 import org.apache.commons.io.FilenameUtils
-import org.apache.http.client.methods.{HttpDelete, HttpGet, HttpPost, HttpPut}
-import org.apache.http.entity.StringEntity
-import org.apache.http.impl.client.{CloseableHttpClient, HttpClientBuilder}
-import org.apache.http.protocol.HttpContext
-import org.apache.http.util.EntityUtils
-import org.apache.http.{HttpHeaders, HttpRequest, HttpRequestInterceptor, HttpResponse}
+import org.apache.hadoop.shaded.org.apache.http.client.methods.{HttpDelete, HttpGet, HttpPost, HttpPut}
+import org.apache.hadoop.shaded.org.apache.http.impl.client.{CloseableHttpClient, HttpClientBuilder}
+import org.apache.hadoop.shaded.org.apache.http.entity.StringEntity
+import org.apache.hadoop.shaded.org.apache.http.protocol.HttpContext
+import org.apache.hadoop.shaded.org.apache.http.util.EntityUtils
+import org.apache.hadoop.shaded.org.apache.http.{HttpHeaders, HttpRequest, HttpRequestInterceptor, HttpResponse}
 import org.apache.spark.sql.SparkSession
 import org.json4s.DefaultFormats
 import org.json4s.jackson.Serialization.write
