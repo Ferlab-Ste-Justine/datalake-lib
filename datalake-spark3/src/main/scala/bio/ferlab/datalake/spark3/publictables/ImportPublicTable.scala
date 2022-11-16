@@ -11,7 +11,7 @@ object ImportPublicTable extends SparkApp {
 
   implicit val (conf, runSteps, spark) = init()
 
-  val Array(_, tableName) = args
+  val Array(_, _, tableName) = args
 
   tableName match {
     case "annovar_scores" => new AnnovarScores().run(runSteps)
