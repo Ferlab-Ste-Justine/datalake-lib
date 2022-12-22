@@ -38,5 +38,5 @@ case class ClinvarInput(contigName: String = "2",
                         genotypes: List[GENOTYPES] = List(GENOTYPES()) )
 
 
-case class GENOTYPES(sampleId: String = "id")
+case class GENOTYPES(sampleId: Option[String] = Some("id"))
 

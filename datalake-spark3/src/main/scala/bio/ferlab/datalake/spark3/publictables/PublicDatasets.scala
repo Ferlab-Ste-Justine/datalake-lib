@@ -32,6 +32,9 @@ case class PublicDatasets(alias: String, tableDatabase: Option[String], viewData
           DatasetConf("raw_ensembl_refseq", alias, "/raw/landing/ensembl/Homo_sapiens.GRCh38.refseq.tsv.gz", CSV, OverWrite, readoptions = Map("header" -> "true", "sep" -> "\t")),
           DatasetConf("raw_ensembl_uniprot", alias, "/raw/landing/ensembl/Homo_sapiens.GRCh38.uniprot.tsv.gz", CSV, OverWrite, readoptions = Map("header" -> "true", "sep" -> "\t")),
           DatasetConf("raw_ensembl_ena", alias, "/raw/landing/ensembl/Homo_sapiens.GRCh38.ena.tsv.gz", CSV, OverWrite, readoptions = Map("header" -> "true", "sep" -> "\t")),
+          DatasetConf("raw_spliceai_indel", alias, "/raw/landing/spliceai/spliceai_scores.raw.indel.hg38.vcf.gz", VCF, OverWrite, readoptions = Map("flattenInfoFields" -> "true", "split_multiallelics" -> "true")),
+          DatasetConf("raw_spliceai_snv", alias, "/raw/landing/spliceai/spliceai_scores.raw.snv.hg38.vcf.gz", VCF, OverWrite, readoptions = Map("flattenInfoFields" -> "true", "split_multiallelics" -> "true")),
+
           //public
           DatasetConf("normalized_1000_genomes", alias, "/public/1000_genomes", DELTA, OverWrite, partitionby = List(), table = table("1000_genomes"), view= view("variant_live")),
           DatasetConf("normalized_cancer_hotspots", alias, "/public/cancer_hotspots", DELTA, OverWrite, partitionby = List(), table = table("cancer_hotspots"), view = view("cancer_hotspots")),
@@ -52,7 +55,9 @@ case class PublicDatasets(alias: String, tableDatabase: Option[String], viewData
           DatasetConf("normalized_topmed_bravo", alias, "/public/topmed_bravo", DELTA, OverWrite,  partitionby = List(), table = table("topmed_bravo"), view = view("topmed_bravo")),
           DatasetConf("normalized_refseq_annotation", alias, "/public/refseq_annotation", DELTA, OverWrite, partitionby = List("chromosome"), table = table("refseq_annotation"), view = view("refseq_annotation")),
           DatasetConf("enriched_genes", alias, "/public/genes", DELTA, OverWrite,  partitionby = List(), table = table("genes"), view =view("genes")),
-          DatasetConf("enriched_dbnsfp", alias, "/public/dbnsfp/scores", DELTA, OverWrite,  partitionby = List("chromosome"), table = table("dbnsfp_original"), view = view("dbnsfp_original"))
+          DatasetConf("enriched_dbnsfp", alias, "/public/dbnsfp/scores", DELTA, OverWrite,  partitionby = List("chromosome"), table = table("dbnsfp_original"), view = view("dbnsfp_original")),
+          DatasetConf("normalized_spliceai_indel", alias, "/public/spliceai_indel", DELTA, OverWrite, partitionby = List("chromosome"), table = table("spliceai_indel"), view= view("spliceai_indel")),
+          DatasetConf("normalized_spliceai_snv", alias, "/public/spliceai_snv", DELTA, OverWrite, partitionby = List("chromosome"),table = table("spliceai_snv"), view= view("spliceai_snv"))
   )
 
 

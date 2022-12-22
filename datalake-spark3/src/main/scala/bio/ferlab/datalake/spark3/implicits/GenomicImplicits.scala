@@ -469,6 +469,11 @@ object GenomicImplicits {
 
     val dp: Column = col("INFO_DP") as "dp"
 
+    def flattenInfo(df: DataFrame, except: String*): Seq[Column] =
+      df.columns.filterNot(except.contains(_)).collect {
+        case c if c.startsWith("INFO_") => col(c)(0) as c.replace("INFO_", "").toLowerCase
+    }
+
     val familyVariantWindow: WindowSpec =
       Window.partitionBy("chromosome", "start", "reference", "alternate", "family_id")
 
