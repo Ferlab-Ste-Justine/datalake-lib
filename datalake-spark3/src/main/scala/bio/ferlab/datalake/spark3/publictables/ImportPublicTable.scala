@@ -31,7 +31,8 @@ object ImportPublicTable extends SparkApp {
     case "refseq_human_genes" => new RefSeqHumanGenes().run(runSteps)
     case "cosmic_gene_set" => new CosmicGeneSet().run(runSteps)
     case "topmed_bravo" => new TopMed().run(runSteps)
-    case "spliceai_indel" => new SpliceAi(variantType = "indel").run(runSteps)
-    case "spliceai_snv" => new SpliceAi(variantType = "snv").run(runSteps)
+    case "spliceai_indel" => new normalized.SpliceAi(variantType = "indel").run(runSteps)
+    case "spliceai_snv" => new normalized.SpliceAi(variantType = "snv").run(runSteps)
+    case "spliceai_enriched" => new enriched.SpliceAi().run(runSteps)
   }
 }

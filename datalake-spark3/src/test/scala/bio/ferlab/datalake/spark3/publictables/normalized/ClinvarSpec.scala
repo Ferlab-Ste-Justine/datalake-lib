@@ -1,7 +1,8 @@
 package bio.ferlab.datalake.spark3.publictables.normalized
 
 import bio.ferlab.datalake.commons.config.DatasetConf
-import bio.ferlab.datalake.spark3.testmodels.{ClinvarInput, ClinvarOutput}
+import bio.ferlab.datalake.spark3.testmodels.normalized.NormalizedClinvar
+import bio.ferlab.datalake.spark3.testmodels.raw.RawClinvar
 import bio.ferlab.datalake.spark3.testutils.WithSparkSession
 import io.delta.tables.DeltaTable
 import org.scalatest.flatspec.AnyFlatSpec
@@ -26,30 +27,30 @@ class ClinvarSpec extends AnyFlatSpec with GivenWhenThen with WithSparkSession w
   }
 
   "transform" should "transform ClinvarInput to ClinvarOutput" in {
-    val inputData = Map(source.id -> Seq(ClinvarInput("2"), ClinvarInput("3")).toDF())
+    val inputData = Map(source.id -> Seq(RawClinvar("2"), RawClinvar("3")).toDF())
 
     val resultDF = new Clinvar().transformSingle(inputData)
 
-    val expectedResults = Seq(ClinvarOutput("2"), ClinvarOutput("3"))
+    val expectedResults = Seq(NormalizedClinvar("2"), NormalizedClinvar("3"))
 
-    resultDF.as[ClinvarOutput].collect() should contain allElementsOf(expectedResults)
+    resultDF.as[NormalizedClinvar].collect() should contain allElementsOf(expectedResults)
   }
 
   "load" should "overwrite data" in {
-    val firstLoad = Seq(ClinvarOutput("1", name = "first"), ClinvarOutput("2"))
-    val secondLoad = Seq(ClinvarOutput("1", name = "second"), ClinvarOutput("3"))
-    val expectedResults = Seq(ClinvarOutput("1", name = "second"), ClinvarOutput("3"))
+    val firstLoad = Seq(NormalizedClinvar("1", name = "first"), NormalizedClinvar("2"))
+    val secondLoad = Seq(NormalizedClinvar("1", name = "second"), NormalizedClinvar("3"))
+    val expectedResults = Seq(NormalizedClinvar("1", name = "second"), NormalizedClinvar("3"))
 
     val job = new Clinvar()
     job.loadSingle(firstLoad.toDF())
     val firstResult = spark.read.format("delta").load(destination.location)
     firstResult.select("chromosome", "start", "end", "reference", "alternate", "name").show(false)
-    firstResult.as[ClinvarOutput].collect() should contain allElementsOf firstLoad
+    firstResult.as[NormalizedClinvar].collect() should contain allElementsOf firstLoad
 
     job.loadSingle(secondLoad.toDF())
     val secondResult = spark.read.format("delta").load(destination.location)
     secondResult.select("chromosome", "start", "end", "reference", "alternate", "name").show(false)
-    secondResult.as[ClinvarOutput].collect() should contain allElementsOf expectedResults
+    secondResult.as[NormalizedClinvar].collect() should contain allElementsOf expectedResults
 
     DeltaTable.forName("variant.clinvar").history().show(false)
     spark.sql("DESCRIBE DETAIL variant.clinvar").show(false)
