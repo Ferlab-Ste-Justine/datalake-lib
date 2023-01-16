@@ -1,7 +1,8 @@
 package bio.ferlab.datalake.spark3.publictables.normalized
 
 import bio.ferlab.datalake.commons.config.DatasetConf
-import bio.ferlab.datalake.spark3.testmodels.{OmimGeneSetInput, OmimGeneSetOutput}
+import bio.ferlab.datalake.spark3.testmodels.normalized.NormalizedOmimGeneSet
+import bio.ferlab.datalake.spark3.testmodels.raw.RawOmimGeneSet
 import bio.ferlab.datalake.spark3.testutils.WithSparkSession
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
