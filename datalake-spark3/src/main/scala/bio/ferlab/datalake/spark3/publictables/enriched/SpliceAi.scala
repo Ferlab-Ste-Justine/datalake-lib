@@ -61,6 +61,6 @@ class SpliceAi()(implicit conf: Configuration) extends ETLSingleDestination {
       .select(originalColumns :+ $"max_score": _*)
   }
 
-  override def defaultRepartition: DataFrame => DataFrame = RepartitionByRange(columnNames = Seq("chromosome", "start"), n = Some(50))
+  override def defaultRepartition: DataFrame => DataFrame = RepartitionByRange(columnNames = Seq("chromosome", "start"), n = Some(500))
 
 }
