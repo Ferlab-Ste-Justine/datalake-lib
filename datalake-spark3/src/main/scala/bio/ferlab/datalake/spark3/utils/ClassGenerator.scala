@@ -45,6 +45,7 @@ object ClassGenerator {
     case (name, values, DateType)                                      => s"""java.sql.Date.valueOf("${values.getAs(name)}")"""
     case (name, values, TimestampType)                                 => s"""java.sql.Timestamp.valueOf("${values.getAs(name)}")"""
     case (name, values, BinaryType)                                    => values.getAs[Array[Byte]](name).take(maxElement).map(b => s"$b.toByte").mkString("Array(", ", ", ")")
+    case (name, values, FloatType)                                     => s"""${values.getAs(name)}f"""
     case (name, values, ArrayType(StringType,_)) if values.getAs[Seq[String]](name).isEmpty => "Seq()"
     case (name, values, ArrayType(StringType,_))                       => values.getAs[Seq[String]](name).take(maxElement).mkString("Seq(\"", "\", \"", "\")")
     case (name, values, ArrayType(FloatType,_))                        => values.getAs[Seq[Float]](name).take(maxElement).mkString("Seq(", ", ", ")")
