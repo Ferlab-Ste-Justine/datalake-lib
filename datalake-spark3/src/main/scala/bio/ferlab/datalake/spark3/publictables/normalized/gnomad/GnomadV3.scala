@@ -1,4 +1,4 @@
-package bio.ferlab.datalake.spark3.publictables.normalized
+package bio.ferlab.datalake.spark3.publictables.normalized.gnomad
 
 import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf}
 import bio.ferlab.datalake.spark3.etl.ETLP

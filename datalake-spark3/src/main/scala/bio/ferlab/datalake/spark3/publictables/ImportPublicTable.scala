@@ -6,6 +6,7 @@ import bio.ferlab.datalake.spark3.publictables.normalized.omim.OmimGeneSet
 import bio.ferlab.datalake.spark3.publictables.normalized.orphanet.OrphanetGeneSet
 import bio.ferlab.datalake.spark3.publictables.normalized.refseq.{RefSeqAnnotation, RefSeqHumanGenes}
 import bio.ferlab.datalake.spark3.publictables.normalized._
+import bio.ferlab.datalake.spark3.publictables.normalized.gnomad._
 
 object ImportPublicTable extends SparkApp {
 
@@ -22,6 +23,7 @@ object ImportPublicTable extends SparkApp {
     case "ddd" => new DDDGeneSet().run(runSteps)
     case "ensembl_mapping" => new EnsemblMapping().run(runSteps)
     case "gnomadv3" => new GnomadV3().run(runSteps)
+    case "gnomad_constraint" => new GnomadConstraint().run(runSteps)
     case "genes" => new Genes().run(runSteps)
     case "hpo" => new HPOGeneSet().run(runSteps)
     case "omim" => new OmimGeneSet().run(runSteps)
