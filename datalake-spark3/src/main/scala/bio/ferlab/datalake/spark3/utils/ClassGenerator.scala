@@ -41,22 +41,24 @@ object ClassGenerator {
   val maxElement: Int = 100
 
   def getValue: PartialFunction[(String, Row, DataType), String] = {
-    case (name, values, StringType)                                    => "\"" + values.getAs[String](name).replace("\"", "\\\"").replaceAll("\n", " ").take(512) + "\""
-    case (name, values, DateType)                                      => s"""java.sql.Date.valueOf("${values.getAs(name)}")"""
-    case (name, values, TimestampType)                                 => s"""java.sql.Timestamp.valueOf("${values.getAs(name)}")"""
-    case (name, values, BinaryType)                                    => values.getAs[Array[Byte]](name).take(maxElement).map(b => s"$b.toByte").mkString("Array(", ", ", ")")
-    case (name, values, ArrayType(StringType,_)) if values.getAs[Seq[String]](name).isEmpty => "Seq()"
-    case (name, values, ArrayType(StringType,_))                       => values.getAs[Seq[String]](name).take(maxElement).mkString("Seq(\"", "\", \"", "\")")
-    case (name, values, ArrayType(FloatType,_))                        => values.getAs[Seq[Float]](name).take(maxElement).mkString("Seq(", ", ", ")")
-    case (name, values, ArrayType(IntegerType,_))                      => values.getAs[Seq[Int]](name).take(maxElement).mkString("Seq(", ", ", ")")
-    case (name, values, ArrayType(BooleanType,_))                      => values.getAs[Seq[Boolean]](name).take(maxElement).mkString("Seq(", ", ", ")")
-    case (name, values, ArrayType(DoubleType,_))                       => values.getAs[Seq[Double]](name).take(maxElement).mkString("Seq(", ", ", ")")
-    case (name, values, ArrayType(LongType,_))                         => values.getAs[Seq[Long]](name).take(maxElement).mkString("Seq(", ", ", ")")
-    case (name, values, MapType(StringType,StringType, _))             => values.getAs[Map[String, String]](name).take(maxElement).map{ case (k, v) => s"""\"$k\" -> \"$v\"""" }.mkString("Map(", ", ", ")")
-    case (name, values, MapType(StringType,LongType, _))               => values.getAs[Map[String, Long]](name).take(maxElement).mkString("Map(", ", ", ")")
-    case (name, values, MapType(StringType,DecimalType(), _))          => values.getAs[Map[String, BigDecimal]](name).take(maxElement).mkString("Map(", ", ", ")")
-    case (name, values, MapType(StringType,ArrayType(StringType,_),_)) => values.getAs[Map[String, Seq[String]]](name).take(maxElement).mkString("Map(", ", ", ")")
-    case (name, values, _)                                             => values.getAs(name)
+    case (name, values, StringType)                                       => "\"" + values.getAs[String](name).replace("\"", "\\\"").replaceAll("\n", " ").take(512) + "\""
+    case (name, values, DateType)                                         => s"""java.sql.Date.valueOf("${values.getAs(name)}")"""
+    case (name, values, TimestampType)                                    => s"""java.sql.Timestamp.valueOf("${values.getAs(name)}")"""
+    case (name, values, BinaryType)                                       => values.getAs[Array[Byte]](name).take(maxElement).map(b => s"$b.toByte").mkString("Array(", ", ", ")")
+    case (name, values, FloatType)                                        => s"""${values.getAs(name)}f"""
+    case (name, values, ArrayType(StringType,_))
+      if Option(values.getAs[Seq[String]](name)).getOrElse(Seq()).isEmpty => "Seq()" // If the array is empty ==> Seq(), or undefined ==> null
+    case (name, values, ArrayType(StringType,_))                          => values.getAs[Seq[String]](name).take(maxElement).mkString("Seq(\"", "\", \"", "\")")
+    case (name, values, ArrayType(FloatType,_))                           => values.getAs[Seq[Float]](name).take(maxElement).mkString("Seq(", ", ", ")")
+    case (name, values, ArrayType(IntegerType,_))                         => values.getAs[Seq[Int]](name).take(maxElement).mkString("Seq(", ", ", ")")
+    case (name, values, ArrayType(BooleanType,_))                         => values.getAs[Seq[Boolean]](name).take(maxElement).mkString("Seq(", ", ", ")")
+    case (name, values, ArrayType(DoubleType,_))                          => values.getAs[Seq[Double]](name).take(maxElement).mkString("Seq(", ", ", ")")
+    case (name, values, ArrayType(LongType,_))                            => values.getAs[Seq[Long]](name).take(maxElement).mkString("Seq(", ", ", ")")
+    case (name, values, MapType(StringType,StringType, _))                => values.getAs[Map[String, String]](name).take(maxElement).map{ case (k, v) => s"""\"$k\" -> \"$v\"""" }.mkString("Map(", ", ", ")")
+    case (name, values, MapType(StringType,LongType, _))                  => values.getAs[Map[String, Long]](name).take(maxElement).mkString("Map(", ", ", ")")
+    case (name, values, MapType(StringType,DecimalType(), _))             => values.getAs[Map[String, BigDecimal]](name).take(maxElement).mkString("Map(", ", ", ")")
+    case (name, values, MapType(StringType,ArrayType(StringType,_),_))    => values.getAs[Map[String, Seq[String]]](name).take(maxElement).mkString("Map(", ", ", ")")
+    case (name, values, _)                                                => values.getAs(name)
   }
 
   def oneClassString(className: String, df: DataFrame): String = {
