@@ -147,15 +147,15 @@ case class $className(${fields.mkString("", s",\n${spacing.mkString}" , ")")}"""
   }
 
   def getRandomValue(dataType: org.apache.spark.sql.types.DataType): Any = dataType match {
-    case _: org.apache.spark.sql.types.StringType => Random.alphanumeric.take(10).mkString
-    case _: org.apache.spark.sql.types.IntegerType => Math.abs(Random.nextInt())
-    case _: org.apache.spark.sql.types.DoubleType => Math.abs(Random.nextDouble())
-    case _: org.apache.spark.sql.types.BooleanType => Random.nextBoolean()
-    case _: org.apache.spark.sql.types.DateType => java.sql.Date.valueOf("2022-02-20")
-    case _: org.apache.spark.sql.types.TimestampType => java.sql.Timestamp.valueOf("2022-02-20 12:34:56.789")
-    case _: org.apache.spark.sql.types.DecimalType => BigDecimal.valueOf(Math.abs(Random.nextInt()))
-    case _: org.apache.spark.sql.types.LongType => Math.abs(Random.nextLong())
-    case _: org.apache.spark.sql.types.ShortType => Math.abs(Random.nextInt().toShort)
+    case _: StringType => Random.alphanumeric.take(10).mkString
+    case _: IntegerType => Math.abs(Random.nextInt())
+    case _: DoubleType => Math.abs(Random.nextDouble())
+    case _: BooleanType => Random.nextBoolean()
+    case _: DateType => java.sql.Date.valueOf("2022-02-20")
+    case _: TimestampType => java.sql.Timestamp.valueOf("2022-02-20 12:34:56.789")
+    case _: DecimalType => BigDecimal.valueOf(Math.abs(Random.nextInt()))
+    case _: LongType => Math.abs(Random.nextLong())
+    case _: ShortType => Math.abs(Random.nextInt().toShort)
     case _ => null
   }
 
@@ -168,11 +168,9 @@ case class $className(${fields.mkString("", s",\n${spacing.mkString}" , ")")}"""
                     ): Unit = {
     val dfToWrite = if (randomizeValues) {
       val schema = df.schema
-      val randomData = (1 to 2).map { _ =>
-        Row.fromSeq(schema.fields.map { field =>
-          getRandomValue(field.dataType)
-        })
-      }
+      val randomData = Seq(Row.fromSeq(schema.fields.map { field =>
+        getRandomValue(field.dataType)
+      }))
       df.sparkSession.createDataFrame(df.sparkSession.sparkContext.parallelize(randomData), schema)
     } else {
       df
