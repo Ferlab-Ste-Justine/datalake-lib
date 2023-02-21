@@ -9,6 +9,9 @@ import java.io.{File, PrintWriter}
 import java.time.LocalDateTime
 import scala.annotation.tailrec
 
+import org.apache.spark.sql.{DataFrame, Row}
+import scala.util.Random
+import scala.math.BigDecimal
 object ClassGenerator {
 
   val log: slf4j.Logger = slf4j.LoggerFactory.getLogger(getClass.getCanonicalName)
@@ -143,17 +146,42 @@ case class $className(${fields.mkString("", s",\n${spacing.mkString}" , ")")}"""
        |""".stripMargin
   }
 
-  def writeCLassFile(packageName: String,
-                     className: String,
-                     df: DataFrame,
-                     rootFolder: String = getClass.getResource(".").getFile): Unit = {
+  def getRandomValue(dataType: org.apache.spark.sql.types.DataType): Any = dataType match {
+    case _: StringType => Random.alphanumeric.take(10).mkString
+    case _: IntegerType => Math.abs(Random.nextInt())
+    case _: DoubleType => Math.abs(Random.nextDouble())
+    case _: BooleanType => Random.nextBoolean()
+    case _: DateType => java.sql.Date.valueOf("2022-02-20")
+    case _: TimestampType => java.sql.Timestamp.valueOf("2022-02-20 12:34:56.789")
+    case _: DecimalType => BigDecimal.valueOf(Math.abs(Random.nextInt()))
+    case _: LongType => Math.abs(Random.nextLong())
+    case _: ShortType => Math.abs(Random.nextInt().toShort)
+    case _ => null
+  }
 
-    val classContent = getCaseClassFileContent(packageName, className, df)
+  def writeCLassFile(
+                      packageName: String,
+                      className: String,
+                      df: DataFrame,
+                      rootFolder: String = getClass.getResource(".").getFile,
+                      randomizeValues: Boolean = false
+                    ): Unit = {
+    val dfToWrite = if (randomizeValues) {
+      val schema = df.schema
+      val randomData = Seq(Row.fromSeq(schema.fields.map { field =>
+        getRandomValue(field.dataType)
+      }))
+      df.sparkSession.createDataFrame(df.sparkSession.sparkContext.parallelize(randomData), schema)
+    } else {
+      df
+    }
+
+    val classContent = getCaseClassFileContent(packageName, className, dfToWrite)
     val folder = s"""$rootFolder${packageName.replace(".", "/")}"""
     val path: String = s"$folder/$className.scala"
 
     log.info(
-      s"""writting file: $path :
+      s"""writing file: $path :
          |$classContent
          |""".stripMargin)
     val file = new File(path)
@@ -168,7 +196,6 @@ case class $className(${fields.mkString("", s",\n${spacing.mkString}" , ")")}"""
     val pw = new PrintWriter(file)
     pw.write(classContent)
     pw.close()
-
   }
 
 
