@@ -32,6 +32,9 @@ object LoadResolver {
     case (DELTA, OverWritePartition) => (ds: DatasetConf, df: DataFrame) =>
       DeltaLoader.overwritePartition(ds.location, ds.table.map(_.database).getOrElse(""), ds.table.map(_.name).getOrElse(""), df, ds.partitionby, ds.format.sparkFormat, ds.writeoptions)
 
+    case (DELTA, OverWritePartitionDynamic) => (ds: DatasetConf, df: DataFrame) =>
+      DeltaLoader.overwritePartitionDynamic(ds.location,  ds.table.map(_.database).getOrElse(""), ds.table.map(_.name).getOrElse(""), df, ds.partitionby, ds.format.sparkFormat, ds.writeoptions)
+
     case (DELTA, Compact)   => (ds: DatasetConf, df: DataFrame) =>
       DeltaLoader.writeOnce(ds.location, ds.table.map(_.database).getOrElse(""), ds.table.map(_.name).getOrElse(""), df, ds.partitionby, ds.format.sparkFormat, ds.writeoptions)
 
