@@ -97,4 +97,5 @@ object VcfLoader extends Loader {
                                   partitioning: List[String],
                                   format: String,
                                   options: Map[String, String])(implicit spark: SparkSession): DataFrame = ???
+
 }

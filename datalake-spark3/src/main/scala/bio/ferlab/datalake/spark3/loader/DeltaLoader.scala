@@ -130,6 +130,30 @@ object DeltaLoader extends Loader {
     }
   }
 
+  /**
+   * Dynamically keeps old partition and overwrites new partitions.
+   *
+   * @param location     where to write the data
+   * @param databaseName database name
+   * @param tableName    table name
+   * @param df           new data to write into the table
+   * @param partitioning partition columns
+   * @param format       format
+   * @param options      write options
+   * @param spark        a spark session
+   * @return updated data
+   */
+  def overwritePartitionDynamic(location: String,
+                                         databaseName: String,
+                                         tableName: String,
+                                         df: DataFrame,
+                                         partitioning: List[String],
+                                         format: String,
+                                         options: Map[String, String] = Map("partitionOverwriteMode" -> "dynamic"))
+                                        (implicit spark: SparkSession): DataFrame = {
+    GenericLoader.writeOnce(location, databaseName, tableName, df, partitioning, format, options + ("partitionOverwriteMode" -> "dynamic"))
+  }
+
   override def read(location: String,
                     format: String,
                     readOptions: Map[String, String],

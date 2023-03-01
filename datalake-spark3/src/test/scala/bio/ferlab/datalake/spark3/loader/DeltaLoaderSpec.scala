@@ -279,6 +279,38 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
 
   }
 
+  "overwritePartitionDynamic" should "replace partitions dynamically" in {
+    import spark.implicits._
+
+    val day1 = Date.valueOf("1900-01-01")
+    val day2 = Date.valueOf("1900-01-02")
+    val day3 = Date.valueOf("1900-01-03")
+    val tableName = "testtableoverwite"
+
+    val existing: DataFrame = Seq(
+      ("1", day1),
+      ("2", day2)
+    ).toDF("id", "ingested_on")
+
+    val updates: DataFrame = Seq(
+      ("3", day2),
+      ("4", day2),
+      ("5", day3)
+    ).toDF("id", "ingested_on")
+
+    DeltaLoader.writeOnce(testtableoverwite, "default", tableName, existing, List("ingested_on"), "delta")
+    spark.table(tableName).show(false)
+
+    DeltaLoader.overwritePartitionDynamic(testtableoverwite, "default", tableName, updates, List("ingested_on"), "delta")
+
+    spark.table(tableName).as[(String, Date)].collect() should contain allElementsOf Seq(
+      ("1", day1),
+      ("3", day2),
+      ("4", day2),
+      ("5", day3)
+    )
+  }
+
   "insert" should "add rows to existing rows" in {
 
     import spark.implicits._
