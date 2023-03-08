@@ -37,11 +37,21 @@ object DeltaLoader extends Loader {
         val existingDf = existing.toDF
         val keysAreIdentical: Column = primaryKeys.map(c => updates(c) === existingDf(c)).reduce((a, b) => a && b)
 
+        val partitionCondition: Option[Column] = if (partitioning.nonEmpty) {
+          Some(col(updates.select(partitioning.head).distinct().collect().mkString("','")))
+        } else {
+          None
+        }
+
+        val mergeCondition: Column = partitionCondition match {
+          case Some(pc) => keysAreIdentical && (partitioning.head IN pc)
+          case None => keysAreIdentical
+        }
         /** Merge */
         existing.as("existing")
           .merge(
             updates.as("updates"),
-            keysAreIdentical
+            mergeCondition
           )
           .whenMatched()
           .updateAll()
