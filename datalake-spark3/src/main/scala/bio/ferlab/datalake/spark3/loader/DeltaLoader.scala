@@ -26,6 +26,7 @@ object DeltaLoader extends Loader {
                       partitioning: List[String],
                       format: String,
                       options: Map[String, String])(implicit spark: SparkSession): DataFrame = {
+    import spark.implicits._
 
     require(primaryKeys.forall(updates.columns.contains), s"requires column [${primaryKeys.mkString(", ")}]")
 
@@ -33,25 +34,18 @@ object DeltaLoader extends Loader {
       case Failure(_) =>
         writeOnce(location, databaseName, tableName, updates, partitioning, format, options)
       case Success(existing) =>
-
         val existingDf = existing.toDF
         val keysAreIdentical: Column = primaryKeys.map(c => updates(c) === existingDf(c)).reduce((a, b) => a && b)
+        val partitionInValues: Option[Column] = partitioning.map { p =>
+          val partitionValues = updates.select(p).distinct().as[String].collect()
+          existingDf(p) isin partitionValues
+        }.reduceOption((a, b) => a && b)
 
-        val partitionCondition: Option[Column] = if (partitioning.nonEmpty) {
-          Some(col(updates.select(partitioning.head).distinct().collect().mkString("','")))
-        } else {
-          None
-        }
-
-        val mergeCondition: Column = partitionCondition match {
-          case Some(pc) => keysAreIdentical && (partitioning.head IN pc)
-          case None => keysAreIdentical
-        }
         /** Merge */
         existing.as("existing")
           .merge(
-            updates.as("updates"),
-            mergeCondition
+            source = updates.as("updates"),
+            condition = partitionInValues.foldLeft(keysAreIdentical)(_ && _)
           )
           .whenMatched()
           .updateAll()
