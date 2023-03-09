@@ -3,7 +3,7 @@ package bio.ferlab.datalake.spark3.publictables
 import bio.ferlab.datalake.commons.config.Format.{CSV, DELTA, GFF, VCF, XML}
 import bio.ferlab.datalake.commons.config.LoadType.OverWrite
 import bio.ferlab.datalake.commons.config._
-import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns.locusColumNames
+import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns.locusColumnNames
 
 
 case class PublicDatasets(alias: String, tableDatabase: Option[String], viewDatabase: Option[String]){

@@ -22,7 +22,7 @@ object GenomicImplicits {
     }
 
     def joinByLocus(other: DataFrame, joinType: String): DataFrame = {
-      df.join(other, columns.locusColumNames, joinType)
+      df.join(other, columns.locusColumnNames, joinType)
     }
 
     def groupByLocus(): RelationalGroupedDataset = {
@@ -642,9 +642,9 @@ object GenomicImplicits {
       (if (df.columns.contains(colName)) col(colName) else lit(null).cast(colType)).as(alias)
 
     //the order matters, do not change it
-    val locusColumNames: List[String] = List("chromosome", "start", "reference", "alternate")
+    val locusColumnNames: List[String] = List("chromosome", "start", "reference", "alternate")
 
-    val locus: List[Column] = locusColumNames.map(col)
+    val locus: List[Column] = locusColumnNames.map(col)
     val id: Column = sha1(concat(col("chromosome"), col("start"), col("reference"), col("alternate"))) as "id"
 
   }
