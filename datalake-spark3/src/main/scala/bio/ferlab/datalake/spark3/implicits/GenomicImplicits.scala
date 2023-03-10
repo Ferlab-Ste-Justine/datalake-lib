@@ -11,11 +11,6 @@ import scala.collection.immutable
 
 object GenomicImplicits {
 
-  val id: Column = sha1(concat(col("chromosome"), col("start"), col("reference"), col("alternate"))) as "id"
-
-  val locusColumnNames: Seq[String] = Seq("chromosome", "start", "reference", "alternate")
-  val locus: Seq[Column] = locusColumnNames.map(col)
-
   implicit class GenomicOperations(df: DataFrame) {
 
     def joinAndMerge(other: DataFrame, outputColumnName: String, joinType: String = "inner"): DataFrame = {
@@ -27,15 +22,15 @@ object GenomicImplicits {
     }
 
     def joinByLocus(other: DataFrame, joinType: String): DataFrame = {
-      df.join(other, locusColumnNames, joinType)
+      df.join(other, columns.locusColumnNames, joinType)
     }
 
     def groupByLocus(): RelationalGroupedDataset = {
-      df.groupBy(locus: _*)
+      df.groupBy(columns.locus: _*)
     }
 
     def selectLocus(cols: Column*): DataFrame = {
-      val allCols = (locus ++ cols).toList
+      val allCols = (columns.locus ++ cols).toList
       df.select(allCols: _*)
     }
 
@@ -414,9 +409,57 @@ object GenomicImplicits {
             .otherwise(autosomalParentalOrigin))
         .drop("norm_calls", "norm_fth_calls", "norm_mth_calls")
     }
+
+    def withCompoundHeterozygous(patientIdColumnName: String = "patient_id", geneSymbolsColumnName: String = "symbols", additionalFilter: Option[Column] = None): DataFrame = {
+      val filters: Column = additionalFilter.map(f => isHeterozygote and f).getOrElse(isHeterozygote)
+      val het = df.filter(filters)
+      val hc: DataFrame = het.getCompoundHet(patientIdColumnName, geneSymbolsColumnName)
+      val possiblyHC: DataFrame = het.getPossiblyCompoundHet(patientIdColumnName, geneSymbolsColumnName)
+      df
+        .join(hc, Seq("chromosome", "start", "reference", "alternate", patientIdColumnName), "left")
+        .join(possiblyHC, Seq("chromosome", "start", "reference", "alternate", patientIdColumnName), "left")
+        .withColumn("is_hc", coalesce(col("is_hc"), lit(false)))
+        .withColumn("hc_complement", coalesce(col("hc_complement"), array()))
+        .withColumn("is_possibly_hc", coalesce(col("is_possibly_hc"), lit(false)))
+        .withColumn("possibly_hc_complement", coalesce(col("possibly_hc_complement"), array()))
+    }
+
+    def getPossiblyCompoundHet(patientIdColumnName: String, geneSymbolsColumnName: String): DataFrame = {
+      val hcWindow = Window.partitionBy(patientIdColumnName, "chromosome", "symbol").orderBy("start").rowsBetween(Window.unboundedPreceding, Window.unboundedFollowing)
+      val possiblyHC = df
+        .select(col(patientIdColumnName), col("chromosome"), col("start"), col("reference"), col("alternate"), explode(col(geneSymbolsColumnName)) as "symbol")
+        .withColumn("possibly_hc_count", count(lit(1)).over(hcWindow))
+        .filter(col("possibly_hc_count") > 1)
+        .withColumn("possibly_hc_complement", struct(col("symbol") as "symbol", col("possibly_hc_count") as "count"))
+        .groupBy(col(patientIdColumnName) :: columns.locus: _*)
+        .agg(collect_set("possibly_hc_complement") as "possibly_hc_complement")
+        .withColumn("is_possibly_hc", lit(true))
+      possiblyHC
+    }
+
+    def getCompoundHet(patientIdColumnName: String, geneSymbolsColumnName: String): DataFrame = {
+      val withParentalOrigin = df.filter(col("parental_origin").isin(FTH, MTH))
+
+      val hcWindow = Window.partitionBy(patientIdColumnName, "chromosome", "symbol", "parental_origin").orderBy("start")
+      val hc = withParentalOrigin
+        .select(col(patientIdColumnName), col("chromosome"), col("start"), col("reference"), col("alternate"), col(geneSymbolsColumnName), col("parental_origin"))
+        .withColumn("locus", concat_ws("-", columns.locus: _*))
+        .withColumn("symbol", explode(col(geneSymbolsColumnName)))
+        .withColumn("coords", collect_set(col("locus")).over(hcWindow))
+        .withColumn("merged_coords", last("coords", ignoreNulls = true).over(hcWindow.rowsBetween(Window.unboundedPreceding, Window.unboundedFollowing)))
+        .withColumn("struct_coords", struct(col("parental_origin"), col("merged_coords").alias("coords")))
+        .withColumn("all_coords", collect_set("struct_coords").over(Window.partitionBy(patientIdColumnName, "chromosome", "symbol").rowsBetween(Window.unboundedPreceding, Window.unboundedFollowing)))
+        .withColumn("complement_coords", filter(col("all_coords"), x => x.getItem("parental_origin") =!= col("parental_origin"))(0))
+        .withColumn("is_hc", col("complement_coords").isNotNull)
+        .filter(col("is_hc"))
+        .withColumn("hc_complement", struct(col("symbol") as "symbol", col("complement_coords.coords") as "locus"))
+        .groupBy(col(patientIdColumnName) :: columns.locus: _*)
+        .agg(first("is_hc") as "is_hc", collect_set("hc_complement") as "hc_complement")
+      hc
+    }
   }
 
-  object ParentalOrigin{
+  object ParentalOrigin {
     val MTH: String = "mother"
     val FTH: String = "father"
     val DENOVO: String = "denovo"
@@ -427,6 +470,7 @@ object GenomicImplicits {
     val AMBIGUOUS: String = "ambiguous"
     val UNKNOWN: String = "unknown"
   }
+
   object columns {
     val chromosome: Column = ltrim(col("contigName"), "chr") as "chromosome"
     val reference: Column = col("referenceAllele") as "reference"
@@ -472,7 +516,7 @@ object GenomicImplicits {
     def flattenInfo(df: DataFrame, except: String*): Seq[Column] =
       df.columns.filterNot(except.contains(_)).collect {
         case c if c.startsWith("INFO_") => col(c)(0) as c.replace("INFO_", "").toLowerCase
-    }
+      }
 
     val familyVariantWindow: WindowSpec =
       Window.partitionBy("chromosome", "start", "reference", "alternate", "family_id")
@@ -598,9 +642,11 @@ object GenomicImplicits {
       (if (df.columns.contains(colName)) col(colName) else lit(null).cast(colType)).as(alias)
 
     //the order matters, do not change it
-    val locusColumNames: List[String] = List("chromosome", "start", "reference", "alternate")
+    val locusColumnNames: List[String] = List("chromosome", "start", "reference", "alternate")
 
-    val locus: List[Column] = locusColumNames.map(col)
+    val locus: List[Column] = locusColumnNames.map(col)
+    val id: Column = sha1(concat(col("chromosome"), col("start"), col("reference"), col("alternate"))) as "id"
+
   }
 
   /**

@@ -3,7 +3,7 @@ package bio.ferlab.datalake.spark3.publictables
 import bio.ferlab.datalake.commons.config.Format.{CSV, DELTA, GFF, VCF, XML}
 import bio.ferlab.datalake.commons.config.LoadType.OverWrite
 import bio.ferlab.datalake.commons.config._
-import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns.locusColumNames
+import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns.locusColumnNames
 
 
 case class PublicDatasets(alias: String, tableDatabase: Option[String], viewDatabase: Option[String]){
@@ -62,9 +62,10 @@ case class PublicDatasets(alias: String, tableDatabase: Option[String], viewData
           DatasetConf("normalized_spliceai_snv"            , alias, "/public/spliceai/snv"                         , DELTA, OverWrite , partitionby = List("chromosome"), table = table("spliceai_snv")             , view = view("spliceai_snv")),
 
           // enriched
-          DatasetConf("enriched_genes"   , alias, "/public/genes"            , DELTA, OverWrite , partitionby = List()            , table = table("genes")            , view = view("genes")),
-          DatasetConf("enriched_dbnsfp"  , alias, "/public/dbnsfp/scores"    , DELTA, OverWrite , partitionby = List("chromosome"), table = table("dbnsfp_original")  , view = view("dbnsfp_original")),
-          DatasetConf("enriched_spliceai", alias, "/public/spliceai/enriched", DELTA, OverWrite , partitionby = List("chromosome"), table = table("spliceai_enriched"), view = view("spliceai_enriched")),
+          DatasetConf("enriched_genes"                     , alias, "/public/genes"                , DELTA, OverWrite , partitionby = List()            , table = table("genes")                , view = view("genes")),
+          DatasetConf("enriched_dbnsfp"                    , alias, "/public/dbnsfp/scores"        , DELTA, OverWrite , partitionby = List("chromosome"), table = table("dbnsfp_original")      , view = view("dbnsfp_original")),
+          DatasetConf("enriched_spliceai"                  , alias, "/public/spliceai/enriched"    , DELTA, OverWrite , partitionby = List("chromosome"), table = table("spliceai_enriched")    , view = view("spliceai_enriched")),
+          DatasetConf("enriched_rare_variant"              , alias, "/public/rare_variant/enriched", DELTA, OverWrite , partitionby = List("chromosome", "is_rare"), table = table("rare_variant_enriched"), view = view("rare_variant_enriched"))
 
 
   )

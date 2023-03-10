@@ -2,13 +2,15 @@ package bio.ferlab.datalake.spark3.implicits
 
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits._
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns._
-import bio.ferlab.datalake.spark3.testmodels.Genotype
+import bio.ferlab.datalake.spark3.testmodels.{CompoundHetInput, CompoundHetOutput, FullCompoundHetOutput, Genotype, HCComplement, OtherCompoundHetInput, PossiblyCompoundHetOutput, PossiblyHCComplement}
 import bio.ferlab.datalake.spark3.testutils.WithSparkSession
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.{DataFrame, functions}
+import org.apache.spark.sql.{Column, DataFrame, functions}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.ParentalOrigin._
+
+import scala.collection.Seq
 
 class GenomicImplicitsSpec extends AnyFlatSpec with WithSparkSession with Matchers {
 
@@ -546,6 +548,128 @@ class GenomicImplicitsSpec extends AnyFlatSpec with WithSparkSession with Matche
     val res: Array[Int] = frame.as[Int].collect()
     res should contain theSameElementsAs Seq(1, 10, 100, 101, 102)
   }
+
+  "getCompoundHet" should "return compound het for one patient and one gene" in {
+
+    val input = Seq(
+      CompoundHetInput("PA001", "1", 1000, "A", "T", Seq("BRAF1", "BRAF2"), Some("mother")),
+      CompoundHetInput("PA001", "1", 1030, "C", "G", Seq("BRAF1"), Some("father"))
+    ).toDF()
+
+    input.getCompoundHet("patient_id", "symbols").as[CompoundHetOutput].collect() should contain theSameElementsAs Seq(
+      CompoundHetOutput("PA001", "1", 1000, "A", "T", is_hc = true, Seq(HCComplement("BRAF1", Seq("1-1030-C-G")))),
+      CompoundHetOutput("PA001", "1", 1030, "C", "G", is_hc = true, Seq(HCComplement("BRAF1", Seq("1-1000-A-T"))))
+    )
+  }
+  it should "return compound het for one patient and multiple genes" in {
+
+    val input = Seq(
+      CompoundHetInput("PA001", "1", 1000, "A", "T", Seq("BRAF1", "BRAF2"), Some("mother")),
+      CompoundHetInput("PA001", "1", 1030, "C", "G", Seq("BRAF1", "BRAF2"), Some("father")),
+      CompoundHetInput("PA001", "1", 1050, "C", "G", Seq("BRAF1", "BRAF2")),
+      CompoundHetInput("PA001", "1", 1070, "C", "G", Seq("BRAF2"), Some("father"))
+    ).toDF()
+
+    input.getCompoundHet("patient_id", "symbols").as[CompoundHetOutput].collect() should contain theSameElementsAs Seq(
+      CompoundHetOutput("PA001", "1", 1000, "A", "T", is_hc = true, Seq(HCComplement("BRAF2", Seq("1-1030-C-G", "1-1070-C-G")), HCComplement("BRAF1", Seq("1-1030-C-G")))),
+      CompoundHetOutput("PA001", "1", 1030, "C", "G", is_hc = true, Seq(HCComplement("BRAF1", Seq("1-1000-A-T")), HCComplement("BRAF2", Seq("1-1000-A-T")))),
+      CompoundHetOutput("PA001", "1", 1070, "C", "G", is_hc = true, Seq(HCComplement("BRAF2", Seq("1-1000-A-T"))))
+    )
+
+  }
+  it should "return compound het for two patients and one gene" in {
+
+    val input = Seq(
+      CompoundHetInput("PA001", "1", 1000, "A", "T", Seq("BRAF1", "BRAF2"), Some("mother")),
+      CompoundHetInput("PA001", "1", 1030, "C", "G", Seq("BRAF1"), Some("father")),
+      CompoundHetInput("PA001", "1", 1050, "C", "G", Seq("BRAF1")),
+      CompoundHetInput("PA002", "1", 1000, "A", "T", Seq("BRAF1", "BRAF2"), Some("mother")),
+      CompoundHetInput("PA002", "1", 1050, "C", "G", Seq("BRAF1"), Some("father")),
+    ).toDF()
+
+    input.getCompoundHet("patient_id", "symbols").as[CompoundHetOutput].collect() should contain theSameElementsAs Seq(
+      CompoundHetOutput("PA001", "1", 1000, "A", "T", is_hc = true, Seq(HCComplement("BRAF1", Seq("1-1030-C-G")))),
+      CompoundHetOutput("PA001", "1", 1030, "C", "G", is_hc = true, Seq(HCComplement("BRAF1", Seq("1-1000-A-T")))),
+      CompoundHetOutput("PA002", "1", 1000, "A", "T", is_hc = true, Seq(HCComplement("BRAF1", Seq("1-1050-C-G")))),
+      CompoundHetOutput("PA002", "1", 1050, "C", "G", is_hc = true, Seq(HCComplement("BRAF1", Seq("1-1000-A-T"))))
+    )
+
+  }
+
+  "getPossiblyCompoundHet" should "return possibly compound het for many patients" in {
+    val input = Seq(
+      CompoundHetInput("PA001", "1", 1000, "A", "T", Seq("BRAF1", "BRAF2")),
+      CompoundHetInput("PA001", "1", 1030, "C", "G", Seq("BRAF1", "BRAF2")),
+      CompoundHetInput("PA001", "1", 1070, "C", "G", Seq("BRAF2")),
+      CompoundHetInput("PA001", "1", 1090, "C", "G", Seq("BRAF3")),
+      CompoundHetInput("PA002", "1", 1000, "A", "T", Seq("BRAF1", "BRAF2")),
+      CompoundHetInput("PA002", "1", 1030, "C", "G", Seq("BRAF1"))
+    ).toDF()
+
+    val result = input.getPossiblyCompoundHet("patient_id", "symbols").as[PossiblyCompoundHetOutput]
+    result.collect() should contain theSameElementsAs Seq(
+      PossiblyCompoundHetOutput("PA001", "1", 1000, "A", "T", is_possibly_hc = true, Seq(PossiblyHCComplement("BRAF1", 2), PossiblyHCComplement("BRAF2", 3))),
+      PossiblyCompoundHetOutput("PA001", "1", 1030, "C", "G", is_possibly_hc = true, Seq(PossiblyHCComplement("BRAF1", 2), PossiblyHCComplement("BRAF2", 3))),
+      PossiblyCompoundHetOutput("PA001", "1", 1070, "C", "G", is_possibly_hc = true, Seq(PossiblyHCComplement("BRAF2", 3))),
+      PossiblyCompoundHetOutput("PA002", "1", 1000, "A", "T", is_possibly_hc = true, Seq(PossiblyHCComplement("BRAF1", 2))),
+      PossiblyCompoundHetOutput("PA002", "1", 1030, "C", "G", is_possibly_hc = true, Seq(PossiblyHCComplement("BRAF1", 2))),
+    )
+  }
+
+  "withCompoundHeterozygous" should "return enriched dataframe with compound het and possibly compound het" in {
+    val input = Seq(
+      CompoundHetInput("PA001", "1", 1000, "A", "T", Seq("BRAF1", "BRAF2"), Some("mother")),
+      CompoundHetInput("PA001", "1", 1030, "C", "G", Seq("BRAF1"), Some("father")),
+      CompoundHetInput("PA001", "2", 2000, "C", "G", Seq("BRAF1"), Some("father"), "HOM")
+    ).toDF()
+    input.withCompoundHeterozygous().as[FullCompoundHetOutput].collect() should contain theSameElementsAs Seq(
+      FullCompoundHetOutput("PA001", "1", 1000, "A", "T", is_hc = true, Seq(HCComplement("BRAF1", Seq("1-1030-C-G"))), is_possibly_hc = true, Seq(PossiblyHCComplement("BRAF1", 2))),
+      FullCompoundHetOutput("PA001", "1", 1030, "C", "G", is_hc = true, Seq(HCComplement("BRAF1", Seq("1-1000-A-T"))), is_possibly_hc = true, Seq(PossiblyHCComplement("BRAF1", 2))),
+      FullCompoundHetOutput("PA001", "2", 2000, "C", "G", is_hc = false, Nil, is_possibly_hc = false, Nil)
+    )
+
+  }
+
+  it should "return enriched dataframe filtered with additional filters" in {
+    val input = Seq(
+      CompoundHetInput("PA001", "1", 1000, "A", "T", Seq("BRAF1", "BRAF2"), Some("mother")),
+      CompoundHetInput("PA001", "1", 1030, "C", "G", Seq("BRAF1"), Some("father")),
+      CompoundHetInput("PA001", "2", 2000, "C", "G", Seq("BRAF1"), Some("father"), "HOM"),
+      CompoundHetInput("PA001", "3", 1000, "A", "T", Seq("BRAF1", "BRAF2"), Some("mother")),
+      CompoundHetInput("PA001", "3", 1030, "C", "G", Seq("BRAF1"), Some("father"))
+    ).toDF()
+    val filter: Column = col("chromosome") === "1"
+    val result = input.withCompoundHeterozygous(additionalFilter = Some(filter))
+    result.show(false)
+    result.as[FullCompoundHetOutput].collect() should contain theSameElementsAs Seq(
+      FullCompoundHetOutput("PA001", "1", 1000, "A", "T", is_hc = true, Seq(HCComplement("BRAF1", Seq("1-1030-C-G"))), is_possibly_hc = true, Seq(PossiblyHCComplement("BRAF1", 2))),
+      FullCompoundHetOutput("PA001", "1", 1030, "C", "G", is_hc = true, Seq(HCComplement("BRAF1", Seq("1-1000-A-T"))), is_possibly_hc = true, Seq(PossiblyHCComplement("BRAF1", 2))),
+      FullCompoundHetOutput("PA001", "2", 2000, "C", "G", is_hc = false, Nil, is_possibly_hc = false, Nil),
+      FullCompoundHetOutput("PA001", "3", 1000, "A", "T", is_hc = false, Nil, is_possibly_hc = false, Nil),
+      FullCompoundHetOutput("PA001", "3", 1030, "C", "G", is_hc = false, Nil, is_possibly_hc = false, Nil),
+    )
+
+  }
+
+  it should "return enriched dataframe with other cols as input parameters" in {
+    val input = Seq(
+      OtherCompoundHetInput("PA001", "1", 1000, "A", "T", Seq("BRAF1", "BRAF2"), Some("mother")),
+      OtherCompoundHetInput("PA001", "1", 1030, "C", "G", Seq("BRAF1"), Some("father")),
+      OtherCompoundHetInput("PA001", "2", 2000, "C", "G", Seq("BRAF1"), Some("father"), "HOM")
+    ).toDF()
+    val result = input
+      .withCompoundHeterozygous(patientIdColumnName = "other_patient_id", geneSymbolsColumnName = "other_symbols")
+      .withColumnRenamed("other_patient_id", "patient_id")
+
+    result.as[FullCompoundHetOutput].collect() should contain theSameElementsAs Seq(
+      FullCompoundHetOutput("PA001", "1", 1000, "A", "T", is_hc = true, Seq(HCComplement("BRAF1", Seq("1-1030-C-G"))), is_possibly_hc = true, Seq(PossiblyHCComplement("BRAF1", 2))),
+      FullCompoundHetOutput("PA001", "1", 1030, "C", "G", is_hc = true, Seq(HCComplement("BRAF1", Seq("1-1000-A-T"))), is_possibly_hc = true, Seq(PossiblyHCComplement("BRAF1", 2))),
+      FullCompoundHetOutput("PA001", "2", 2000, "C", "G", is_hc = false, Nil, is_possibly_hc = false, Nil)
+    )
+
+  }
+
+
 
 }
 
