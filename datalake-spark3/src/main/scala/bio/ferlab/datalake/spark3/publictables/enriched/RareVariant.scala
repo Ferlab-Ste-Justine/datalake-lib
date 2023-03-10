@@ -27,11 +27,11 @@ class RareVariant()(implicit conf: Configuration) extends ETLSingleDestination {
                                currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): DataFrame = {
     data(gnomad_genomes_v2_1.id)
       .select(columns.locus :+ col("af"): _*)
-      .where(col("af") <= 0.01)
       .groupByLocus()
       .agg(max("af") as "af")
+      .withColumn("is_rare", col("af") <= 0.01)
   }
 
-  override def defaultRepartition: DataFrame => DataFrame = RepartitionByRange(columnNames = Seq("chromosome", "start"), n = Some(50))
+  override def defaultRepartition: DataFrame => DataFrame = RepartitionByRange(columnNames = Seq("chromosome", "start"), n = Some(60))
 
 }
