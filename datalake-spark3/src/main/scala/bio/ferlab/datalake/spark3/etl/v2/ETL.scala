@@ -3,12 +3,12 @@ package bio.ferlab.datalake.spark3.etl.v2
 import bio.ferlab.datalake.commons.config.LoadType.{Insert, OverWritePartition, Scd1, Scd2}
 import bio.ferlab.datalake.commons.config.WriteOptions.{UPDATED_ON_COLUMN_NAME, VALID_FROM_COLUMN_NAME}
 import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf, RunStep}
+import bio.ferlab.datalake.commons.utils.{DynamicRepartition, IdentityRepartition}
 import bio.ferlab.datalake.spark3.datastore.SqlBinderResolver
 import bio.ferlab.datalake.spark3.etl.Runnable
 import bio.ferlab.datalake.spark3.file.FileSystemResolver
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import bio.ferlab.datalake.spark3.loader.LoadResolver
-import bio.ferlab.datalake.spark3.utils.{DynamicRepartition, IdentityRepartition}
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.slf4j.{Logger, LoggerFactory}
