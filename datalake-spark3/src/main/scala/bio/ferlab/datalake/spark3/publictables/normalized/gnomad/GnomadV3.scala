@@ -1,10 +1,10 @@
 package bio.ferlab.datalake.spark3.publictables.normalized.gnomad
 
 import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf}
+import bio.ferlab.datalake.commons.utils.RepartitionByRange
 import bio.ferlab.datalake.spark3.etl.ETLP
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns._
-import bio.ferlab.datalake.spark3.utils.RepartitionByRange
 import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.types.ArrayType
 import org.apache.spark.sql.{Column, DataFrame, SparkSession}

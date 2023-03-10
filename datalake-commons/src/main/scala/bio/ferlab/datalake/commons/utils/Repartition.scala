@@ -1,8 +1,6 @@
-package bio.ferlab.datalake.spark3.utils
-
+package bio.ferlab.datalake.commons.utils
 import org.apache.spark.sql.{Column, DataFrame}
 import org.apache.spark.sql.functions.col
-
 trait Repartition extends Function[DataFrame, DataFrame] {
   def repartition(df: DataFrame): DataFrame
 
