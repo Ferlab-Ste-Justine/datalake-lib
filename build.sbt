@@ -33,6 +33,8 @@ lazy val `datalake-commons` = (project in file("datalake-commons"))
     libraryDependencies += "dev.zio"               %% "zio-config"             % zioVersion,
     libraryDependencies += "dev.zio"               %% "zio-config-magnolia"    % zioVersion,
     libraryDependencies += "com.outr"              %% "hasher"                 % "1.2.2",
+    libraryDependencies += "org.apache.spark"      %% "spark-core"             % spark3Version        % Provided,
+    libraryDependencies += "org.apache.spark"      %% "spark-sql"              % spark3Version          % Provided,
     dependencyOverrides ++= Seq(
       "org.apache.commons"    % "commons-lang3"           % "3.9",
       "org.antlr"    % "antlr4"           % "4.8",
