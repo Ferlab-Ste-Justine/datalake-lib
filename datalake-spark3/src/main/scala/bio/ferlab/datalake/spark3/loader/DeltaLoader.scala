@@ -38,7 +38,7 @@ object DeltaLoader extends Loader {
         val keysAreIdentical: Column = primaryKeys.map(c => updates(c) <=> existingDf(c)).reduce((a, b) => a && b)
         val partitionInValues: Option[Column] = partitioning.map { p =>
           val partitionValues = updates.select(p).distinct().as[String].collect()
-          existingDf(p) isin partitionValues
+          existingDf(p).isin(partitionValues: _*)
         }.reduceOption((a, b) => a && b)
 
         /** Merge */
