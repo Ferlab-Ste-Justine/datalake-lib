@@ -60,7 +60,8 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
 
     val existing: DataFrame = Seq(
       TestData("a"  , "a", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1),
-      TestData("aaa", "aaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1)
+      TestData("aaa", "aaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1),
+      TestData(null, "aaaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1),
     ).toDF
 
     DeltaLoader
@@ -81,13 +82,15 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
     val updates: DataFrame = Seq(
       TestData("a"  , "b", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),
       TestData("aa" , "bb", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),
-      TestData("aaa", "aaa", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2)
+      TestData("aaa", "aaa", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),
+      TestData(null, "bbbb", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),
     ).toDF
 
     val expectedResult: Seq[TestData] = Seq(
       TestData("a"  , "b", Timestamp.valueOf(day1), Timestamp.valueOf(day2), 2), //will be updated
       TestData("aa" , "bb", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),//will be inserted
-      TestData("aaa", "aaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1)//will stay the same
+      TestData("aaa", "aaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1),//will stay the same
+      TestData(null, "bbbb", Timestamp.valueOf(day1), Timestamp.valueOf(day2), 2) // will be updated
     )
 
     DeltaLoader.scd1(
@@ -106,7 +109,7 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
 
 
     val df = DeltaLoader.read(output, DELTA.sparkFormat, Map(), Some("default"), Some(tableName))
-    df.count() shouldBe 3
+    df.count() shouldBe 4
     df.as[TestData].collect() should contain allElementsOf expectedResult
 
   }
@@ -363,7 +366,8 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
     val existing: DataFrame = Seq(
       TestData("a", "a", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1),
       TestData("aaa", "aaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1),
-      TestData("aaaa", "aaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1)
+      TestData("aaaa", "aaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1),
+      TestData(null, "aaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1),
     ).toDF
 
     DeltaLoader.writeOnce(output, "default", tableName, existing, List(), "delta")
@@ -371,7 +375,8 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
     val updates: Seq[TestData] = Seq(
       TestData("a", "b", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),
       TestData("aa", "bb", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),
-      TestData("aaa", "aaa", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2)
+      TestData("aaa", "aaa", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),
+      TestData(null, "bbb", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2), // should be updated
     )
     val updatedDF = updates.toDF
 
