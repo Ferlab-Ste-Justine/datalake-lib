@@ -14,18 +14,18 @@ import java.time.LocalDateTime
 class RareVariant()(implicit conf: Configuration) extends ETLSingleDestination {
 
   override val mainDestination: DatasetConf = conf.getDataset("enriched_rare_variant")
-  val gnomad_genomes_v2_1: DatasetConf = conf.getDataset("normalized_gnomad_genomes_v2_1_1")
+  val gnomad: DatasetConf = conf.getDataset("normalized_gnomad_genomes_v3")
 
   override def extract(lastRunDateTime: LocalDateTime,
                        currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): Map[String, DataFrame] = {
     Map(
-      gnomad_genomes_v2_1.id -> gnomad_genomes_v2_1.read)
+      gnomad.id -> gnomad.read)
   }
 
   override def transformSingle(data: Map[String, DataFrame],
                                lastRunDateTime: LocalDateTime,
                                currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): DataFrame = {
-    data(gnomad_genomes_v2_1.id)
+    data(gnomad.id)
       .select(columns.locus :+ col("af"): _*)
       .groupByLocus()
       .agg(max("af") as "af")
