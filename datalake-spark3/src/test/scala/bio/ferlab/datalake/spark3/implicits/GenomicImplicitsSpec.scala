@@ -2,19 +2,22 @@ package bio.ferlab.datalake.spark3.implicits
 
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits._
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns._
-import bio.ferlab.datalake.spark3.testmodels.{CompoundHetInput, CompoundHetOutput, FullCompoundHetOutput, Genotype, HCComplement, OtherCompoundHetInput, PossiblyCompoundHetOutput, PossiblyHCComplement}
+import bio.ferlab.datalake.spark3.testmodels.{CompoundHetInput, CompoundHetOutput, ConsequencesInput, FullCompoundHetOutput, Genotype, HCComplement, OtherCompoundHetInput, PickedConsequencesOuput, PossiblyCompoundHetOutput, PossiblyHCComplement}
 import bio.ferlab.datalake.spark3.testutils.WithSparkSession
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{Column, DataFrame, functions}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.ParentalOrigin._
+import bio.ferlab.datalake.spark3.testmodels.enriched.EnrichedGenes
 
 import scala.collection.Seq
 
 class GenomicImplicitsSpec extends AnyFlatSpec with WithSparkSession with Matchers {
 
   import spark.implicits._
+
+  spark.sparkContext.setLogLevel("ERROR")
 
   val wtDf: DataFrame = Seq(Genotype(Array(0, 0)), Genotype(Array(-1, -1)), Genotype(Array(0))).toDF()
   val homDf: DataFrame = Seq(Genotype(Array(1, 1))).toDF()
@@ -669,7 +672,109 @@ class GenomicImplicitsSpec extends AnyFlatSpec with WithSparkSession with Matche
 
   }
 
+  "pickRandomCsqPerLocus" should "return a single consequence for each locus" in {
+    val testDf = Seq(
+      ConsequencesInput(chromosome = "1", start = 1, reference = "A", alternate = "C", ensembl_transcript_id = "ENS1"),
+      ConsequencesInput(chromosome = "2", start = 2, reference = "C", alternate = "A", ensembl_transcript_id = "ENS2"),
+      ConsequencesInput(chromosome = "2", start = 2, reference = "C", alternate = "A", ensembl_transcript_id = "ENS3"),
+      ConsequencesInput(chromosome = "2", start = 2, reference = "C", alternate = "T", ensembl_transcript_id = "ENS4"),
+    ).toDF()
 
+    val result = testDf.pickRandomCsqPerLocus()
+    result.where($"chromosome" === "1").count() shouldBe 1
+    result.where($"chromosome" === "2" and $"start" === 2 and $"reference" === "C" and $"alternate" === "A").count() shouldBe 1
+    result.where($"chromosome" === "2" and $"start" === 2 and $"reference" === "C" and $"alternate" === "T").count() shouldBe 1
+  }
 
+  "withPickedCsqPerLocus" should "pick one consequence per locus according to prioritization algorithm" in {
+    val genesDf = Seq(
+      EnrichedGenes(symbol = "IN_OMIM", omim_gene_id = "1"),
+      EnrichedGenes(symbol = "NOT_IN_OMIM", omim_gene_id = null),
+    ).toDF()
+
+    val csqDf = Seq(
+      // Single csq is max_impact_score
+      ConsequencesInput(chromosome = "1", ensembl_transcript_id = "ENST1", impact_score = 1),
+      ConsequencesInput(chromosome = "1", ensembl_transcript_id = "ENST2", impact_score = 3), // picked
+
+      // No csq in OMIM && no protein coding csq
+      ConsequencesInput(chromosome = "2", ensembl_transcript_id = "ENST1", symbol = "NOT_IN_OMIM", impact_score = 1, biotype = "processed_transcript"), // picked at random
+      ConsequencesInput(chromosome = "2", ensembl_transcript_id = "ENST2", symbol = "NOT_IN_OMIM", impact_score = 1, biotype = "processed_transcript"), // picked at random
+
+      // No csq in OMIM && protein coding csq && mane select csq
+      ConsequencesInput(chromosome = "3", ensembl_transcript_id = "ENST1", symbol = "NOT_IN_OMIM", impact_score = 2, biotype = "protein_coding", mane_select = true), // picked
+      ConsequencesInput(chromosome = "3", ensembl_transcript_id = "ENST2", symbol = "NOT_IN_OMIM", impact_score = 2, biotype = "protein_coding", mane_select = false),
+
+      // Csq in OMIM && mane select csq
+      ConsequencesInput(chromosome = "4", ensembl_transcript_id = "ENST1", symbol = "IN_OMIM", impact_score = 3, mane_select = true), // picked
+      ConsequencesInput(chromosome = "4", ensembl_transcript_id = "ENST2", symbol = "IN_OMIM", impact_score = 3, mane_select = false),
+
+      // Csq in OMIM && no mane select csq && canonical csq
+      ConsequencesInput(chromosome = "5", ensembl_transcript_id = "ENST1", symbol = "IN_OMIM", impact_score = 4, mane_select = false, canonical = true), // picked
+      ConsequencesInput(chromosome = "5", ensembl_transcript_id = "ENST2", symbol = "IN_OMIM", impact_score = 4, mane_select = false, canonical = false),
+
+      // Csq in OMIM && no mane select csq && no canonical csq && mane plus csq
+      ConsequencesInput(chromosome = "6", ensembl_transcript_id = "ENST1", symbol = "IN_OMIM", impact_score = 5, mane_select = false, canonical = false, mane_plus = true), // picked
+      ConsequencesInput(chromosome = "6", ensembl_transcript_id = "ENST2", symbol = "IN_OMIM", impact_score = 5, mane_select = false, canonical = false, mane_plus = false),
+
+      // Csq in OMIM && no mane select csq && no canonical csq && no mane plus csq
+      ConsequencesInput(chromosome = "7", ensembl_transcript_id = "ENST1", symbol = "IN_OMIM", impact_score = 6, mane_select = false, canonical = false, mane_plus = false), // picked at random
+      ConsequencesInput(chromosome = "7", ensembl_transcript_id = "ENST2", symbol = "IN_OMIM", impact_score = 6, mane_select = false, canonical = false, mane_plus = false), // picked at random
+    ).toDF()
+
+    val result = csqDf.withPickedCsqPerLocus(genesDf)
+
+    // Only one csq picked per variant
+    result
+      .where($"picked")
+      .groupByLocus()
+      .count()
+      .select("count").as[String].collect() should contain only "1"
+
+    // Single csq is max_impact_score
+    result
+      .where($"chromosome" === "1")
+      .as[PickedConsequencesOuput].collect() should contain theSameElementsAs Seq(
+        PickedConsequencesOuput(chromosome = "1", ensembl_transcript_id = "ENST1", impact_score = 1, picked = None),
+        PickedConsequencesOuput(chromosome = "1", ensembl_transcript_id = "ENST2", impact_score = 3, picked = Some(true)), // picked
+    )
+
+    // No csq in OMIM && no protein coding csq (picked at random)
+    result.where($"chromosome" === "2" && $"picked").count() shouldBe 1
+
+    // No csq in OMIM && protein coding csq && mane select csq
+    result
+      .where($"chromosome" === "3")
+      .as[PickedConsequencesOuput].collect() should contain theSameElementsAs Seq(
+        PickedConsequencesOuput(chromosome = "3", ensembl_transcript_id = "ENST1", symbol = "NOT_IN_OMIM", impact_score = 2, biotype = "protein_coding", mane_select = true, picked = Some(true)), // picked
+        PickedConsequencesOuput(chromosome = "3", ensembl_transcript_id = "ENST2", symbol = "NOT_IN_OMIM", impact_score = 2, biotype = "protein_coding", mane_select = false, picked = None),
+    )
+
+    // Csq in OMIM && mane select csq
+    result
+      .where($"chromosome" === "4")
+      .as[PickedConsequencesOuput].collect() should contain theSameElementsAs Seq(
+        PickedConsequencesOuput(chromosome = "4", ensembl_transcript_id = "ENST1", symbol = "IN_OMIM", impact_score = 3, mane_select = true, picked = Some(true)), // picked
+        PickedConsequencesOuput(chromosome = "4", ensembl_transcript_id = "ENST2", symbol = "IN_OMIM", impact_score = 3, mane_select = false, picked = None),
+    )
+
+    // Csq in OMIM && no mane select csq && canonical csq
+    result
+      .where($"chromosome" === "5")
+      .as[PickedConsequencesOuput].collect() should contain theSameElementsAs Seq(
+        PickedConsequencesOuput(chromosome = "5", ensembl_transcript_id = "ENST1", symbol = "IN_OMIM", impact_score = 4, mane_select = false, canonical = true, picked = Some(true)), // picked
+        PickedConsequencesOuput(chromosome = "5", ensembl_transcript_id = "ENST2", symbol = "IN_OMIM", impact_score = 4, mane_select = false, canonical = false, picked = None),
+    )
+
+    // Csq in OMIM && no mane select csq && no canonical csq && mane plus csq
+    result
+      .where($"chromosome" === "6")
+      .as[PickedConsequencesOuput].collect() should contain theSameElementsAs Seq(
+        PickedConsequencesOuput(chromosome = "6", ensembl_transcript_id = "ENST1", symbol = "IN_OMIM", impact_score = 5, mane_select = false, canonical = false, mane_plus = true, picked = Some(true)), // picked
+        PickedConsequencesOuput(chromosome = "6", ensembl_transcript_id = "ENST2", symbol = "IN_OMIM", impact_score = 5, mane_select = false, canonical = false, mane_plus = false, picked = None),
+    )
+
+    // Csq in OMIM && no mane select csq && no canonical csq && no mane plus csq (picked at random)
+    result.where($"chromosome" === "7" && $"picked").count() shouldBe 1
+  }
 }
-
