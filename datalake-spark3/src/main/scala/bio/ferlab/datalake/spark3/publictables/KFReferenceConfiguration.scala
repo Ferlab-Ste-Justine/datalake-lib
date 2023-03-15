@@ -2,7 +2,7 @@ package bio.ferlab.datalake.spark3.publictables
 
 import bio.ferlab.datalake.commons.config._
 import bio.ferlab.datalake.commons.file.FileSystemType.S3
-
+import pureconfig.generic.auto._
 object KFReferenceConfiguration extends App {
 
   val alias = "public_database"
@@ -19,6 +19,7 @@ object KFReferenceConfiguration extends App {
         sparkconf = Map("hive.metastore.client.factory.class" -> "com.amazonaws.glue.catalog.metastore.AWSGlueDataCatalogHiveClientFactory")
       )
     )
+
 
   ConfigurationWriter.writeTo("datalake-spark3/src/main/resources/reference_kf.conf", kf_conf)
   ConfigurationWriter.writeTo("datalake-spark3/src/test/resources/config/reference_kf.conf", kf_conf)

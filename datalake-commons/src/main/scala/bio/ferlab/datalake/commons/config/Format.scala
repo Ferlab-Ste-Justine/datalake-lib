@@ -1,6 +1,6 @@
 package bio.ferlab.datalake.commons.config
 
-import enum.Enum
+import pureconfig.ConfigConvert
 
 /**
  * List of all [[Format]] supported
@@ -92,7 +92,7 @@ object Format {
    */
   case object SQL_SERVER extends Format {override val sparkFormat = "com.microsoft.sqlserver.jdbc.spark"; override val fileExtension: String = ""}
 
-  implicit val EnumInstance: Enum[Format] = Enum.derived[Format]
+  implicit val converter: ConfigConvert[Format] = enumConvert[Format]
 }
 
 /**

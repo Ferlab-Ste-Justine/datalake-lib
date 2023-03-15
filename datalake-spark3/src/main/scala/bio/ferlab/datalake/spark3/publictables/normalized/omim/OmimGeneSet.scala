@@ -1,7 +1,6 @@
 package bio.ferlab.datalake.spark3.publictables.normalized.omim
 
-import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf}
-import bio.ferlab.datalake.commons.utils.Coalesce
+import bio.ferlab.datalake.commons.config.{Coalesce, Configuration, DatasetConf}
 import bio.ferlab.datalake.spark3.etl.ETLP
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import bio.ferlab.datalake.spark3.publictables.normalized.omim.OmimPhenotype.parse_pheno

@@ -1,5 +1,5 @@
 package bio.ferlab.datalake.commons.config
-import bio.ferlab.datalake.commons.utils.Repartition
+
 /**
  * Abstraction on a dataset configuration
  * @param storageid an alias designating where the data is sitting.

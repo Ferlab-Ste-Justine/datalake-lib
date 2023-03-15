@@ -5,10 +5,7 @@ import bio.ferlab.datalake.commons.file.FileSystemType.S3
 import org.scalatest.GivenWhenThen
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import pureconfig.generic.ProductHint
-import pureconfig.{CamelCase, ConfigFieldMapping}
 import pureconfig.generic.auto._
-import pureconfig.module.enum._
 class ConfigurationLoaderSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
 
   "loadEtlConfiguration" should "parse a valid config file into a Configuration object" in {

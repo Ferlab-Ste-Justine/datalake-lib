@@ -1,7 +1,6 @@
 package bio.ferlab.datalake.spark3.publictables.normalized.orphanet
 
-import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf}
-import bio.ferlab.datalake.commons.utils.Coalesce
+import bio.ferlab.datalake.commons.config.{Coalesce, Configuration, DatasetConf}
 import bio.ferlab.datalake.spark3.etl.ETLP
 import org.apache.spark.sql.{DataFrame, SparkSession}
 

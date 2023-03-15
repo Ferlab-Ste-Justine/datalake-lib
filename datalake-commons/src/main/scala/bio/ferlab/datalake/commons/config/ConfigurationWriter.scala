@@ -1,29 +1,15 @@
 package bio.ferlab.datalake.commons.config
 
+import com.typesafe.config.ConfigRenderOptions
 import org.slf4j
-import zio.config._
-import zio.config.magnolia.{Descriptor, descriptor}
-import zio.config.typesafe._
+import pureconfig.ConfigWriter
+
 
 import java.io.{File, PrintWriter}
 
 object ConfigurationWriter {
 
-//  implicit val configDescriptor: Descriptor[SimpleConfiguration] = Descriptor.getDescriptor[SimpleConfiguration]
   val log: slf4j.Logger = slf4j.LoggerFactory.getLogger(getClass.getCanonicalName)
-
-  /**
-   * Convert a Configuration into a HOCON string. More information on the format here: https://github.com/lightbend/config.
-   * @param conf configuration to convert
-   * @return a configuration as HOCON string
-   */
-  def toHocon[T <: Configuration](conf: T)(implicit configDescriptor: Descriptor[T]): String = {
-
-    val d: ConfigDescriptor[T] = descriptor[T]
-
-    val written: PropertyTree[String, String] = write(d, conf).getOrElse(throw new Exception("bad conf"))
-    written.toHoconString
-  }
 
   /**
    * Write a configuration as HOCON format into a file.
@@ -31,9 +17,10 @@ object ConfigurationWriter {
    * @param conf configuration to write.
    */
   def writeTo[T <: Configuration](path: String,
-              conf: T)(implicit configDescriptor: Descriptor[T]): Unit = {
+              conf: T)(implicit writer: ConfigWriter[T]): Unit = {
 
-    val content:String = toHocon[T](conf)
+
+    val content: String = toHocon(conf)
 
     val contentWithEnvVariable = replaceEnvVariables(content)
 
@@ -47,6 +34,12 @@ object ConfigurationWriter {
     val pw = new PrintWriter(file)
     pw.write(contentWithEnvVariable)
     pw.close()
+  }
+
+  def toHocon[T <: Configuration](conf: T)(implicit writer: ConfigWriter[T]): String = {
+    val renderOptions = ConfigRenderOptions.defaults().setJson(false).setComments(false).setOriginComments(false).setFormatted(true)
+    val content = ConfigWriter[T].to(conf).render(renderOptions)
+    content
   }
 
   /**

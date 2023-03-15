@@ -3,8 +3,6 @@ package bio.ferlab.datalake.spark3.publictables
 import bio.ferlab.datalake.commons.config.{Configuration, ConfigurationLoader, SimpleConfiguration, StorageConf}
 import bio.ferlab.datalake.commons.file.FileSystemType.S3
 import pureconfig.generic.auto._
-import pureconfig.module.enum._
-
 package object normalized {
 
   val alias = "public_database"

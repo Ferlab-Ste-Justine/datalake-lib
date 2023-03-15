@@ -1,26 +1,37 @@
-package bio.ferlab.datalake.commons.utils
-import org.apache.spark.sql.{Column, DataFrame}
+package bio.ferlab.datalake.commons.config
+
+import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.functions.col
-trait Repartition extends Function[DataFrame, DataFrame] {
+import pureconfig.ConfigFieldMapping
+import pureconfig.generic.FieldCoproductHint
+
+sealed trait Repartition extends Function[DataFrame, DataFrame] {
+
   def repartition(df: DataFrame): DataFrame
 
-  protected def sortWithinPartition(unsortedDF: DataFrame, sortColumns: Seq[Column]): DataFrame = sortColumns match {
+  protected def sortWithinPartition(unsortedDF: DataFrame, sortColumns: Seq[String]): DataFrame = sortColumns match {
     case Nil => unsortedDF
-    case _ => unsortedDF.sortWithinPartitions(sortColumns: _*)
+    case _ => unsortedDF.sortWithinPartitions(sortColumns.map(col): _*)
   }
 
   override def apply(df: DataFrame): DataFrame = repartition(df)
+}
+
+object Repartition {
+  implicit val hint: FieldCoproductHint[Repartition] = new FieldCoproductHint[Repartition]("kind") {
+    override def fieldValue(name: String): String = fieldMapping(name)
+  }
 }
 
 case object IdentityRepartition extends Repartition {
   override def repartition(df: DataFrame): DataFrame = df
 }
 
-case class FixedRepartition(n: Int, sortColumns: Seq[Column] = Nil) extends Repartition {
+case class FixedRepartition(n: Int, sortColumns: Seq[String] = Nil) extends Repartition {
   override def repartition(df: DataFrame): DataFrame = sortWithinPartition(df.repartition(n), sortColumns)
 }
 
-case class RepartitionByColumns(columnNames: Seq[String], n: Option[Int] = None, sortColumns: Seq[Column] = Nil) extends Repartition {
+case class RepartitionByColumns(columnNames: Seq[String], n: Option[Int] = None, sortColumns: Seq[String] = Nil) extends Repartition {
   override def repartition(df: DataFrame): DataFrame = {
     val unsortedDF = n match {
       case Some(i) => df.repartition(i, columnNames.map(col): _*)
@@ -30,7 +41,7 @@ case class RepartitionByColumns(columnNames: Seq[String], n: Option[Int] = None,
   }
 }
 
-case class RepartitionByRange(columnNames: Seq[String], n: Option[Int] = None, sortColumns: Seq[Column] = Nil) extends Repartition {
+case class RepartitionByRange(columnNames: Seq[String], n: Option[Int] = None, sortColumns: Seq[String] = Nil) extends Repartition {
   override def repartition(df: DataFrame): DataFrame = {
     val unsortedDF = n match {
       case Some(i) => df.repartitionByRange(i, columnNames.map(col): _*)
@@ -48,6 +59,6 @@ case class DynamicRepartition(n: Int = 2000000) extends Repartition {
   }
 }
 
-case class Coalesce(n: Int = 1) extends Repartition{
+case class Coalesce(n: Int = 1) extends Repartition {
   override def repartition(df: DataFrame): DataFrame = df.coalesce(n)
 }

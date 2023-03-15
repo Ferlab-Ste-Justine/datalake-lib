@@ -41,7 +41,7 @@ case class PublicDatasets(alias: String, tableDatabase: Option[String], viewData
           //public
           DatasetConf("normalized_1000_genomes"            , alias, "/public/1000_genomes"                         , DELTA, OverWrite , partitionby = List()            , table = table("1000_genomes")             , view = view("variant_live")),
           DatasetConf("normalized_cancer_hotspots"         , alias, "/public/cancer_hotspots"                      , DELTA, OverWrite , partitionby = List()            , table = table("cancer_hotspots")          , view = view("cancer_hotspots")),
-          DatasetConf("normalized_clinvar"                 , alias, "/public/clinvar"                              , DELTA, OverWrite , partitionby = List()            , table = table("clinvar")                  , view = view("clinvar")),
+          DatasetConf("normalized_clinvar"                 , alias, "/public/clinvar"                              , DELTA, OverWrite , partitionby = List()            , repartition=Some(Coalesce()), table = table("clinvar")                  , view = view("clinvar")),
           DatasetConf("normalized_cosmic_gene_set"         , alias, "/public/cosmic_gene_set"                      , DELTA, OverWrite , partitionby = List()            , table = table("cosmic_gene_set")          , view = view("cosmic_gene_set")),
           DatasetConf("normalized_dbnsfp"                  , alias, "/public/dbnsfp/variant"                       , DELTA, OverWrite , partitionby = List("chromosome"), table = table("dbnsfp")                   , view = view("dbnsfp")),
           DatasetConf("normalized_dbnsfp_annovar"          , alias, "/public/annovar/dbnsfp"                       , DELTA, OverWrite , partitionby = List("chromosome"), table = table("dbnsfp_annovar")           , view = view("dbnsfp_annovar")),
@@ -64,7 +64,7 @@ case class PublicDatasets(alias: String, tableDatabase: Option[String], viewData
           // enriched
           DatasetConf("enriched_genes"                     , alias, "/public/genes"                , DELTA, OverWrite , partitionby = List()            , table = table("genes")                , view = view("genes")),
           DatasetConf("enriched_dbnsfp"                    , alias, "/public/dbnsfp/scores"        , DELTA, OverWrite , partitionby = List("chromosome"), table = table("dbnsfp_original")      , view = view("dbnsfp_original")),
-          DatasetConf("enriched_spliceai"                  , alias, "/public/spliceai/enriched"    , DELTA, OverWrite , partitionby = List("chromosome"), table = table("spliceai_enriched")    , view = view("spliceai_enriched")),
+          DatasetConf("enriched_spliceai"                  , alias, "/public/spliceai/enriched"    , DELTA, OverWrite , partitionby = List("chromosome"), repartition= Some(RepartitionByRange(columnNames = Seq("chromosome", "start"))), table = table("spliceai_enriched")    , view = view("spliceai_enriched")),
           DatasetConf("enriched_rare_variant"              , alias, "/public/rare_variant/enriched", DELTA, OverWrite , partitionby = List("chromosome", "is_rare"), table = table("rare_variant_enriched"), view = view("rare_variant_enriched"))
 
 
