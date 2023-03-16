@@ -109,12 +109,16 @@ class GenomicImplicitsSpec extends AnyFlatSpec with WithSparkSession with Matche
       ("1", true, Array(0, 1), Array(-1, 1), Array(1, 0), "HET", null),
       ("1", true, Array(0, 1), Array(-1, 1), Array(-1, 1), "HET", null),
 
+      //null should be transform to Array(-1,-1)
       ("1", true, Array(0, 1), Array(0, 1), Array(0, 0), "WT", null),
       ("1", true, Array(0, 1), Array(0, 1), null, "HET", POSSIBLE_FATHER),
       ("1", true, Array(0, 1), null, Array(0, 0), "HET", POSSIBLE_DENOVO),
       ("X", true, Array(0, 1), Array(1), Array(0, 0), "HET", FTH),
-      //null should be transform to Array(-1,-1)
       ("Y", true, Array(1), Array(1), null, "HET", FTH),
+
+      // Solo proband
+      ("X", true, Array(0, 1), null, null, "HET", UNKNOWN),
+      ("Y", true, Array(1), null, null, "HET", UNKNOWN),
     ).toDF("chromosome", "is_multi_allelic", "calls", "father_calls", "mother_calls", "zygosity", "expectedResult")
 
     val result = input_occurrences.withParentalOrigin("parental_origin", $"calls", $"father_calls", $"mother_calls")
