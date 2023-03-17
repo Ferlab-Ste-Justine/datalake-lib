@@ -66,7 +66,9 @@ abstract class ETL()(implicit val conf: Configuration) extends Runnable {
            repartition: DataFrame => DataFrame = defaultRepartition
           )(implicit spark: SparkSession): Map[String, DataFrame] = {
     data.map { case (dsid, df) =>
-      dsid -> loadDataset(df, conf.getDataset(dsid), repartition)
+      val datasetConf = conf.getDataset(dsid)
+      val repartitionFunc = datasetConf.repartition.getOrElse(defaultRepartition)
+      dsid -> loadDataset(df, datasetConf, repartitionFunc)
     }
   }
 
