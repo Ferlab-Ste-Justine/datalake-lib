@@ -34,11 +34,13 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
 
   Logger.getLogger("org").setLevel(Level.OFF)
   Logger.getLogger("akka").setLevel(Level.OFF)
+  spark.sparkContext.setLogLevel("ERROR")
 
   val testtableoverwite: String = getClass.getClassLoader.getResource("normalized/").getFile + "testtableoverwite"
   val output: String = getClass.getClassLoader.getResource("normalized/").getFile + "testtable"
   val scd1Output: String = getClass.getClassLoader.getResource("normalized/").getFile + "scd1table"
   val scd2Output: String = getClass.getClassLoader.getResource("normalized/").getFile + "scd2table"
+  val upsertPartitionOutput: String = getClass.getClassLoader.getResource("normalized/").getFile + "upsertpartitiontable"
 
   override def beforeAll(): Unit = {
     spark.sql("DROP TABLE IF EXISTS default.testtable")
@@ -47,6 +49,8 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
     HadoopFileSystem.remove(scd1Output)
     spark.sql("DROP TABLE IF EXISTS default.scd2table")
     HadoopFileSystem.remove(scd2Output)
+    spark.sql("DROP TABLE IF EXISTS default.upsertpartitiontable")
+    HadoopFileSystem.remove(upsertPartitionOutput)
   }
 
 
@@ -60,7 +64,8 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
 
     val existing: DataFrame = Seq(
       TestData("a"  , "a", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1),
-      TestData("aaa", "aaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1)
+      TestData("aaa", "aaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1),
+      TestData(null, "aaaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1),
     ).toDF
 
     DeltaLoader
@@ -81,13 +86,15 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
     val updates: DataFrame = Seq(
       TestData("a"  , "b", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),
       TestData("aa" , "bb", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),
-      TestData("aaa", "aaa", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2)
+      TestData("aaa", "aaa", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),
+      TestData(null, "bbbb", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),
     ).toDF
 
     val expectedResult: Seq[TestData] = Seq(
       TestData("a"  , "b", Timestamp.valueOf(day1), Timestamp.valueOf(day2), 2), //will be updated
       TestData("aa" , "bb", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),//will be inserted
-      TestData("aaa", "aaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1)//will stay the same
+      TestData("aaa", "aaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1),//will stay the same
+      TestData(null, "bbbb", Timestamp.valueOf(day1), Timestamp.valueOf(day2), 2) // will be updated
     )
 
     DeltaLoader.scd1(
@@ -106,7 +113,7 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
 
 
     val df = DeltaLoader.read(output, DELTA.sparkFormat, Map(), Some("default"), Some(tableName))
-    df.count() shouldBe 3
+    df.count() shouldBe 4
     df.as[TestData].collect() should contain allElementsOf expectedResult
 
   }
@@ -363,7 +370,8 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
     val existing: DataFrame = Seq(
       TestData("a", "a", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1),
       TestData("aaa", "aaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1),
-      TestData("aaaa", "aaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1)
+      TestData("aaaa", "aaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1),
+      TestData(null, "aaa", Timestamp.valueOf(day1), Timestamp.valueOf(day1), 1),
     ).toDF
 
     DeltaLoader.writeOnce(output, "default", tableName, existing, List(), "delta")
@@ -371,7 +379,8 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
     val updates: Seq[TestData] = Seq(
       TestData("a", "b", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),
       TestData("aa", "bb", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),
-      TestData("aaa", "aaa", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2)
+      TestData("aaa", "aaa", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2),
+      TestData(null, "bbb", Timestamp.valueOf(day2), Timestamp.valueOf(day2), 2), // should be updated
     )
     val updatedDF = updates.toDF
 
@@ -391,7 +400,45 @@ class DeltaLoaderSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
     DeltaTable
       .forName(tableName)
       .toDF.as[TestData].collect() should contain allElementsOf expectedResult
+  }
 
+  "upsert" should "use partition pruning when data is partitioned" in {
+    import spark.implicits._
+
+    val day1 = LocalDateTime.of(2020, 1, 1, 1, 1, 1)
+    val day2 = day1.plusDays(1)
+    val tableName = "upsertpartitiontable"
+
+    val existing: DataFrame = Seq(
+      TestData(`uid` = "a", `oid` = "a", `chromosome` = "1", `createdOn` = Timestamp.valueOf(day1), `updatedOn` = Timestamp.valueOf(day1), `data` = 1),
+      TestData(`uid` = "aa", `oid` = "aa", `chromosome` = "2", `createdOn` = Timestamp.valueOf(day1), `updatedOn` = Timestamp.valueOf(day1), `data` = 1),
+    ).toDF
+    DeltaLoader.writeOnce(upsertPartitionOutput, "default", tableName, existing, List("chromosome"), "delta")
+
+    val updates: Seq[TestData] = Seq(
+      TestData(`uid` = "aa", `oid` = "bb", `chromosome` = "2", `createdOn` = Timestamp.valueOf(day1), `updatedOn` = Timestamp.valueOf(day2), `data` = 2), // update
+      TestData(`uid` = "aaa", `oid` = "aaa", `chromosome` = "3", `createdOn` = Timestamp.valueOf(day2), `updatedOn` = Timestamp.valueOf(day2), `data` = 2), // insert
+    )
+    val updatedDF = updates.toDF
+
+    val expectedResult: Seq[TestData] = updates ++
+      Seq(TestData(`uid` = "a", `oid` = "a", `chromosome` = "1", `createdOn` = Timestamp.valueOf(day1), `updatedOn` = Timestamp.valueOf(day1), `data` = 1))
+
+    DeltaLoader.upsert(
+      upsertPartitionOutput,
+      "default",
+      tableName,
+      updatedDF,
+      Seq("uid"),
+      List("chromosome"),
+      "delta",
+      Map()
+    )
+
+    val result = DeltaTable
+      .forName(tableName)
+      .toDF
+      .as[TestData].collect() should contain theSameElementsAs expectedResult
   }
 
 }

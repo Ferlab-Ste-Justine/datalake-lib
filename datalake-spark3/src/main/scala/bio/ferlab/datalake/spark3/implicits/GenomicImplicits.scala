@@ -303,18 +303,21 @@ object GenomicImplicits {
         (Array(0, 1), Array(-1), Array(0, 1), POSSIBLE_MOTHER),
         (Array(0, 1), Array(-1), Array(1, 1), MTH),
         (Array(0, 1), Array(-1), Array(-1, -1), UNKNOWN),
+        (Array(0, 1), Array(-1, -1), Array(-1, -1), UNKNOWN),
         (Array(1, 1), Array(0), Array(-1, -1), POSSIBLE_DENOVO),
         (Array(1, 1), Array(1), Array(-1, -1), FTH),
         (Array(1, 1), Array(-1), Array(0, 0), POSSIBLE_DENOVO),
         (Array(1, 1), Array(-1), Array(0, 1), MTH),
         (Array(1, 1), Array(-1), Array(1, 1), MTH),
         (Array(1, 1), Array(-1), Array(-1, -1), UNKNOWN),
+        (Array(1, 1), Array(-1, -1), Array(-1, -1), UNKNOWN),
         (Array(1), Array(0), Array(-1, -1), POSSIBLE_DENOVO),
         (Array(1), Array(1), Array(-1, -1), POSSIBLE_FATHER),
         (Array(1), Array(-1), Array(0, 0), POSSIBLE_DENOVO),
         (Array(1), Array(-1), Array(0, 1), MTH),
         (Array(1), Array(-1), Array(1, 1), MTH),
         (Array(1), Array(-1), Array(-1, -1), UNKNOWN),
+        (Array(1), Array(-1, -1), Array(-1, -1), UNKNOWN),
         (Array(0, 1), Array(0, 0), Array(0, 0), DENOVO),
         (Array(1), Array(0, 0), Array(0, 0), DENOVO),
         (Array(1, 1), Array(0, 0), Array(0, 0), DENOVO),
@@ -363,6 +366,8 @@ object GenomicImplicits {
         (Array(1, 1), Array(0), Array(-1, -1), DENOVO),
         (Array(1), Array(0, 0), Array(-1, -1), DENOVO),
         (Array(1, 1), Array(0, 0), Array(-1, -1), DENOVO),
+        (Array(1), Array(-1, -1), Array(-1, -1), UNKNOWN),
+        (Array(1, 1), Array(-1, -1), Array(-1, -1), UNKNOWN),
         (Array(1), Array(1), Array(0, 0), FTH),
         (Array(1), Array(1), Array(0, 1), AMBIGUOUS),
         (Array(1), Array(1, 1), Array(1, 1), AMBIGUOUS),
@@ -456,6 +461,100 @@ object GenomicImplicits {
         .groupBy(col(patientIdColumnName) :: columns.locus: _*)
         .agg(first("is_hc") as "is_hc", collect_set("hc_complement") as "hc_complement")
       hc
+    }
+
+    def pickRandomCsqPerLocus(transcriptIdColumnName: String = "ensembl_transcript_id"): DataFrame = {
+      df
+        .groupByLocus()
+        .agg(first(transcriptIdColumnName) as transcriptIdColumnName)
+    }
+
+    /**
+     * Pick a consequence with maximum impact for each locus, according to prioritization algorithm.
+     */
+    def withPickedCsqPerLocus(genes: DataFrame,
+                              impactScoreColumnName: String = "impact_score",
+                              transcriptIdColumnName: String = "ensembl_transcript_id",
+                              geneSymbolColumnName: String = "symbol",
+                              omimGeneIdColumnName: String = "omim_gene_id",
+                              biotypeColumnName: String = "biotype",
+                              maneSelectColumnName: String = "mane_select",
+                              canonicalColumnName: String = "canonical",
+                              manePlusColumnName: String = "mane_plus",
+                              pickedColumnName: String = "picked"): DataFrame = {
+      val locusWindow = Window.partitionBy(columns.locus: _*)
+
+      // Max impact_score consequence by variant
+      val maxImpactScores = df.withColumn("max_impact_score", max(impactScoreColumnName).over(locusWindow))
+
+      // Consequences where impact_score is max_impact_score
+      val maxImpactCsq: DataFrame = maxImpactScores
+        .where(col("max_impact_score") === col(impactScoreColumnName))
+
+      // Pick variants where only one consequence is max_impact_score
+      val picked1MaxImpactCsq = maxImpactCsq
+        .withColumn("nb_max_impact_by_var", count("*").over(locusWindow))
+        .where(col("nb_max_impact_by_var") === 1)
+        .selectLocus(col(transcriptIdColumnName))
+
+      // Else, if multiple consequences are max_impact_score, join with OMIM
+      val joinWithOmim = maxImpactCsq
+        .joinByLocus(broadcast(picked1MaxImpactCsq), "left_anti") // remove already picked variants
+        .join(genes.select(geneSymbolColumnName, omimGeneIdColumnName), Seq(geneSymbolColumnName), "left")
+
+      // Check if at least one csq in OMIM genes
+      val inOmimCsq = joinWithOmim.where(col(omimGeneIdColumnName).isNotNull)
+      val noOmimCsq = joinWithOmim.joinByLocus(inOmimCsq, "left_anti")
+
+      // For non-OMIM consequences, check if at least one csq is protein coding
+      // If no OMIM csq and no protein coding csq, pick random csq for each variant
+      val proteinCodingCsq = noOmimCsq.where(col(biotypeColumnName) === "protein_coding")
+      val pickedNoProteinCodingCsq = noOmimCsq
+        .joinByLocus(broadcast(proteinCodingCsq), "left_anti")
+        .pickRandomCsqPerLocus()
+
+      // If in OMIM csq or protein coding csq, check if at least one csq is mane select
+      // If at least one csq is mane_select, pick random csq for each variant
+      val pickedManeSelectCsq = inOmimCsq.unionByName(proteinCodingCsq)
+        .where(col(maneSelectColumnName))
+        .pickRandomCsqPerLocus()
+      val noManeSelectCsq = inOmimCsq.unionByName(proteinCodingCsq)
+        .joinByLocus(pickedManeSelectCsq, "left_anti")
+
+      // If no mane select csq, check if at least one csq is canonical
+      // If at least one csq is canonical, pick a random csq for each variant
+      val pickedCanonicalCsq = noManeSelectCsq
+        .where(col(canonicalColumnName))
+        .pickRandomCsqPerLocus()
+      val noCanonicalCsq = noManeSelectCsq.joinByLocus(broadcast(pickedCanonicalCsq), "left_anti")
+
+      // If no canonical csq, check if at least one csq is mane plus
+      // If at least one csq is mane plus, pick random csq for each variant
+      // Else, pick random csq
+      val pickedManePlusCsq = noCanonicalCsq
+        .where(col(manePlusColumnName))
+        .pickRandomCsqPerLocus()
+      val pickedNoManePlusCsq = noCanonicalCsq
+        .joinByLocus(broadcast(pickedManePlusCsq), "left_anti")
+        .pickRandomCsqPerLocus()
+
+      // Union all picked consequences and set flag to true
+      val pickedCsq = picked1MaxImpactCsq
+        .unionByName(pickedNoProteinCodingCsq)
+        .unionByName(pickedManeSelectCsq)
+        .unionByName(pickedCanonicalCsq)
+        .unionByName(pickedManePlusCsq)
+        .unionByName(pickedNoManePlusCsq)
+        .withColumn(pickedColumnName, lit(true))
+        .selectLocus(col(transcriptIdColumnName), col(pickedColumnName))
+
+      // Join with all consequences to add picked flag
+      val joinExpr: Column = columns.locusColumnNames.map(c => df(c) === pickedCsq(c)).reduce((c1, c2) => c1 && c2) &&
+        df(transcriptIdColumnName) <=> pickedCsq(transcriptIdColumnName) // column can be null
+
+      df.as("csq")
+        .join(pickedCsq.as("pickedCsq"), joinExpr, "left")
+        .select("csq.*", "pickedCsq.picked")
     }
   }
 

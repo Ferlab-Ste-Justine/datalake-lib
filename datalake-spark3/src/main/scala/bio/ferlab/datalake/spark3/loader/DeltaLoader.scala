@@ -35,10 +35,10 @@ object DeltaLoader extends Loader {
         writeOnce(location, databaseName, tableName, updates, partitioning, format, options)
       case Success(existing) =>
         val existingDf = existing.toDF
-        val keysAreIdentical: Column = primaryKeys.map(c => updates(c) === existingDf(c)).reduce((a, b) => a && b)
+        val keysAreIdentical: Column = primaryKeys.map(c => updates(c) <=> existingDf(c)).reduce((a, b) => a && b)
         val partitionInValues: Option[Column] = partitioning.map { p =>
           val partitionValues = updates.select(p).distinct().as[String].collect()
-          existingDf(p) isin partitionValues
+          existingDf(p).isin(partitionValues: _*)
         }.reduceOption((a, b) => a && b)
 
         /** Merge */
@@ -89,7 +89,7 @@ object DeltaLoader extends Loader {
       case Failure(_) => writeOnce(location, databaseName, tableName, updates, partitioning, format, options)
       case Success(existing) =>
         val existingDf = existing.toDF
-        val keysAreIdentical: Column = primaryKeys.map(c => updates(c) === existingDf(c)).reduce((a, b) => a && b)
+        val keysAreIdentical: Column = primaryKeys.map(c => updates(c) <=> existingDf(c)).reduce((a, b) => a && b)
 
         existing.as("existing")
           .merge(
