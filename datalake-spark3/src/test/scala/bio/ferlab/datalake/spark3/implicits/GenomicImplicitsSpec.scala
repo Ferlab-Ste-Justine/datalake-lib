@@ -2,7 +2,7 @@ package bio.ferlab.datalake.spark3.implicits
 
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits._
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns._
-import bio.ferlab.datalake.spark3.testmodels.{CompoundHetInput, CompoundHetOutput, ConsequencesInput, FullCompoundHetOutput, Genotype, HCComplement, OtherCompoundHetInput, PickedConsequencesOuput, PossiblyCompoundHetOutput, PossiblyHCComplement}
+import bio.ferlab.datalake.spark3.testmodels.{AlleleDepthOutput, CompoundHetInput, CompoundHetOutput, ConsequencesInput, FullCompoundHetOutput, Genotype, HCComplement, OtherCompoundHetInput, PickedConsequencesOuput, PossiblyCompoundHetOutput, PossiblyHCComplement}
 import bio.ferlab.datalake.spark3.testutils.WithSparkSession
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{Column, DataFrame, functions}
@@ -780,5 +780,26 @@ class GenomicImplicitsSpec extends AnyFlatSpec with WithSparkSession with Matche
 
     // Csq in OMIM && no mane select csq && no canonical csq && no mane plus csq (picked at random)
     result.where($"chromosome" === "7" && $"picked").count() shouldBe 1
+  }
+
+  "withAlleleDepths" should "calculate ad fields adequately" in {
+    val input = Seq(
+      Seq(15, 5), Seq(10, 0), Seq(0, 0)
+    )
+    val ads = input.toDF("ad")
+
+    val result = ads.withAlleleDepths().as[AlleleDepthOutput].collect()
+
+    val expectedResult = Seq(
+      AlleleDepthOutput(15, 5, 20, 0.25),
+      AlleleDepthOutput(10, 0, 10, 0),
+      AlleleDepthOutput(0, 0, 0, 0),
+    )
+    result should contain theSameElementsAs expectedResult
+
+    val adsRenamed = input.toDF("adRenamed")
+    val resultRenamed = adsRenamed.withAlleleDepths(col("adRenamed")).as[AlleleDepthOutput].collect()
+
+    resultRenamed should contain theSameElementsAs expectedResult
   }
 }

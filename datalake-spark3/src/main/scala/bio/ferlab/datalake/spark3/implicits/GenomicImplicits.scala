@@ -556,6 +556,13 @@ object GenomicImplicits {
         .join(pickedCsq.as("pickedCsq"), joinExpr, "left")
         .select("csq.*", "pickedCsq.picked")
     }
+
+    def withAlleleDepths(adCol:Column = col("ad")):DataFrame = {
+      df.withColumn("ad_ref", adCol(0))
+        .withColumn("ad_alt", adCol(1))
+        .withColumn("ad_total", col("ad_ref") + col("ad_alt"))
+        .withColumn("ad_ratio", when(col("ad_total") === 0, 0).otherwise(col("ad_alt") / col("ad_total")))
+    }
   }
 
   object ParentalOrigin {
