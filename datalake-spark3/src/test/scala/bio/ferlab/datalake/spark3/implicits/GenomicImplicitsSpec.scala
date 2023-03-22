@@ -2,7 +2,7 @@ package bio.ferlab.datalake.spark3.implicits
 
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits._
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns._
-import bio.ferlab.datalake.spark3.testmodels.{AlleleDepthOutput, CompoundHetInput, CompoundHetOutput, ConsequencesInput, FullCompoundHetOutput, Genotype, HCComplement, OtherCompoundHetInput, PickedConsequencesOuput, PossiblyCompoundHetOutput, PossiblyHCComplement}
+import bio.ferlab.datalake.spark3.testmodels.{AlleleDepthOutput, CompoundHetInput, CompoundHetOutput, ConsequencesInput, FullCompoundHetOutput, Genotype, HCComplement, OtherCompoundHetInput, PickedConsequencesOuput, PossiblyCompoundHetOutput, PossiblyHCComplement, RelativesGenotype, RelativesGenotypeOutput}
 import bio.ferlab.datalake.spark3.testutils.WithSparkSession
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{Column, DataFrame, functions}
@@ -802,4 +802,23 @@ class GenomicImplicitsSpec extends AnyFlatSpec with WithSparkSession with Matche
 
     resultRenamed should contain theSameElementsAs expectedResult
   }
+
+  "withRelativeGenotype" should "add genotype information columns of relatives" in {
+    val input = Seq(
+      RelativesGenotype(participant_id = "PT_1", family_id = Some("FA_1"), gq = 10, mother_id = Some("PT_2"), father_id = Some("PT_3")),
+      RelativesGenotype(participant_id = "PT_2", family_id = Some("FA_1"), gq = 20, calls = Array(0,1)),
+      RelativesGenotype(participant_id = "PT_3", family_id = Some("FA_1"), gq = 30, calls = Array(1,1), other= Some("popi")),
+      RelativesGenotype(participant_id = "PT_4", gq = 40),
+    ).toDF()
+
+    val result = input.withRelativesGenotype(Seq("calls", "gq", "other"))
+    result.as[RelativesGenotypeOutput].collect() should contain theSameElementsAs Seq(
+      RelativesGenotypeOutput(participant_id = "PT_1", family_id = Some("FA_1"), gq = 10, mother_id = Some("PT_2"), father_id = Some("PT_3"), mother_calls = Some(Seq(0,1)), mother_gq = Some(20),father_calls = Some(Seq(1,1)), father_gq = Some(30), father_other = Some("popi")),
+      RelativesGenotypeOutput(participant_id = "PT_2", family_id = Some("FA_1"), gq = 20, calls = Seq(0, 1)),
+      RelativesGenotypeOutput(participant_id = "PT_3", family_id = Some("FA_1"), gq = 30, calls = Seq(1, 1), other = Some("popi")),
+      RelativesGenotypeOutput(participant_id = "PT_4", gq = 40),
+    )
+
+  }
+
 }
