@@ -73,6 +73,8 @@ abstract class ETL()(implicit val conf: Configuration) extends Runnable {
   }
 
   def loadDataset(df: DataFrame, ds: DatasetConf, repartition: DataFrame => DataFrame)(implicit spark: SparkSession): DataFrame = {
+    ds.table.foreach(table => spark.sql(s"CREATE DATABASE IF NOT EXISTS ${table.database}"))
+
     val dsWithReplaceWhere = replaceWhere.map(r => ds.copy(writeoptions = ds.writeoptions + ("replaceWhere" -> r))).getOrElse(ds)
     LoadResolver
       .write(spark, conf)(dsWithReplaceWhere.format -> dsWithReplaceWhere.loadtype)

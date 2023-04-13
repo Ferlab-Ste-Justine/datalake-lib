@@ -1,6 +1,7 @@
 package bio.ferlab.datalake.spark3.implicits
 
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.ParentalOrigin._
+import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns.{familyInfo, fatherADAlt, fatherADRatio, fatherADRef, fatherADTotal, fatherAffectedStatus, fatherCalls, fatherCol, fatherDP, fatherFilters, fatherGQ, fatherQD, motherADAlt, motherADRatio, motherADRef, motherADTotal, motherAffectedStatus, motherCalls, motherCol, motherDP, motherFilters, motherGQ, motherQD}
 import io.projectglow.Glow
 import org.apache.spark.sql.expressions.{Window, WindowSpec}
 import org.apache.spark.sql.functions._
@@ -556,6 +557,31 @@ object GenomicImplicits {
         .join(pickedCsq.as("pickedCsq"), joinExpr, "left")
         .select("csq.*", "pickedCsq.picked")
     }
+
+    def withAlleleDepths(adCol: Column = col("ad")): DataFrame = {
+      df.withColumn("ad_ref", adCol(0))
+        .withColumn("ad_alt", adCol(1))
+        .withColumn("ad_total", col("ad_ref") + col("ad_alt"))
+        .withColumn("ad_ratio", when(col("ad_total") === 0, 0).otherwise(col("ad_alt") / col("ad_total")))
+    }
+
+    def withRelativesGenotype(columnNames: Seq[String] = Seq("calls", "affected_status", "gq"),
+                              participantIdColumn: Column = col("participant_id"),
+                              familyIdColumn: Column = col("family_id")): DataFrame = {
+      val motherCols: Map[String, Column] = columnNames.map(motherCol).toMap
+      val fatherCols: Map[String, Column] = columnNames.map(fatherCol).toMap
+      val cols = columnNames.map(col)
+      df
+        .withColumn("family_info", familyInfo(
+          cols = cols,
+          participantIdColumn = participantIdColumn,
+          familyIdColumn = familyIdColumn
+        )
+        )
+        .withColumns(motherCols)
+        .withColumns(fatherCols)
+        .drop("family_info")
+    }
   }
 
   object ParentalOrigin {
@@ -617,17 +643,23 @@ object GenomicImplicits {
         case c if c.startsWith("INFO_") => col(c)(0) as c.replace("INFO_", "").toLowerCase
       }
 
-    val familyVariantWindow: WindowSpec =
-      Window.partitionBy("chromosome", "start", "reference", "alternate", "family_id")
 
-    def familyInfo(cols: Seq[Column] = Seq(col("calls"), col("affected_status"), col("gq"))): Column =
-      when(col("family_id").isNotNull,
+    def familyInfo(cols: Seq[Column] = Seq(col("calls"), col("affected_status"), col("gq")),
+                   participantIdColumn: Column = col("participant_id"),
+                   familyIdColumn: Column = col("family_id")
+                  ): Column = {
+      val familyVariantWindow: WindowSpec =
+        Window.partitionBy(locus:+ familyIdColumn : _*)
+      when(familyIdColumn.isNotNull,
         map_from_entries(
           collect_list(
-            struct(col("participant_id"), struct(cols: _*))
+            struct(participantIdColumn, struct(cols: _*))
           ).over(familyVariantWindow)
         )
       )
+    }
+
+    def motherCol(colName: String): (String, Column) = s"mother_$colName" -> col("family_info")(col("mother_id"))(colName)
 
     val motherCalls: Column = col("family_info")(col("mother_id"))("calls")
     val motherAffectedStatus: Column = col("family_info")(col("mother_id"))("affected_status")
@@ -639,6 +671,8 @@ object GenomicImplicits {
     val motherADAlt: Column = col("family_info")(col("mother_id"))("ad_alt")
     val motherADTotal: Column = col("family_info")(col("mother_id"))("ad_total")
     val motherADRatio: Column = col("family_info")(col("mother_id"))("ad_ratio")
+
+    def fatherCol(colName: String): (String, Column) = s"father_$colName" -> col("family_info")(col("father_id"))(colName)
 
     val fatherCalls: Column = col("family_info")(col("father_id"))("calls")
     val fatherAffectedStatus: Column = col("family_info")(col("father_id"))("affected_status")
