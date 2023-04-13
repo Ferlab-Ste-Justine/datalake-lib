@@ -1,10 +1,9 @@
 package bio.ferlab.datalake.spark3.publictables.normalized
 
-import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf}
+import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf, RepartitionByColumns}
 import bio.ferlab.datalake.spark3.etl.ETLP
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns._
-import bio.ferlab.datalake.spark3.utils.RepartitionByColumns
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
@@ -42,6 +41,6 @@ class DBSNP()(implicit conf: Configuration) extends ETLP {
       )
   }
 
-  override val defaultRepartition: DataFrame => DataFrame = RepartitionByColumns(columnNames = Seq("chromosome"), sortColumns = Seq(col("start")))
+  override val defaultRepartition: DataFrame => DataFrame = RepartitionByColumns(columnNames = Seq("chromosome"), sortColumns = Seq("start"))
 
 }

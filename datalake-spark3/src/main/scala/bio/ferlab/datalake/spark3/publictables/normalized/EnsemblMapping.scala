@@ -1,11 +1,10 @@
 package bio.ferlab.datalake.spark3.publictables.normalized
 
-import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf}
+import bio.ferlab.datalake.commons.config.{Coalesce, Configuration, DatasetConf}
 import bio.ferlab.datalake.spark3.etl.ETLP
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{Column, DataFrame, SparkSession}
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
-import bio.ferlab.datalake.spark3.utils.Coalesce
 
 import java.time.LocalDateTime
 

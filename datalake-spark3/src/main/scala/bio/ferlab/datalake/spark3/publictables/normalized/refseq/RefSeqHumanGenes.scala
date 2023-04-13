@@ -1,9 +1,8 @@
 package bio.ferlab.datalake.spark3.publictables.normalized.refseq
 
-import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf}
+import bio.ferlab.datalake.commons.config.{Coalesce, Configuration, DatasetConf}
 import bio.ferlab.datalake.spark3.etl.ETLP
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
-import bio.ferlab.datalake.spark3.utils.Coalesce
 import org.apache.spark.sql.expressions.UserDefinedFunction
 import org.apache.spark.sql.functions.{split, udf}
 import org.apache.spark.sql.{DataFrame, SparkSession}

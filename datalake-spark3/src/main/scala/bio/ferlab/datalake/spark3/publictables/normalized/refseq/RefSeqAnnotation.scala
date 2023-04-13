@@ -1,9 +1,8 @@
 package bio.ferlab.datalake.spark3.publictables.normalized.refseq
 
-import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf}
+import bio.ferlab.datalake.commons.config.{Coalesce, Configuration, DatasetConf, FixedRepartition}
 import bio.ferlab.datalake.spark3.etl.ETLP
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits.DatasetConfOperations
-import bio.ferlab.datalake.spark3.utils.{Coalesce, FixedRepartition}
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
 import java.time.LocalDateTime

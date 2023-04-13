@@ -1,6 +1,6 @@
 package bio.ferlab.datalake.spark3.publictables.normalized
 
-import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf}
+import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf, RepartitionByColumns}
 import bio.ferlab.datalake.spark3.etl.ETLP
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits._
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns._
@@ -9,7 +9,6 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
 
 import java.time.LocalDateTime
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
-import bio.ferlab.datalake.spark3.utils.RepartitionByColumns
 class TopMed()(implicit conf: Configuration) extends ETLP {
 
   private val raw_topmed = conf.getDataset("raw_topmed_bravo")
@@ -44,5 +43,5 @@ class TopMed()(implicit conf: Configuration) extends ETLP {
       )
   }
 
-  override val defaultRepartition: DataFrame => DataFrame = RepartitionByColumns(columnNames = Seq("chromosome"), sortColumns = Seq(col("start")))
+  override val defaultRepartition: DataFrame => DataFrame = RepartitionByColumns(columnNames = Seq("chromosome"), sortColumns = Seq("start"))
 }
