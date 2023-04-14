@@ -92,6 +92,12 @@ object Format {
    */
   case object SQL_SERVER extends Format {override val sparkFormat = "com.microsoft.sqlserver.jdbc.spark"; override val fileExtension: String = ""}
 
+  /**
+   * HL7 Message
+   * https://github.com/databrickslabs/smolder
+   */
+  case object HL7 extends Format {override val sparkFormat = "hl7"; override val fileExtension: String = ".hl7"}
+
   implicit val EnumInstance: Enum[Format] = Enum.derived[Format]
 }
 
