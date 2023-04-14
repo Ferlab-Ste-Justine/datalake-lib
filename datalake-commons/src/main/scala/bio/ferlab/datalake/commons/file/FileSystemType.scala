@@ -1,6 +1,7 @@
 package bio.ferlab.datalake.commons.file
 
-import enum.Enum
+import bio.ferlab.datalake.commons.config.enumConvert
+import pureconfig.ConfigConvert
 
 sealed trait FileSystemType
 
@@ -24,6 +25,5 @@ object FileSystemType {
    */
   case object UNMANAGED extends FileSystemType
 
-
-  implicit val EnumInstance: Enum[FileSystemType] = Enum.derived[FileSystemType]
+  implicit val converter: ConfigConvert[FileSystemType] = enumConvert[FileSystemType]
 }

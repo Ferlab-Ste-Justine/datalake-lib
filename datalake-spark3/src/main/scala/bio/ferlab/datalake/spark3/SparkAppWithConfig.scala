@@ -6,7 +6,6 @@ import org.apache.spark.SparkConf
 import org.apache.spark.sql.SparkSession
 import org.slf4j
 import pureconfig.ConfigReader
-
 abstract class SparkAppWithConfig[T <: Configuration](implicit cr:ConfigReader[T]) extends App {
 
   val log: slf4j.Logger = slf4j.LoggerFactory.getLogger(getClass.getCanonicalName)

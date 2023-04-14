@@ -1,6 +1,6 @@
 package bio.ferlab.datalake.commons.config
 
-import enum.Enum
+import pureconfig.ConfigConvert
 
 /**
  * List of all [[Format]] supported
@@ -98,7 +98,8 @@ object Format {
    */
   case object HL7 extends Format {override val sparkFormat = "hl7"; override val fileExtension: String = ".hl7"}
 
-  implicit val EnumInstance: Enum[Format] = Enum.derived[Format]
+  implicit val converter: ConfigConvert[Format] = enumConvert[Format]
+
 }
 
 /**

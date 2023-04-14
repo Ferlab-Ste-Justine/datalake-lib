@@ -1,6 +1,6 @@
 package bio.ferlab.datalake.commons.config
 
-import enum.Enum
+import pureconfig.ConfigConvert
 
 sealed trait RunStep {
   val order: Int
@@ -67,5 +67,5 @@ object RunStep {
   }
 
 
-  implicit val EnumInstance: Enum[RunStep] = Enum.derived[RunStep]
+  implicit val converter: ConfigConvert[RunStep] = enumConvert[RunStep]
 }

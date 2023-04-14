@@ -1,6 +1,6 @@
 package bio.ferlab.datalake.commons.config
 
-import enum.Enum
+import pureconfig.ConfigConvert
 
 /**
  * Defines the different ways of persisting data into a dataset.
@@ -134,5 +134,5 @@ object LoadType {
    */
   case object Scd2 extends LoadType
 
-  implicit val EnumInstance: Enum[LoadType] = Enum.derived[LoadType]
+  implicit val converter: ConfigConvert[LoadType] = enumConvert[LoadType]
 }

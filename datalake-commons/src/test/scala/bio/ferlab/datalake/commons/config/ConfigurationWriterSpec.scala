@@ -9,7 +9,6 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import pureconfig.ConfigSource
 import pureconfig.generic.auto._
-import pureconfig.module.enum._
 
 class ConfigurationWriterSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
 

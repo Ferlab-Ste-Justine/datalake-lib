@@ -24,7 +24,8 @@ case class DatasetConf(id: String,
                        readoptions: Map[String, String] = Map(),
                        writeoptions: Map[String, String] = WriteOptions.DEFAULT_OPTIONS,
                        documentationpath: Option[String] = None,
-                       view: Option[TableConf] = None) { self =>
+                       view: Option[TableConf] = None,
+                       repartition: Option[Repartition] = None) { self =>
 
 
   /**
@@ -120,6 +121,28 @@ object DatasetConf {
       format,
       loadtype,
       table = Some(table)
+    )
+  }
+
+  def apply(id: String,
+            storageid: String,
+            path: String,
+            format: Format,
+            loadtype: LoadType,
+            keys: List[String],
+            table: TableConf,
+            view: TableConf,
+            repartition: Repartition): DatasetConf = {
+    new DatasetConf(
+      id,
+      storageid,
+      path,
+      format,
+      loadtype,
+      keys = keys,
+      table = Some(table),
+      view = Some(view),
+      repartition = Some(repartition)
     )
   }
 }
