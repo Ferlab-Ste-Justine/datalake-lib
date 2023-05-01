@@ -2,10 +2,11 @@ package bio.ferlab.datalake.spark3.implicits
 
 import org.apache.hadoop.fs.Path
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.types.ArrayType
+import org.apache.spark.sql.types.{ArrayType, DataType, StructType}
 import org.apache.spark.sql.{Column, DataFrame, SparkSession}
 
 import java.net.URI
+import scala.annotation.tailrec
 
 
 object SparkUtils {
@@ -39,21 +40,21 @@ object SparkUtils {
                 studyId: String,
                 releaseId: String,
                 database: String = "variant"): String = {
-    s"${database}.${table}_${studyId.toLowerCase}_${releaseId.toLowerCase}"
+    s"$database.${table}_${studyId.toLowerCase}_${releaseId.toLowerCase}"
   }
 
   def colFromArrayOrField(df: DataFrame, colName: String): Column = {
     df.schema(colName).dataType match {
       case ArrayType(_, _) => df(colName)(0)
-      case _               => df(colName)
+      case _ => df(colName)
     }
   }
 
   def union(df1: DataFrame, df2: DataFrame)(implicit spark: SparkSession): DataFrame = (df1, df2) match {
     case (p, c) if p.isEmpty => c
     case (p, c) if c.isEmpty => p
-    case (p, c)              => p.union(c)
-    case _                   => spark.emptyDataFrame
+    case (p, c) => p.union(c)
+    case _ => spark.emptyDataFrame
   }
 
   def firstAs(c: String): Column = first(col(c)) as c
@@ -70,5 +71,27 @@ object SparkUtils {
 
   def getColumnOrElse(colName: String, default: Any = ""): Column =
     when(col(colName).isNull, lit(default)).otherwise(trim(col(colName)))
+
+  def isNestedFieldExists(df: DataFrame, fieldName: String): Boolean = isNestedFieldExists(df.schema, fieldName)
+
+  def isNestedFieldExists(dfSchema: StructType, fieldName: String): Boolean = {
+    @tailrec
+    def findField(schema: StructType, nameParts: List[String]): Option[DataType] = {
+      nameParts match {
+        case Nil => None
+        case head :: Nil => schema.find(_.name == head).map(_.dataType)
+        case head :: tail => schema.find(_.name == head) match {
+          case Some(field) => field.dataType match {
+            case structType: StructType => findField(structType, tail)
+            case _ => None
+          }
+          case None => None
+        }
+      }
+    }
+
+    val nameParts = fieldName.split('.').toList
+    findField(dfSchema, nameParts).isDefined
+  }
 
 }

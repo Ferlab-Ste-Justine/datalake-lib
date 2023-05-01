@@ -2,7 +2,7 @@ package bio.ferlab.datalake.spark3.implicits
 
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits._
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns._
-import bio.ferlab.datalake.spark3.testmodels.{AlleleDepthOutput, CompoundHetInput, CompoundHetOutput, ConsequencesInput, FullCompoundHetOutput, Genotype, HCComplement, OtherCompoundHetInput, PickedConsequencesOuput, PossiblyCompoundHetOutput, PossiblyHCComplement, RelativesGenotype, RelativesGenotypeOutput}
+import bio.ferlab.datalake.spark3.testmodels.{AlleleDepthOutput, CompoundHetInput, CompoundHetOutput, ConsequencesInput, FullCompoundHetOutput, Genotype, HCComplement, OtherCompoundHetInput, PickedConsequencesOuput, PossiblyCompoundHetOutput, PossiblyHCComplement, RefSeqAnnotation, RefSeqMrnaIdInput, RefSeqMrnaIdInputWithoutAnnotation, RefSeqMrnaIdInputWithoutRefSeq, RelativesGenotype, RelativesGenotypeOutput}
 import bio.ferlab.datalake.spark3.testutils.WithSparkSession
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{Column, DataFrame, functions}
@@ -739,8 +739,8 @@ class GenomicImplicitsSpec extends AnyFlatSpec with WithSparkSession with Matche
     result
       .where($"chromosome" === "1")
       .as[PickedConsequencesOuput].collect() should contain theSameElementsAs Seq(
-        PickedConsequencesOuput(chromosome = "1", ensembl_transcript_id = "ENST1", impact_score = 1, picked = None),
-        PickedConsequencesOuput(chromosome = "1", ensembl_transcript_id = "ENST2", impact_score = 3, picked = Some(true)), // picked
+      PickedConsequencesOuput(chromosome = "1", ensembl_transcript_id = "ENST1", impact_score = 1, picked = None),
+      PickedConsequencesOuput(chromosome = "1", ensembl_transcript_id = "ENST2", impact_score = 3, picked = Some(true)), // picked
     )
 
     // No csq in OMIM && no protein coding csq (picked at random)
@@ -750,32 +750,32 @@ class GenomicImplicitsSpec extends AnyFlatSpec with WithSparkSession with Matche
     result
       .where($"chromosome" === "3")
       .as[PickedConsequencesOuput].collect() should contain theSameElementsAs Seq(
-        PickedConsequencesOuput(chromosome = "3", ensembl_transcript_id = "ENST1", symbol = "NOT_IN_OMIM", impact_score = 2, biotype = "protein_coding", mane_select = true, picked = Some(true)), // picked
-        PickedConsequencesOuput(chromosome = "3", ensembl_transcript_id = "ENST2", symbol = "NOT_IN_OMIM", impact_score = 2, biotype = "protein_coding", mane_select = false, picked = None),
+      PickedConsequencesOuput(chromosome = "3", ensembl_transcript_id = "ENST1", symbol = "NOT_IN_OMIM", impact_score = 2, biotype = "protein_coding", mane_select = true, picked = Some(true)), // picked
+      PickedConsequencesOuput(chromosome = "3", ensembl_transcript_id = "ENST2", symbol = "NOT_IN_OMIM", impact_score = 2, biotype = "protein_coding", mane_select = false, picked = None),
     )
 
     // Csq in OMIM && mane select csq
     result
       .where($"chromosome" === "4")
       .as[PickedConsequencesOuput].collect() should contain theSameElementsAs Seq(
-        PickedConsequencesOuput(chromosome = "4", ensembl_transcript_id = "ENST1", symbol = "IN_OMIM", impact_score = 3, mane_select = true, picked = Some(true)), // picked
-        PickedConsequencesOuput(chromosome = "4", ensembl_transcript_id = "ENST2", symbol = "IN_OMIM", impact_score = 3, mane_select = false, picked = None),
+      PickedConsequencesOuput(chromosome = "4", ensembl_transcript_id = "ENST1", symbol = "IN_OMIM", impact_score = 3, mane_select = true, picked = Some(true)), // picked
+      PickedConsequencesOuput(chromosome = "4", ensembl_transcript_id = "ENST2", symbol = "IN_OMIM", impact_score = 3, mane_select = false, picked = None),
     )
 
     // Csq in OMIM && no mane select csq && canonical csq
     result
       .where($"chromosome" === "5")
       .as[PickedConsequencesOuput].collect() should contain theSameElementsAs Seq(
-        PickedConsequencesOuput(chromosome = "5", ensembl_transcript_id = "ENST1", symbol = "IN_OMIM", impact_score = 4, mane_select = false, canonical = true, picked = Some(true)), // picked
-        PickedConsequencesOuput(chromosome = "5", ensembl_transcript_id = "ENST2", symbol = "IN_OMIM", impact_score = 4, mane_select = false, canonical = false, picked = None),
+      PickedConsequencesOuput(chromosome = "5", ensembl_transcript_id = "ENST1", symbol = "IN_OMIM", impact_score = 4, mane_select = false, canonical = true, picked = Some(true)), // picked
+      PickedConsequencesOuput(chromosome = "5", ensembl_transcript_id = "ENST2", symbol = "IN_OMIM", impact_score = 4, mane_select = false, canonical = false, picked = None),
     )
 
     // Csq in OMIM && no mane select csq && no canonical csq && mane plus csq
     result
       .where($"chromosome" === "6")
       .as[PickedConsequencesOuput].collect() should contain theSameElementsAs Seq(
-        PickedConsequencesOuput(chromosome = "6", ensembl_transcript_id = "ENST1", symbol = "IN_OMIM", impact_score = 5, mane_select = false, canonical = false, mane_plus = true, picked = Some(true)), // picked
-        PickedConsequencesOuput(chromosome = "6", ensembl_transcript_id = "ENST2", symbol = "IN_OMIM", impact_score = 5, mane_select = false, canonical = false, mane_plus = false, picked = None),
+      PickedConsequencesOuput(chromosome = "6", ensembl_transcript_id = "ENST1", symbol = "IN_OMIM", impact_score = 5, mane_select = false, canonical = false, mane_plus = true, picked = Some(true)), // picked
+      PickedConsequencesOuput(chromosome = "6", ensembl_transcript_id = "ENST2", symbol = "IN_OMIM", impact_score = 5, mane_select = false, canonical = false, mane_plus = false, picked = None),
     )
 
     // Csq in OMIM && no mane select csq && no canonical csq && no mane plus csq (picked at random)
@@ -806,19 +806,52 @@ class GenomicImplicitsSpec extends AnyFlatSpec with WithSparkSession with Matche
   "withRelativeGenotype" should "add genotype information columns of relatives" in {
     val input = Seq(
       RelativesGenotype(participant_id = "PT_1", family_id = Some("FA_1"), gq = 10, mother_id = Some("PT_2"), father_id = Some("PT_3")),
-      RelativesGenotype(participant_id = "PT_2", family_id = Some("FA_1"), gq = 20, calls = Array(0,1)),
-      RelativesGenotype(participant_id = "PT_3", family_id = Some("FA_1"), gq = 30, calls = Array(1,1), other= Some("popi")),
+      RelativesGenotype(participant_id = "PT_2", family_id = Some("FA_1"), gq = 20, calls = Array(0, 1)),
+      RelativesGenotype(participant_id = "PT_3", family_id = Some("FA_1"), gq = 30, calls = Array(1, 1), other = Some("popi")),
       RelativesGenotype(participant_id = "PT_4", gq = 40),
     ).toDF()
 
     val result = input.withRelativesGenotype(Seq("calls", "gq", "other"))
     result.as[RelativesGenotypeOutput].collect() should contain theSameElementsAs Seq(
-      RelativesGenotypeOutput(participant_id = "PT_1", family_id = Some("FA_1"), gq = 10, mother_id = Some("PT_2"), father_id = Some("PT_3"), mother_calls = Some(Seq(0,1)), mother_gq = Some(20),father_calls = Some(Seq(1,1)), father_gq = Some(30), father_other = Some("popi")),
+      RelativesGenotypeOutput(participant_id = "PT_1", family_id = Some("FA_1"), gq = 10, mother_id = Some("PT_2"), father_id = Some("PT_3"), mother_calls = Some(Seq(0, 1)), mother_gq = Some(20), father_calls = Some(Seq(1, 1)), father_gq = Some(30), father_other = Some("popi")),
       RelativesGenotypeOutput(participant_id = "PT_2", family_id = Some("FA_1"), gq = 20, calls = Seq(0, 1)),
       RelativesGenotypeOutput(participant_id = "PT_3", family_id = Some("FA_1"), gq = 30, calls = Seq(1, 1), other = Some("popi")),
       RelativesGenotypeOutput(participant_id = "PT_4", gq = 40),
     )
 
+  }
+
+  "withRefseqMrnaId" should "populate refseq_mrna_id if column exists" in {
+    val input = Seq(
+      RefSeqMrnaIdInput(),
+      RefSeqMrnaIdInput(id = "2", annotation = None),
+      RefSeqMrnaIdInput(id = "3", annotation = Some(RefSeqAnnotation(RefSeq = None))),
+      RefSeqMrnaIdInput(id = "4", annotation = Some(RefSeqAnnotation(RefSeq = Some("890"))))
+    ).toDF()
+    val result = input.withRefseqMrnaId().select("id", "refseq_mrna_id")
+    result.as[(String, Seq[String])].collect() should contain theSameElementsAs Seq(
+      ("1", Seq("123", "456")),
+      ("2", null),
+      ("3", null),
+      ("4", Seq("890")),
+    )
+  }
+
+  it should "populate refseq_mrna_id if annotation RefSeq field does not exist" in {
+    val input = Seq(
+      RefSeqMrnaIdInputWithoutRefSeq()
+    ).toDF()
+    input.withRefseqMrnaId().select("id", "refseq_mrna_id").as[(String, Seq[String])].collect() should contain theSameElementsAs Seq(
+      ("1", null)
+    )
+  }
+  it should "populate refseq_mrna_id if annotation field does not exist" in {
+    val input = Seq(
+      RefSeqMrnaIdInputWithoutAnnotation()
+    ).toDF()
+    input.withRefseqMrnaId().select("id", "refseq_mrna_id").as[(String, Seq[String])].collect() should contain theSameElementsAs Seq(
+      ("1", null)
+    )
   }
 
 }

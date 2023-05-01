@@ -4,15 +4,15 @@ import bio.ferlab.datalake.commons.config.DatasetConf
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import bio.ferlab.datalake.spark3.testmodels._
 import bio.ferlab.datalake.spark3.testmodels.enriched.{EnrichedGenes, OMIM, ORPHANET}
-import bio.ferlab.datalake.spark3.testmodels.normalized.{NormalizedCosmicGeneSet, NormalizedDddGeneCensus, NormalizedHpoGeneSet, NormalizedHumanGenes, NormalizedOrphanetGeneSet, NormalizedOmimGeneSet, PHENOTYPE}
-import bio.ferlab.datalake.spark3.testutils.WithSparkSession
+import bio.ferlab.datalake.spark3.testmodels.normalized.{NormalizedCosmicGeneSet, NormalizedDddGeneCensus, NormalizedHpoGeneSet, NormalizedHumanGenes, NormalizedOmimGeneSet, NormalizedOrphanetGeneSet, PHENOTYPE}
+import bio.ferlab.datalake.spark3.testutils.{WithSparkSession, WithTestConfig}
 import org.apache.spark.sql.functions
 import org.apache.spark.sql.functions.col
 import org.scalatest.GivenWhenThen
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-class GenesSpec extends AnyFlatSpec with GivenWhenThen with WithSparkSession with Matchers {
+class GenesSpec extends AnyFlatSpec with GivenWhenThen with WithSparkSession with WithTestConfig with Matchers {
   import spark.implicits._
 
   spark.sql("CREATE DATABASE IF NOT EXISTS variant")

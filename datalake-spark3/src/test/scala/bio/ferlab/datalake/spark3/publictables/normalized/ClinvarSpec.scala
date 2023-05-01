@@ -3,7 +3,7 @@ package bio.ferlab.datalake.spark3.publictables.normalized
 import bio.ferlab.datalake.commons.config.DatasetConf
 import bio.ferlab.datalake.spark3.testmodels.normalized.NormalizedClinvar
 import bio.ferlab.datalake.spark3.testmodels.raw.RawClinvar
-import bio.ferlab.datalake.spark3.testutils.WithSparkSession
+import bio.ferlab.datalake.spark3.testutils.{WithSparkSession, WithTestConfig}
 import io.delta.tables.DeltaTable
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -12,7 +12,7 @@ import org.scalatest.{BeforeAndAfterAll, GivenWhenThen}
 import java.io.File
 import scala.util.Try
 
-class ClinvarSpec extends AnyFlatSpec with GivenWhenThen with WithSparkSession with Matchers with BeforeAndAfterAll {
+class ClinvarSpec extends AnyFlatSpec with GivenWhenThen with WithSparkSession with WithTestConfig with Matchers with BeforeAndAfterAll {
 
   import spark.implicits._
 

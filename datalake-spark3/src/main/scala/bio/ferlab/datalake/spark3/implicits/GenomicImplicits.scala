@@ -2,10 +2,11 @@ package bio.ferlab.datalake.spark3.implicits
 
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.ParentalOrigin._
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns.{familyInfo, fatherADAlt, fatherADRatio, fatherADRef, fatherADTotal, fatherAffectedStatus, fatherCalls, fatherCol, fatherDP, fatherFilters, fatherGQ, fatherQD, motherADAlt, motherADRatio, motherADRef, motherADTotal, motherAffectedStatus, motherCalls, motherCol, motherDP, motherFilters, motherGQ, motherQD}
+import bio.ferlab.datalake.spark3.implicits.SparkUtils.isNestedFieldExists
 import io.projectglow.Glow
 import org.apache.spark.sql.expressions.{Window, WindowSpec}
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.types.{DecimalType, DoubleType, StringType}
+import org.apache.spark.sql.types.{DecimalType, DoubleType, StringType, StructType}
 import org.apache.spark.sql.{Column, DataFrame, RelationalGroupedDataset, SparkSession}
 
 import scala.collection.immutable
@@ -31,7 +32,7 @@ object GenomicImplicits {
     }
 
     def selectLocus(cols: Column*): DataFrame = {
-      val allCols = (columns.locus ++ cols).toList
+      val allCols = (columns.locus ++ cols)
       df.select(allCols: _*)
     }
 
@@ -51,6 +52,14 @@ object GenomicImplicits {
           s"${combined}_homozygotes",
           col(s"${prefix1}_homozygotes") + col(s"${prefix2}_homozygotes")
         )
+    }
+
+    def withRefseqMrnaId(): DataFrame = {
+      val refseqFieldExists = isNestedFieldExists(df, "annotation.RefSeq")
+      if (refseqFieldExists)
+        df.withColumn("refseq_mrna_id", array_distinct(split(col("annotation.RefSeq"), "&")))
+      else
+        df.withColumn("refseq_mrna_id", lit(null).cast("array<string>"))
     }
 
     def withSplitMultiAllelic: DataFrame = {
@@ -649,7 +658,7 @@ object GenomicImplicits {
                    familyIdColumn: Column = col("family_id")
                   ): Column = {
       val familyVariantWindow: WindowSpec =
-        Window.partitionBy(locus:+ familyIdColumn : _*)
+        Window.partitionBy(locus :+ familyIdColumn: _*)
       when(familyIdColumn.isNotNull,
         map_from_entries(
           collect_list(
