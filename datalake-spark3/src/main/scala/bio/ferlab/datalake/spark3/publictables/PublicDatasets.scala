@@ -6,11 +6,7 @@ import bio.ferlab.datalake.commons.config._
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns.locusColumnNames
 
 
-case class PublicDatasets(alias: String, tableDatabase: Option[String], viewDatabase: Option[String]){
-
-  def table(tableName: String): Option[TableConf] = tableDatabase.map(t => TableConf(t, tableName))
-
-  def view(viewName: String): Option[TableConf] = viewDatabase.map(v => TableConf(v, viewName))
+case class PublicDatasets(alias: String, tableDatabase: Option[String], viewDatabase: Option[String]) extends BaseDatasets {
 
   val sources: List[DatasetConf] = List(
           //raw
@@ -66,7 +62,6 @@ case class PublicDatasets(alias: String, tableDatabase: Option[String], viewData
           DatasetConf("enriched_dbnsfp"                    , alias, "/public/dbnsfp/scores"        , DELTA, OverWrite , partitionby = List("chromosome"), table = table("dbnsfp_original")      , view = view("dbnsfp_original")),
           DatasetConf("enriched_spliceai"                  , alias, "/public/spliceai/enriched"    , DELTA, OverWrite , partitionby = List("chromosome"), repartition= Some(RepartitionByRange(columnNames = Seq("chromosome", "start"))), table = table("spliceai_enriched")    , view = view("spliceai_enriched")),
           DatasetConf("enriched_rare_variant"              , alias, "/public/rare_variant/enriched", DELTA, OverWrite , partitionby = List("chromosome", "is_rare"), table = table("rare_variant_enriched"), view = view("rare_variant_enriched"))
-
 
   )
 

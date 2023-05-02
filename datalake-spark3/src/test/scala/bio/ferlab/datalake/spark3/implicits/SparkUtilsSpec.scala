@@ -3,6 +3,7 @@ package bio.ferlab.datalake.spark3.implicits
 import bio.ferlab.datalake.spark3.implicits.SparkUtils._
 import bio.ferlab.datalake.spark3.testmodels.Genotype
 import bio.ferlab.datalake.spark3.testutils.WithSparkSession
+import org.apache.spark.sql.types.{IntegerType, StringType, StructField, StructType}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -86,6 +87,31 @@ class SparkUtilsSpec extends AnyFlatSpec with WithSparkSession with Matchers {
     val vcf = s"$path/*.CGP.filtered.deNovo.vep.vcf.gz"
     println(vcf)
     fileExist(vcf) shouldBe true
+  }
+
+  private val schemaNestedFieldExists = StructType(Seq(
+    StructField("id", IntegerType),
+    StructField("name", StringType),
+    StructField("address", StructType(Seq(
+      StructField("street", StringType),
+      StructField("city", StringType),
+      StructField("state", StringType)
+    )))
+  ))
+
+  "isNestedFieldExists" should "return true when the nested field exists in the schema" in {
+    val result = isNestedFieldExists(schemaNestedFieldExists, "address.street")
+    result should be(true)
+  }
+
+  it should "return false when the nested field does not exist in the schema" in {
+    val result = isNestedFieldExists(schemaNestedFieldExists, "address.zip")
+    result should be(false)
+  }
+
+  it should "return false when the field is not a nested field" in {
+    val result = isNestedFieldExists(schemaNestedFieldExists, "name.first")
+    result should be(false)
   }
 
 }

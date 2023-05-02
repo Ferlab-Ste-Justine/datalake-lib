@@ -3,7 +3,7 @@ package bio.ferlab.datalake.spark3.publictables.normalized
 import bio.ferlab.datalake.commons.config.DatasetConf
 import bio.ferlab.datalake.spark3.testmodels.normalized.NormalizedOmimGeneSet
 import bio.ferlab.datalake.spark3.testmodels.raw.RawOmimGeneSet
-import bio.ferlab.datalake.spark3.testutils.WithSparkSession
+import bio.ferlab.datalake.spark3.testutils.{WithSparkSession, WithTestConfig}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.{BeforeAndAfterAll, GivenWhenThen}
@@ -11,7 +11,7 @@ import org.scalatest.{BeforeAndAfterAll, GivenWhenThen}
 import java.io.File
 import scala.util.Try
 
-class OmimGeneSetSpec extends AnyFlatSpec with GivenWhenThen with WithSparkSession with Matchers with BeforeAndAfterAll {
+class OmimGeneSetSpec extends AnyFlatSpec with GivenWhenThen with WithSparkSession with WithTestConfig with Matchers with BeforeAndAfterAll {
 
   import spark.implicits._
 

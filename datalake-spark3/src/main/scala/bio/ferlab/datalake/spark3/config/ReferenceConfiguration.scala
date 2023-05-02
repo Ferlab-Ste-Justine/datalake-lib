@@ -1,9 +1,12 @@
-package bio.ferlab.datalake.spark3.publictables
+package bio.ferlab.datalake.spark3.config
 
 import bio.ferlab.datalake.commons.config._
 import bio.ferlab.datalake.commons.file.FileSystemType.S3
+import bio.ferlab.datalake.spark3.genomics.GenomicDatasets
+import bio.ferlab.datalake.spark3.publictables.PublicDatasets
+
 import pureconfig.generic.auto._
-object KFReferenceConfiguration extends App {
+object ReferenceConfiguration extends App {
 
   val alias = "public_database"
 
@@ -15,7 +18,7 @@ object KFReferenceConfiguration extends App {
     SimpleConfiguration(
       DatalakeConf(
         storages = prod_storage,
-        sources = PublicDatasets(alias, Some("variant"), Some("variant_live")).sources,
+        sources = PublicDatasets(alias, Some("variant"), Some("variant_live")).sources ++ GenomicDatasets(alias, Some("variant"), Some("variant_live")).sources,
         sparkconf = Map("hive.metastore.client.factory.class" -> "com.amazonaws.glue.catalog.metastore.AWSGlueDataCatalogHiveClientFactory")
       )
     )
