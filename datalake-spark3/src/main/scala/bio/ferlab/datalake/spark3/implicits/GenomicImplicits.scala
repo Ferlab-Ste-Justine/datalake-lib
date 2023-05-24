@@ -27,8 +27,9 @@ object GenomicImplicits {
       df.join(other, columns.locusColumnNames, joinType)
     }
 
-    def groupByLocus(): RelationalGroupedDataset = {
-      df.groupBy(columns.locus: _*)
+    def groupByLocus(cols: Column*): RelationalGroupedDataset = {
+      val groupedColumns = columns.locus ++ cols
+      df.groupBy(groupedColumns: _*)
     }
 
     def selectLocus(cols: Column*): DataFrame = {
@@ -172,6 +173,20 @@ object GenomicImplicits {
       ("Female", Array(1, 1), Array(1, 1), Array(-1, -1), true, false, "x_linked_dominant"),
     )
 
+    /**
+     *
+     * Add a column with genotype transmission. This column is named with as parameter
+     *
+     * @param as          column name added to this datafarame
+     * @param calls_name
+     * @param gender_name name of the column thant contains the gender
+     * @param affected_status_name
+     * @param father_calls_name
+     * @param father_affected_status_name
+     * @param mother_calls_name
+     * @param mother_affected_status_name
+     * @return
+     */
     def withGenotypeTransmission(as: String,
                                  calls_name: String = "calls",
                                  gender_name: String = "gender",
