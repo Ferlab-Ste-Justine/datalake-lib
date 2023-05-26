@@ -1,4 +1,4 @@
-package bio.ferlab.datalake.spark3.genomics.normalize
+package bio.ferlab.datalake.spark3.genomics.normalized
 
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns.{annotations, csq}
 import bio.ferlab.datalake.spark3.testmodels.normalized.NormalizedConsequences

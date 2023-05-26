@@ -18,7 +18,8 @@ case class EnrichedGenes(`symbol`: String = "OR4F5",
                          `omim`: List[OMIM] = List(OMIM()),
                          `chromosome`: String = "1",
                          `ddd`: List[DDD] = List(DDD()),
-                         `cosmic`: List[COSMIC] = List(COSMIC()))
+                         `cosmic`: List[COSMIC] = List(COSMIC()),
+                          gnomad: Option[GNOMAD] = Some(GNOMAD()))
 
 case class ORPHANET(`disorder_id`: Long = 17827,
                     `panel`: String = "Immunodeficiency due to a classical component pathway complement deficiency",
@@ -36,3 +37,6 @@ case class OMIM(`name`: String = "Epileptic encephalopathy, early infantile, 69"
 case class DDD(`disease_name`: String = "OCULOAURICULAR SYNDROME")
 
 case class COSMIC(`tumour_types_germline`: List[String] = List("breast", "colon", "endometrial cancer under age 50"))
+
+case class GNOMAD(pli: Float = 1.0f,
+                  loeuf: Float = 0.054f)

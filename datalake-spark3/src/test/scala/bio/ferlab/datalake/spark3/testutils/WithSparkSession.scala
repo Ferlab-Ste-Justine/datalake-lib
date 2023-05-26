@@ -17,6 +17,8 @@ trait WithSparkSession {
     .master("local")
     .getOrCreate()
 
+  spark.sparkContext.setLogLevel("ERROR")
+
   Logger.getLogger("org").setLevel(Level.OFF)
   Logger.getLogger("akka").setLevel(Level.OFF)
 
