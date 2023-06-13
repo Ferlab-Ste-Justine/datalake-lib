@@ -1,4 +1,4 @@
-package bio.ferlab.datalake.spark3.genomics.normalize
+package bio.ferlab.datalake.spark3.genomics.normalized
 
 import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf}
 import bio.ferlab.datalake.spark3.etl.ETLSingleDestination

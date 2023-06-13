@@ -1,4 +1,4 @@
-package bio.ferlab.datalake.spark3.genomics.enrich
+package bio.ferlab.datalake.spark3.genomics.enriched
 
 import bio.ferlab.datalake.commons.config._
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._

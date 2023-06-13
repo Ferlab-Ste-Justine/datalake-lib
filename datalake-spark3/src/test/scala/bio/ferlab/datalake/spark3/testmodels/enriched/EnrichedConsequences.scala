@@ -49,17 +49,17 @@ case class EnrichedConsequences(`chromosome`: String = "1",
                                 `canonical`: Boolean = false,
                                 `picked`: Option[Boolean] = Some(true))
 
-case class PREDICTIONS(`sift_converted_rank_score`: Option[Double] = None,
+case class PREDICTIONS(`sift_score`: Option[Double] = None,
                        `sift_pred`: Option[String] = None,
                        `polyphen2_hvar_score`: Option[Double] = None,
                        `polyphen2_hvar_pred`: Option[String] = None,
-                       `fathmm_converted_rankscore`: Option[Double] = None,
+                       `fathmm_score`: Option[Double] = None,
                        `fathmm_pred`: Option[String] = None,
                        `cadd_score`: Option[Double] = None,
                        `cadd_phred`: Option[Double] = None,
                        `dann_score`: Option[Double] = None,
-                       `revel_rankscore`: Option[Double] = None,
-                       `lrt_converted_rankscore`: Option[Double] = None,
+                       `revel_score`: Option[Double] = None,
+                       `lrt_score`: Option[Double] = None,
                        `lrt_pred`: Option[String] = None)
 
-case class CONSERVATIONS(`phylo_p17way_primate_rankscore`: Option[Double] = None)
+case class CONSERVATIONS(`phyloP17way_primate`: Option[Double] = None, phyloP100way_vertebrate:Option[Double] = None)
