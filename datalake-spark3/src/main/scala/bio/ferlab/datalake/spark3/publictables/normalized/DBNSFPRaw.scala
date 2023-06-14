@@ -19,7 +19,7 @@ class DBNSFPRaw()(implicit conf: Configuration) extends ETLSingleDestination{
                          lastRunDateTime: LocalDateTime = minDateTime,
                          currentRunDateTime: LocalDateTime = LocalDateTime.now())(implicit spark: SparkSession): DataFrame = {
     data(raw_dbnsfp.id)
-      .withColumnRenamed("#chr", "chr")
+      .withColumnRenamed("#chr", "chromosome")
       .withColumnRenamed("pos(1-based)", "start")
   }
 
