@@ -26,15 +26,13 @@ abstract class ETLSingleDestination()(implicit conf: Configuration) extends v2.E
 
   def loadSingle(data: DataFrame,
                  lastRunDateTime: LocalDateTime = minDateTime,
-                 currentRunDateTime: LocalDateTime = LocalDateTime.now(),
-                 repartition: DataFrame => DataFrame = defaultRepartition)(implicit spark: SparkSession): DataFrame = {
-    super.loadDataset(data, mainDestination, repartition)
+                 currentRunDateTime: LocalDateTime = LocalDateTime.now())(implicit spark: SparkSession): DataFrame = {
+    super.loadDataset(data, mainDestination)
   }
 
   override final def load(data: Map[String, DataFrame],
                     lastRunDateTime: LocalDateTime,
-                    currentRunDateTime: LocalDateTime,
-                    repartition: DataFrame => DataFrame)(implicit spark: SparkSession): Map[String, DataFrame] = toMain {
-    loadSingle(data(mainDestination.id), lastRunDateTime, currentRunDateTime, repartition)
+                    currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): Map[String, DataFrame] = toMain {
+    loadSingle(data(mainDestination.id), lastRunDateTime, currentRunDateTime)
   }
 }

@@ -42,6 +42,9 @@ class ETLSingleDestinationSpec extends AnyFlatSpec with GivenWhenThen with Match
 
   case class TestETL() extends ETLSingleDestination() {
 
+    var repartitioned = false
+
+
     override val mainDestination: DatasetConf = destConf
 
     override def extract(lastRunDateTime: LocalDateTime = minDateTime,
@@ -65,6 +68,12 @@ class ETLSingleDestinationSpec extends AnyFlatSpec with GivenWhenThen with Match
 
     }
 
+
+    override def defaultRepartition: DataFrame => DataFrame = df=> {
+      repartitioned = true
+      df
+    }
+
     override def sampling: PartialFunction[String, DataFrame => DataFrame] = {
       case "raw_airports" => {df => df.limit(1)}
     }
@@ -83,7 +92,7 @@ class ETLSingleDestinationSpec extends AnyFlatSpec with GivenWhenThen with Match
 
   }
 
-  val job: ETLSingleDestination = TestETL()
+  val job: TestETL = TestETL()
 
   override def beforeAll(): Unit = {
     spark.sql("CREATE DATABASE IF NOT EXISTS raw_db")
@@ -112,11 +121,13 @@ class ETLSingleDestinationSpec extends AnyFlatSpec with GivenWhenThen with Match
     import spark.implicits._
 
     val output = Seq(AirportOutput()).toDF()
-
+    job.repartitioned = false
     job.loadSingle(output)
+    assert(job.repartitioned, "Repartition function is not called.")
 
     val table = spark.table(s"${destConf.table.get.fullName}")
     table.show(false)
+
     table.as[AirportOutput].collect().head shouldBe AirportOutput()
   }
 

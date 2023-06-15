@@ -62,23 +62,21 @@ abstract class ETL()(implicit val conf: Configuration) extends Runnable {
    */
   def load(data: Map[String, DataFrame],
            lastRunDateTime: LocalDateTime = minDateTime,
-           currentRunDateTime: LocalDateTime = LocalDateTime.now(),
-           repartition: DataFrame => DataFrame = defaultRepartition
+           currentRunDateTime: LocalDateTime = LocalDateTime.now()
           )(implicit spark: SparkSession): Map[String, DataFrame] = {
     data.map { case (dsid, df) =>
       val datasetConf = conf.getDataset(dsid)
-      val repartitionFunc = datasetConf.repartition.getOrElse(defaultRepartition)
-      dsid -> loadDataset(df, datasetConf, repartitionFunc)
+      dsid -> loadDataset(df, datasetConf)
     }
   }
 
-  def loadDataset(df: DataFrame, ds: DatasetConf, repartition: DataFrame => DataFrame)(implicit spark: SparkSession): DataFrame = {
+  def loadDataset(df: DataFrame, ds: DatasetConf)(implicit spark: SparkSession): DataFrame = {
     ds.table.foreach(table => spark.sql(s"CREATE DATABASE IF NOT EXISTS ${table.database}"))
-
+    val repartitionFunc = ds.repartition.getOrElse(this.defaultRepartition)
     val dsWithReplaceWhere = replaceWhere.map(r => ds.copy(writeoptions = ds.writeoptions + ("replaceWhere" -> r))).getOrElse(ds)
     LoadResolver
       .write(spark, conf)(dsWithReplaceWhere.format -> dsWithReplaceWhere.loadtype)
-      .apply(dsWithReplaceWhere, repartition(df))
+      .apply(dsWithReplaceWhere, repartitionFunc(df))
 
     log.info(s"Succeeded to load ${ds.id}")
     dsWithReplaceWhere.read
