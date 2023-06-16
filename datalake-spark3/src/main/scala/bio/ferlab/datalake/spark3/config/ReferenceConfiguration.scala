@@ -11,7 +11,8 @@ object ReferenceConfiguration extends App {
   val alias = "public_database"
 
   val prod_storage = List(
-    StorageConf(alias, "s3a://kf-strides-variant-parquet-prd", S3)
+    StorageConf(alias, "s3a://kf-strides-variant-parquet-prd", S3),
+    PublicDatasets.gnomadStorage
   )
 
   val kf_conf =
