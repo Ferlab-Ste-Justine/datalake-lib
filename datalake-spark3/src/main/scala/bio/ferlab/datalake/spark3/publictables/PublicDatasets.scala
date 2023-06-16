@@ -11,7 +11,7 @@ case class PublicDatasets(alias: String, tableDatabase: Option[String], viewData
   val sources: List[DatasetConf] = List(
           //raw
           DatasetConf("raw_clinvar"                  , alias, "/raw/landing/clinvar/clinvar.vcf.gz"                                , VCF  , OverWrite , readoptions = Map("flattenInfoFields" -> "true", "split_multiallelics" -> "true")),
-          DatasetConf("raw_dbsnp"                    , alias, "/raw/landing/dbsnp/GCF_000001405.39.gz"                             , VCF  , OverWrite , readoptions = Map("flattenInfoFields" -> "true", "split_multiallelics" -> "true")),
+          DatasetConf("raw_dbsnp"                    , alias, "/raw/landing/dbsnp/GCF_000001405.40.gz"                             , VCF  , OverWrite , readoptions = Map("flattenInfoFields" -> "true", "split_multiallelics" -> "true")),
           DatasetConf("raw_gnomad_genomes_v3"        , alias, "/raw/landing/gnomadv3/*.vcf.bgz"                                    , VCF  , OverWrite , readoptions = Map("flattenInfoFields" -> "true", "split_multiallelics" -> "true")),
           DatasetConf("raw_gnomad_constraint_v2_1_1" , alias, "/raw/landing/gnomad_v2_1_1/gnomad.v2.1.1.lof_metrics.by_gene.txt.gz", CSV  , OverWrite , readoptions = Map("header" -> "true", "sep" -> "\t")),
           DatasetConf("raw_topmed_bravo"             , alias, "/raw/landing/topmed/bravo-dbsnp-*.vcf.gz"                           , VCF  , OverWrite , readoptions = Map("flattenInfoFields" -> "true", "split_multiallelics" -> "true")),
@@ -22,7 +22,7 @@ case class PublicDatasets(alias: String, tableDatabase: Option[String], viewData
           DatasetConf("raw_orphanet_gene_association", alias, "/raw/landing/orphanet/en_product6.xml"                              , XML  , OverWrite),
           DatasetConf("raw_orphanet_disease_history" , alias, "/raw/landing/orphanet/en_product9_ages.xml"                         , XML  , OverWrite),
           DatasetConf("raw_cosmic_gene_set"          , alias, "/raw/landing/cosmic/cancer_gene_census.csv"                         , CSV  , OverWrite , readoptions = Map("header" -> "true")),
-          DatasetConf("ddd_cosmic_gene_set"          , alias, "/raw/landing/ddd/DDG2P.csv.gz"                                      , CSV  , OverWrite , readoptions = Map("header" -> "true")),
+          DatasetConf("raw_ddd_gene_set"             , alias, "/raw/landing/ddd/DDG2P.csv.gz"                                      , CSV  , OverWrite , readoptions = Map("header" -> "true")),
           DatasetConf("raw_hpo_gene_set"             , alias, "/raw/landing/hpo/genes_to_phenotype.txt"                            , CSV  , OverWrite , readoptions = Map("inferSchema" -> "true", "comment" -> "#", "header" -> "false", "sep" -> "\t", "nullValue" -> "-")),
           DatasetConf("raw_refseq_human_genes"       , alias, "/raw/landing/refseq/Homo_sapiens.gene_info.gz"                      , CSV  , OverWrite , readoptions = Map("inferSchema" -> "true", "header" -> "true", "sep" -> "\t", "nullValue" -> "-")),
           DatasetConf("raw_refseq_annotation"        , alias, "/raw/landing/refseq/GCF_GRCh38_genomic.gff.gz"                      , GFF  , OverWrite),
