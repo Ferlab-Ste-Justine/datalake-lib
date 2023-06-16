@@ -3,16 +3,16 @@ package bio.ferlab.datalake.spark3.publictables
 import bio.ferlab.datalake.commons.config.Format.{CSV, DELTA, GFF, VCF, XML}
 import bio.ferlab.datalake.commons.config.LoadType.OverWrite
 import bio.ferlab.datalake.commons.config._
-import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns.locusColumnNames
+import bio.ferlab.datalake.commons.file.FileSystemType.S3
+import bio.ferlab.datalake.spark3.publictables.PublicDatasets.gnomadStorageId
 
 
 case class PublicDatasets(alias: String, tableDatabase: Option[String], viewDatabase: Option[String]) extends BaseDatasets {
-
   val sources: List[DatasetConf] = List(
           //raw
           DatasetConf("raw_clinvar"                  , alias, "/raw/landing/clinvar/clinvar.vcf.gz"                                , VCF  , OverWrite , readoptions = Map("flattenInfoFields" -> "true", "split_multiallelics" -> "true")),
           DatasetConf("raw_dbsnp"                    , alias, "/raw/landing/dbsnp/GCF_000001405.40.gz"                             , VCF  , OverWrite , readoptions = Map("flattenInfoFields" -> "true", "split_multiallelics" -> "true")),
-          DatasetConf("raw_gnomad_genomes_v3"        , alias, "/raw/landing/gnomadv3/*.vcf.bgz"                                    , VCF  , OverWrite , readoptions = Map("flattenInfoFields" -> "true", "split_multiallelics" -> "true")),
+          DatasetConf("raw_gnomad_genomes_v3"        , alias, "/release/3.1/vcf/genomes/gnomad.genomes.v3.1.sites.*.vcf.bgz"       , VCF  , OverWrite , readoptions = Map("flattenInfoFields" -> "true", "split_multiallelics" -> "true")).copy(storageid = gnomadStorageId),
           DatasetConf("raw_gnomad_constraint_v2_1_1" , alias, "/raw/landing/gnomad_v2_1_1/gnomad.v2.1.1.lof_metrics.by_gene.txt.gz", CSV  , OverWrite , readoptions = Map("header" -> "true", "sep" -> "\t")),
           DatasetConf("raw_topmed_bravo"             , alias, "/raw/landing/topmed/bravo-dbsnp-*.vcf.gz"                           , VCF  , OverWrite , readoptions = Map("flattenInfoFields" -> "true", "split_multiallelics" -> "true")),
           DatasetConf("raw_1000_genomes"             , alias, "/raw/landing/1000Genomes/ALL.*.sites.vcf.gz"                        , VCF  , OverWrite , readoptions = Map("flattenInfoFields" -> "true", "split_multiallelics" -> "true")),
@@ -66,4 +66,9 @@ case class PublicDatasets(alias: String, tableDatabase: Option[String], viewData
   )
 
 
+}
+
+object PublicDatasets{
+  val gnomadStorageId: String = "gnomad"
+  val gnomadStorage: StorageConf = StorageConf(gnomadStorageId, "s3a://gnomad-public-us-east-1", S3)
 }
