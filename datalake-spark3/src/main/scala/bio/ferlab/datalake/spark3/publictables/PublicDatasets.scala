@@ -21,7 +21,7 @@ case class PublicDatasets(alias: String, tableDatabase: Option[String], viewData
           DatasetConf("raw_omim_gene_set"            , alias, "/raw/landing/omim/genemap2.txt"                                     , CSV  , OverWrite , readoptions = Map("inferSchema" -> "true", "comment" -> "#", "header" -> "false", "sep" -> "\t")),
           DatasetConf("raw_orphanet_gene_association", alias, "/raw/landing/orphanet/en_product6.xml"                              , XML  , OverWrite),
           DatasetConf("raw_orphanet_disease_history" , alias, "/raw/landing/orphanet/en_product9_ages.xml"                         , XML  , OverWrite),
-          DatasetConf("raw_cosmic_gene_set"          , alias, "/raw/landing/cosmic/cancer_gene_census.csv"                         , CSV  , OverWrite , readoptions = Map("header" -> "true")),
+          DatasetConf("raw_cosmic_gene_set"          , alias, "/raw/landing/cosmic/Cosmic_CancerGeneCensus_GRCh38.tsv.gz"          , CSV  , OverWrite , readoptions = Map("header" -> "true", "sep" -> "\t")),
           DatasetConf("raw_ddd_gene_set"             , alias, "/raw/landing/ddd/DDG2P.csv.gz"                                      , CSV  , OverWrite , readoptions = Map("header" -> "true")),
           DatasetConf("raw_hpo_gene_set"             , alias, "/raw/landing/hpo/genes_to_phenotype.txt"                            , CSV  , OverWrite , readoptions = Map("inferSchema" -> "true", "comment" -> "#", "header" -> "false", "sep" -> "\t", "nullValue" -> "-")),
           DatasetConf("raw_refseq_human_genes"       , alias, "/raw/landing/refseq/Homo_sapiens.gene_info.gz"                      , CSV  , OverWrite , readoptions = Map("inferSchema" -> "true", "header" -> "true", "sep" -> "\t", "nullValue" -> "-")),
