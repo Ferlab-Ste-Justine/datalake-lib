@@ -13,7 +13,7 @@ import java.time.LocalDateTime
 class GnomadV3()(implicit conf: Configuration) extends ETLP {
 
   override val mainDestination: DatasetConf = conf.getDataset("normalized_gnomad_genomes_v3")
-  val gnomad_vcf: DatasetConf = conf.getDataset("raw_gnomad_genomes_3")
+  val gnomad_vcf: DatasetConf = conf.getDataset("raw_gnomad_genomes_v3")
 
   override def extract(lastRunDateTime: LocalDateTime = minDateTime,
                        currentRunDateTime: LocalDateTime = LocalDateTime.now())(implicit spark: SparkSession): Map[String, DataFrame] = {

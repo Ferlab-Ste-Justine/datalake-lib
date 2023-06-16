@@ -36,9 +36,8 @@ class TopMed()(implicit conf: Configuration) extends ETLP {
         $"INFO_HOM" (0) as "homozygotes",
         $"INFO_HET" (0) as "heterozygotes",
         $"qual",
-        $"INFO_FILTERS" as "filters",
-        when(size($"INFO_FILTERS") === 1 && $"INFO_FILTERS" (0) === "PASS", "PASS")
-          .when(array_contains($"INFO_FILTERS", "PASS"), "PASS+FAIL")
+        when(size($"filters") === 1 && $"filters" (0) === "PASS", "PASS")
+          .when(array_contains($"filters", "PASS"), "PASS+FAIL")
           .otherwise("FAIL") as "qual_filter"
       )
   }
