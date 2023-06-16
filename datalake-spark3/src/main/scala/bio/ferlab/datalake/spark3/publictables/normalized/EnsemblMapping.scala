@@ -16,7 +16,7 @@ class EnsemblMapping()(implicit conf: Configuration)
   val raw_ensembl_entrez: DatasetConf = conf.getDataset("raw_ensembl_entrez")
   val raw_ensembl_refseq: DatasetConf = conf.getDataset("raw_ensembl_refseq")
   val raw_ensembl_uniprot: DatasetConf = conf.getDataset("raw_ensembl_uniprot")
-  val raw_ensembl_ena: DatasetConf = conf.getDataset("raw_ensembl_uniprot")
+  val raw_ensembl_ena: DatasetConf = conf.getDataset("raw_ensembl_ena")
 
   override def extract(lastRunDateTime: LocalDateTime = minDateTime,
                        currentRunDateTime: LocalDateTime = LocalDateTime.now())(implicit spark: SparkSession): Map[String, DataFrame] = {
@@ -67,11 +67,11 @@ class EnsemblMapping()(implicit conf: Configuration)
       )
       .withColumn(
         "is_mane_select",
-        when(array_contains(col("tags"), "MANE Select v0.93"), lit(true)).otherwise(lit(false))
+        when(array_contains(col("tags"), "MANE Select"), lit(true)).otherwise(lit(false))
       )
       .withColumn(
         "is_mane_plus",
-        when(array_contains(col("tags"), "MANE Plus Clinical v0.93"), lit(true))
+        when(array_contains(col("tags"), "MANE Plus Clinical"), lit(true))
           .otherwise(lit(false))
       )
       .withColumn("genome_build", lit("GRCh38"))
