@@ -21,6 +21,8 @@ class DBNSFPRaw()(implicit conf: Configuration) extends ETLSingleDestination{
     data(raw_dbnsfp.id)
       .withColumnRenamed("#chr", "chromosome")
       .withColumnRenamed("position_1-based", "start")
+      .withColumnRenamed("ref", "reference")
+      .withColumnRenamed("alt", "alternate")
   }
 
 
