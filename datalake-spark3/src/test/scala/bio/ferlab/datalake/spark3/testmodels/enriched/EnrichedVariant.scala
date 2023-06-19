@@ -18,7 +18,10 @@ case class EnrichedVariant(chromosome: String = "1",
                            hgvsg: String = "chr1:g.69897T>C",
                            variant_class: String = "SNV",
                            assembly_version: String = "GRCh38",
-                           frequency: GlobalFrequency = GlobalFrequency(total = Frequency(4, 6, 2, 3, 2)),
+                           frequency: GlobalFrequency = GlobalFrequency(
+                             total = Frequency(ac = 4, pc = 2, hom = 2, an = 6, pn = 3, af = 4d / 6d, pf = 2d / 3d),
+                             zygosities = Set("WT", "HOM")
+                           ),
                            external_frequencies: FREQUENCIES = FREQUENCIES(),
                            clinvar: CLINVAR = CLINVAR(),
                            rsnumber: String = "rs200676709",
