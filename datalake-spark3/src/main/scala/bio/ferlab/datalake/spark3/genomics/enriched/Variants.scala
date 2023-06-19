@@ -19,11 +19,13 @@ import java.time.LocalDateTime
  * This ETL create an aggregated table on occurrences of SNV variants. Occurrences are aggregated by calculating the frequencies specified in parameter frequencies.
  * The table is enriched with information from other datasets such as genes, dbsnp, clinvar, spliceai, 1000 genomes, topmed_bravo, gnomad_genomes_v2, gnomad_exomes_v2, gnomad_genomes_v3.
  *
- * @param snvDatasetId the id of the dataset containing the SNV variants
- * @param frequencies  the frequencies to calculate. See [[FrequencyOperations.freq]]
- * @param configuration the configuration object
+ * @param participantId  column used to distinct participants in order to calculate total number of participants (pn) and total allele number (an)
+ * @param affectedStatus column used to calculate frequencies for affected / unaffected participants
+ * @param snvDatasetId   the id of the dataset containing the SNV variants
+ * @param frequencies    the frequencies to calculate. See [[FrequencyOperations.freq]]
+ * @param configuration  the configuration object
  */
-class Variants(snvDatasetId: String, frequencies: FrequencySplit*)(implicit configuration: Configuration) extends ETLSingleDestination {
+class Variants(participantId: Column = col("participant_id"), affectedStatus: Column = col("affected_status"), snvDatasetId: String, frequencies: Seq[FrequencySplit])(implicit configuration: Configuration) extends ETLSingleDestination {
 
   override val mainDestination: DatasetConf = conf.getDataset("enriched_variants")
   protected val thousand_genomes: DatasetConf = conf.getDataset("normalized_1000_genomes")
@@ -62,7 +64,7 @@ class Variants(snvDatasetId: String, frequencies: FrequencySplit*)(implicit conf
       .withColumn("assembly_version", lit("GRCh38"))
 
     variants
-      .withFrequencies(data(snvDatasetId), frequencies)
+      .withFrequencies(participantId, affectedStatus, data(snvDatasetId), frequencies)
       .withPopulations(data(thousand_genomes.id), data(topmed_bravo.id), data(gnomad_genomes_v2.id), data(gnomad_exomes_v2.id), data(gnomad_genomes_v3.id))
       .withDbSNP(data(dbsnp.id))
       .withClinvar(data(clinvar.id))
@@ -177,10 +179,10 @@ object Variants {
     }
 
 
-    def withFrequencies(snv: DataFrame, frequencies: Seq[FrequencySplit]): DataFrame = frequencies match {
+    def withFrequencies(participantId: Column, affectedStatus: Column, snv: DataFrame, frequencies: Seq[FrequencySplit]): DataFrame = frequencies match {
       case Nil => df
       case _ =>
-        val variantWithFreq = snv.freq(frequencies: _*)
+        val variantWithFreq = snv.freq(participantId = participantId, affectedStatus = affectedStatus, split = frequencies)
         df.joinByLocus(variantWithFreq, "inner")
     }
 

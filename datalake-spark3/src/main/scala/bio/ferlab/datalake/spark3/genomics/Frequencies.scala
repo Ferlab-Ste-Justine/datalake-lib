@@ -4,7 +4,7 @@ package bio.ferlab.datalake.spark3.genomics
 import bio.ferlab.datalake.spark3.implicits.FrequencyUtils.array_sum
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits._
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.{Column, DataFrame}
+import org.apache.spark.sql.{Column, DataFrame, Row}
 
 object Frequencies {
 
@@ -12,53 +12,53 @@ object Frequencies {
 
     /**
      * Calculate frequencies on variants in DataFrame df and according to splits parameters.
-     *
+     * @param participantId This column is used to determine number of distinct participants (pn) that has been sequenced
+     * @param affectedStatus This column is used to calculate frequencies by affected status.
      * @param split List of frequencies to calculate
-     * @return  A dataframe with one line per locus and frequencies columns specified by splits parameter.
-     *
+     * @return A dataframe with one line per locus and frequencies columns specified by splits parameter.
      * @example
      *          Using this dataframe as input :
-     *          {{{
-     *          +----------+-----+-----+---------+---------+------+---------------+------------+---------------+----+-------------+------------+--------+--------+---------+--------------+-----------------+
-     *          |chromosome|start|end  |reference|alternate|calls |affected_status|genes_symbol|hgvsg          |name|variant_class|variant_type|zygosity|study_id|ethnicity|participant_id|transmission_mode|
-     *          +----------+-----+-----+---------+---------+------+---------------+------------+---------------+----+-------------+------------+--------+--------+---------+--------------+-----------------+
-     *          |1         |69897|69898|T        |C        |[1, 1]|false          |[OR4F5]     |chr1:g.69897T>C|null|SNV          |germline    |HOM     |S1      |null     |P1            |AR               |
-     *          |1         |69897|69898|T        |C        |[1, 1]|true           |[OR4F5]     |chr1:g.69897T>C|null|SNV          |germline    |HOM     |S1      |null     |P2            |AD               |
-     *          |1         |69897|69898|T        |C        |[1, 1]|false          |[OR4F5]     |chr1:g.69897T>C|null|SNV          |germline    |HOM     |S2      |null     |P3            |AR               |
-     *          +----------+-----+-----+---------+---------+------+---------------+------------+---------------+----+-------------+------------+--------+--------+---------+--------------+-----------------+
-     *          }}}
+     * {{{
+     *+----------+-----+-----+---------+---------+------+---------------+------------+---------------+----+-------------+------------+--------+--------+---------+--------------+-----------------+------------+
+     *|chromosome|start|end  |reference|alternate|calls |affected_status|genes_symbol|hgvsg          |name|variant_class|variant_type|zygosity|study_id|ethnicity|participant_id|transmission_mode|study_code  |
+     *+----------+-----+-----+---------+---------+------+---------------+------------+---------------+----+-------------+------------+--------+--------+---------+--------------+-----------------+------------+
+     *|1         |69897|69898|T        |C        |[1, 1]|false          |[OR4F5]     |chr1:g.69897T>C|null|SNV          |germline    |HOM     |S1      |null     |P1            |AR               |STUDY_CODE_1|
+     *|1         |69897|69898|T        |C        |[0, 1]|true           |[OR4F5]     |chr1:g.69897T>C|null|SNV          |germline    |HET     |S1      |null     |P2            |AD               |STUDY_CODE_1|
+     *|1         |69897|69898|T        |C        |[1, 1]|false          |[OR4F5]     |chr1:g.69897T>C|null|SNV          |germline    |HOM     |S2      |null     |P3            |AR               |STUDY_CODE_2|
+     *|2         |69897|69898|T        |C        |[1, 1]|false          |[OR4F5]     |chr1:g.69897T>C|null|SNV          |germline    |HOM     |S2      |null     |P4            |AR               |STUDY_CODE_2|
+     *+----------+-----+-----+---------+---------+------+---------------+------------+---------------+----+-------------+------------+--------+--------+---------+--------------+-----------------+------------+
+     * }}}
      *
      *          And then calculate frequencies with these parameters :
-     *          {{{
-     *          val result = input.freq(
-     *            FrequencySplit(
-     *              "frequency_by_study_id",
-     *              splitBy = Some(col("study_id")), byAffected = true,
-     *              extraAggregations = Seq(
-     *                AtLeastNElements(name = "participant_ids", c = col("participant_id"), n = 2),
-     *                SimpleAggregation(name = "transmissions", c = col("transmission_mode"))
-     *              )
-     *            ),
-     *            FrequencySplit("frequency_kf", byAffected = true)
-     *          )
-     *          }}}
+     * {{{
+     *  val result = input.freq(
+     *    FrequencySplit("frequency_by_study_id", splitBy = Some(col("study_id")), byAffected = true, extraAggregations = Seq(
+     *        AtLeastNElements(name = "participant_ids", c = col("participant_id"), n = 2),
+     *        SimpleAggregation(name = "transmissions", c = col("transmission_mode")),
+     *        FirstElement(name = "study_code", col("study_code"))
+     *      )
+     *    ),
+     *    FrequencySplit("frequency_kf", byAffected = true, extraAggregations = Seq(SimpleAggregation(name = "zygosities", c = col("zygosity"))))
+     *)
+     * }}}
      *
      *
      *          Resulting dataframe will contain all locus columns + 2 frequency columns : frequency_by_study_id and frequency_kf:
-     *          {{{
-     *          +----------+-----+---------+---------+--------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------------------------------+
-     *          |chromosome|start|reference|alternate|frequency_by_study_id                                                                                                                             |frequency_kf                                       |
-     *          +----------+-----+---------+---------+--------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------------------------------+
-     *          |1         |69897|T        |C        |[{S2, {2, 2, 1, 1, 1}, {0, 0, 0, 0, 0}, {2, 2, 1, 1, 1}, null, [AR]}, {S1, {4, 4, 2, 2, 2}, {2, 2, 1, 1, 1}, {2, 2, 1, 1, 1}, [P2, P1], [AD, AR]}]|{{6, 6, 3, 3, 3}, {2, 2, 1, 1, 1}, {4, 4, 2, 2, 2}}|
-     *          +----------+-----+---------+---------+--------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------------------------------+
-     *          }}}
+     * {{{
+     *+----------+-----+---------+---------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------+
+     *|chromosome|start|reference|alternate|frequency_by_study_id                                                                                                                                                                                                                      |frequency_kf                                                                                                                  |
+     *+----------+-----+---------+---------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------+
+     *|2         |69897|T        |C        |[{S2, {2, 1, 1, 2, 4, 0.5, 0.5}, {0, 0, 0, 0, 0, 0.0, 0.0}, {2, 1, 1, 2, 4, 0.5, 0.5}, null, [AR], STUDY_CODE_2}]                                                                                                                          |{{2, 1, 1, 4, 8, 0.25, 0.25}, {0, 0, 0, 1, 2, 0.0, 0.0}, {2, 1, 1, 3, 6, 0.3333333333333333, 0.3333333333333333}, [HOM]}      |
+     *|1         |69897|T        |C        |[{S2, {2, 1, 1, 2, 4, 0.5, 0.5}, {0, 0, 0, 0, 0, 0.0, 0.0}, {2, 1, 1, 2, 4, 0.5, 0.5}, null, [AR], STUDY_CODE_2}, {S1, {3, 2, 1, 2, 4, 0.75, 1.0}, {1, 1, 0, 1, 2, 0.5, 1.0}, {2, 1, 1, 1, 2, 1.0, 1.0}, [P1, P2], [AR, AD], STUDY_CODE_1}]|{{5, 3, 2, 4, 8, 0.625, 0.75}, {1, 1, 0, 1, 2, 0.5, 1.0}, {4, 2, 2, 3, 6, 0.6666666666666666, 0.6666666666666666}, [HOM, HET]}|
+     *+----------+-----+---------+---------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------+
+     ** }}}
      *
      *
      *          - frequency_by_study_id :
      *            - induced by split parameter FrequencySplit("frequency_by_study_id", splitBy = Some(col("study_id"))). See [[FrequencySplit]].
      *            - is an array of struct, each struct represents a frequency  for a study_id. Fields of this struct are :
      *              - study_id (split column)
-     *              - total frequency, which is also a struct that contains these fields : ac (allele count), an (allele number), pc (patient count), pn (patient number), hom (number of homozygous)
+     *              - total frequency, which is also a struct that contains these fields : ac (allele count), an (allele number), pc (patient count), pn (patient number), hom (number of homozygous), af (allele frequency), pf (participant frequency)
      *              - if byAffected parameter is set to true it contains also two others frequencies (affected and not_affected) which have the same fields as total
      *              - participant_ids : extra aggregation obtained by AtLeastNElements("participant_ids", col("participant_id"), 2). See [[AtLeastNElements]].
      *              - transmissions : extra aggregation obtained by SimpleAggregation("transmissions", col("transmission_mode")). See [[SimpleAggregation]].
@@ -67,146 +67,211 @@ object Frequencies {
      *            - induced by this split parameter FrequencySplit("frequency_kf")
      *            - is a struct of frequency. Fields of this struct are :
      *              - study_id (split column)
-     *              - total frequency, which is also a struct that contains these fields : ac (allele count), an (allele number), pc (patient count), pn (patient number), hom (number of homozygous)
+     *              - total frequency, which is also a struct that contains these fields : ac (allele count), an (allele number), pc (patient count), pn (patient number), hom (number of homozygous), af (allele frequency), pf (participant frequency)
      *              - if byAffected parameter is set to true it contains also two others frequencies (affected and not_affected) which have the same fields as total
+     *              - zygosities : extra aggregation obtained by SimpleAggregation(name = "zygosities", c = col("zygosity")). See [[SimpleAggregation]].
      *
      *
      *          Here the schema of output dataframe :
-     *          {{{
-     *          root
-     *          |-- chromosome: string (nullable = true)
-     *          |-- start: long (nullable = false)
-     *          |-- reference: string (nullable = true)
-     *          |-- alternate: string (nullable = true)
-     *          |-- frequency_by_study_id: array (nullable = false)
-     *          |    |-- element: struct (containsNull = false)
-     *          |    |    |-- study_id: string (nullable = true)
-     *          |    |    |-- total: struct (nullable = false)
-     *          |    |    |    |-- ac: long (nullable = true)
-     *          |    |    |    |-- an: long (nullable = true)
-     *          |    |    |    |-- pn: long (nullable = true)
-     *          |    |    |    |-- pc: long (nullable = true)
-     *          |    |    |    |-- hom: long (nullable = true)
-     *          |    |    |-- affected: struct (nullable = false)
-     *          |    |    |    |-- ac: long (nullable = true)
-     *          |    |    |    |-- an: long (nullable = true)
-     *          |    |    |    |-- pn: long (nullable = true)
-     *          |    |    |    |-- pc: long (nullable = true)
-     *          |    |    |    |-- hom: long (nullable = true)
-     *          |    |    |-- not_affected: struct (nullable = false)
-     *          |    |    |    |-- ac: long (nullable = true)
-     *          |    |    |    |-- an: long (nullable = true)
-     *          |    |    |    |-- pn: long (nullable = true)
-     *          |    |    |    |-- pc: long (nullable = true)
-     *          |    |    |    |-- hom: long (nullable = true)
-     *          |    |    |-- participant_ids: array (nullable = true)
-     *          |    |    |    |-- element: string (containsNull = false)
-     *          |    |    |-- transmissions: array (nullable = false)
-     *          |    |    |    |-- element: string (containsNull = false)
-     *          |-- frequency_kf: struct (nullable = false)
-     *          |    |-- total: struct (nullable = false)
-     *          |    |    |-- ac: long (nullable = true)
-     *          |    |    |-- an: long (nullable = true)
-     *          |    |    |-- pn: long (nullable = true)
-     *          |    |    |-- pc: long (nullable = true)
-     *          |    |    |-- hom: long (nullable = true)
-     *          |    |-- affected: struct (nullable = false)
-     *          |    |    |-- ac: long (nullable = true)
-     *          |    |    |-- an: long (nullable = true)
-     *          |    |    |-- pn: long (nullable = true)
-     *          |    |    |-- pc: long (nullable = true)
-     *          |    |    |-- hom: long (nullable = true)
-     *          |    |-- not_affected: struct (nullable = false)
-     *          |    |    |-- ac: long (nullable = true)
-     *          |    |    |-- an: long (nullable = true)
-     *          |    |    |-- pn: long (nullable = true)
-     *          |    |    |-- pc: long (nullable = true)
-     *          |    |    |-- hom: long (nullable = true)
-     *        }}}
+     * {{{
+     *root
+     *|-- chromosome: string (nullable = true)
+     *|-- start: long (nullable = false)
+     *|-- reference: string (nullable = true)
+     *|-- alternate: string (nullable = true)
+     *|-- frequency_by_study_id: array (nullable = false)
+     *|    |-- element: struct (containsNull = false)
+     *|    |    |-- study_id: string (nullable = true)
+     *|    |    |-- total: struct (nullable = false)
+     *|    |    |    |-- ac: long (nullable = true)
+     *|    |    |    |-- pc: long (nullable = true)
+     *|    |    |    |-- hom: long (nullable = true)
+     *|    |    |    |-- pn: long (nullable = true)
+     *|    |    |    |-- an: long (nullable = true)
+     *|    |    |    |-- af: double (nullable = true)
+     *|    |    |    |-- pf: double (nullable = true)
+     *|    |    |-- affected: struct (nullable = false)
+     *|    |    |    |-- ac: long (nullable = true)
+     *|    |    |    |-- pc: long (nullable = true)
+     *|    |    |    |-- hom: long (nullable = true)
+     *|    |    |    |-- pn: long (nullable = true)
+     *|    |    |    |-- an: long (nullable = true)
+     *|    |    |    |-- af: double (nullable = true)
+     *|    |    |    |-- pf: double (nullable = true)
+     *|    |    |-- not_affected: struct (nullable = false)
+     *|    |    |    |-- ac: long (nullable = true)
+     *|    |    |    |-- pc: long (nullable = true)
+     *|    |    |    |-- hom: long (nullable = true)
+     *|    |    |    |-- pn: long (nullable = true)
+     *|    |    |    |-- an: long (nullable = true)
+     *|    |    |    |-- af: double (nullable = true)
+     *|    |    |    |-- pf: double (nullable = true)
+     *|    |    |-- participant_ids: array (nullable = true)
+     *|    |    |    |-- element: string (containsNull = false)
+     *|    |    |-- transmissions: array (nullable = false)
+     *|    |    |    |-- element: string (containsNull = false)
+     *|    |    |-- study_code: string (nullable = true)
+     *|-- frequency_kf: struct (nullable = false)
+     *|    |-- total: struct (nullable = false)
+     *|    |    |-- ac: long (nullable = true)
+     *|    |    |-- pc: long (nullable = true)
+     *|    |    |-- hom: long (nullable = true)
+     *|    |    |-- pn: long (nullable = false)
+     *|    |    |-- an: long (nullable = false)
+     *|    |    |-- af: double (nullable = true)
+     *|    |    |-- pf: double (nullable = true)
+     *|    |-- affected: struct (nullable = false)
+     *|    |    |-- ac: long (nullable = true)
+     *|    |    |-- pc: long (nullable = true)
+     *|    |    |-- hom: long (nullable = true)
+     *|    |    |-- pn: long (nullable = false)
+     *|    |    |-- an: long (nullable = false)
+     *|    |    |-- af: double (nullable = true)
+     *|    |    |-- pf: double (nullable = true)
+     *|    |-- not_affected: struct (nullable = false)
+     *|    |    |-- ac: long (nullable = true)
+     *|    |    |-- pc: long (nullable = true)
+     *|    |    |-- hom: long (nullable = true)
+     *|    |    |-- pn: long (nullable = false)
+     *|    |    |-- an: long (nullable = false)
+     *|    |    |-- af: double (nullable = true)
+     *|    |    |-- pf: double (nullable = true)
+     *|    |-- zygosities: array (nullable = false)
+     *|    |    |-- element: string (containsNull = false)
+     * }}}
      *
      */
-    def freq(split: FrequencySplit*): DataFrame = {
+    def freq(participantId: Column = col("participant_id"), affectedStatus:Column = col("affected_status"), split: Seq[FrequencySplit]): DataFrame = {
+
       val allDataframes: Seq[DataFrame] = split.map { split =>
         val splitColumn: Seq[Column] = split.splitBy.toSeq
         val extraAggregationsFiltered: List[Column] = split.extraAggregations.map(agg => agg.filter(col(agg.name)) as agg.name).toList
         if (split.byAffected) {
-          val affected_status = col("affected_status")
           val firstSplit = df
-            .groupByLocus(splitColumn :+ affected_status: _*)
+            .groupByLocus(splitColumn :+ affectedStatus: _*)
             .agg(
               ifAffected(ac) as "affected_ac",
               Seq(
-                ifAffected(an) as "affected_an",
                 ifAffected(pc) as "affected_pc",
-                ifAffected(pn) as "affected_pn",
                 ifAffected(hom) as "affected_hom",
                 ifNotAffected(ac) as "not_affected_ac",
-                ifNotAffected(an) as "not_affected_an",
                 ifNotAffected(pc) as "not_affected_pc",
-                ifNotAffected(pn) as "not_affected_pn",
                 ifNotAffected(hom) as "not_affected_hom")
-                ++ split.extraAggregations.map(aggregation => collect_set(aggregation.c) as aggregation.name)
+                ++ split.extraAggregations.map(_.agg())
                 : _*
             )
             .groupByLocus(splitColumn: _*)
             .agg(
-              struct(sum("affected_ac") as "ac", sum("affected_an") as "an", sum("affected_pn") as "pn", sum("affected_pc") as "pc", sum("affected_hom") as "hom") as "affected",
+              struct(sum("affected_ac") as "ac", sum("affected_pc") as "pc", sum("affected_hom") as "hom") as "affected",
               Seq(
-                struct(sum(col("not_affected_ac")) as "ac", sum(col("not_affected_an")) as "an", sum("not_affected_pn") as "pn", sum("not_affected_pc") as "pc", sum("not_affected_hom") as "hom") as "not_affected"
-              ) ++ split.extraAggregations.map(aggregation => array_distinct(flatten(collect_list(col(aggregation.name)))) as aggregation.name)
+                struct(sum(col("not_affected_ac")) as "ac", sum("not_affected_pc") as "pc", sum("not_affected_hom") as "hom") as "not_affected"
+              ) ++ split.extraAggregations.map(_.aggArray)
                 : _*
 
             ).withColumn("total",
             struct(
               col("affected.ac") + col("not_affected.ac") as "ac",
-              col("affected.an") + col("not_affected.an") as "an",
-              col("affected.pn") + col("not_affected.pn") as "pn",
               col("affected.pc") + col("not_affected.pc") as "pc",
               col("affected.hom") + col("not_affected.hom") as "hom",
             ))
           split.splitBy.map { s =>
-            firstSplit
+            val anPnDF = df.groupBy(splitColumn :+ affectedStatus: _*).agg(
+              ifAffected(countDistinct(participantId)) as "pn_affected",
+              ifNotAffected(countDistinct(participantId)) as "pn_not_affected"
+            )
+              .groupBy(splitColumn: _*)
+              .agg(
+                sum("pn_affected") as "pn_affected",
+                sum("pn_not_affected") as "pn_not_affected",
+              )
+              .withColumn("pn", col("pn_affected") + col("pn_not_affected"))
+              .withColumn("an_affected", col("pn_affected") * 2)
+              .withColumn("an_not_affected", col("pn_not_affected") * 2)
+              .withColumn("an", col("pn") * 2)
+              .withColumn("joinSplit", s)
+              .drop(s)
+            val frame = firstSplit
+              .withColumn("joinSplit", s)
+              .join(anPnDF, Seq("joinSplit"))
+              .withColumn("total", col("total").withField("pn", col("pn")).withField("an", col("an")))
+              .withColumn("affected", col("affected").withField("pn", col("pn_affected")).withField("an", col("an_affected")))
+              .withColumn("not_affected", col("not_affected").withField("pn", col("pn_not_affected")).withField("an", col("an_not_affected")))
+              .drop("joinSplit")
+            frame
               .groupByLocus()
               .agg(
                 collect_list(
                   struct(
                     s ::
-                      col("total") ::
-                      col("affected") ::
-                      col("not_affected") ::
+                      afpf("total") ::
+                      afpf("affected") ::
+                      afpf("not_affected") ::
                       extraAggregationsFiltered: _*
                   )
                 ) as split.name
               )
           }.getOrElse {
+            val anPnDF = df.groupBy(affectedStatus).agg(
+              ifAffected(countDistinct(participantId)) as "pn_affected",
+              ifNotAffected(countDistinct(participantId)) as "pn_not_affected"
+            )
+              .select(
+                sum("pn_affected") as "pn_affected",
+                sum("pn_not_affected") as "pn_not_affected",
+              )
+              .withColumn("pn", col("pn_affected") + col("pn_not_affected"))
+              .withColumn("an_affected", col("pn_affected") * 2)
+              .withColumn("an_not_affected", col("pn_not_affected") * 2)
+              .withColumn("an", col("pn") * 2)
+              .collect()
+              .head
+
             firstSplit
+              .withColumn("total", col("total").withField("pn", lit(anPnDF.getAs[Long]("pn"))).withField("an", lit(anPnDF.getAs[Long]("an"))))
+              .withColumn("affected", col("affected").withField("pn", lit(anPnDF.getAs[Long]("pn_affected"))).withField("an", lit(anPnDF.getAs[Long]("an_affected"))))
+              .withColumn("not_affected", col("not_affected").withField("pn", lit(anPnDF.getAs[Long]("pn_not_affected"))).withField("an", lit(anPnDF.getAs[Long]("an_not_affected"))))
               .withColumn(split.name, struct(
-                col("total") ::
-                  col("affected") ::
-                  col("not_affected") ::
+                afpf("total") ::
+                  afpf("affected") ::
+                  afpf("not_affected") ::
                   extraAggregationsFiltered: _*)
               )
               .drop("total" :: "affected" :: "not_affected" :: split.extraAggregations.map(_.name).toList: _*)
           }
         } else {
+
           val firstSplit =
             df.groupByLocus(splitColumn: _*)
-              .agg(struct(ac, an, pc, pn, hom) as "total", split.extraAggregations.map(agg => collect_set(agg.c) as agg.name): _*)
+              .agg(struct(ac, pc, hom) as "total", split.extraAggregations.map(_.agg()): _*)
           split.splitBy.map {
             s =>
+              val anPnDF = df.groupBy(splitColumn: _*)
+                .agg(countDistinct(participantId) as "pn")
+                .withColumn("an", col("pn") * 2)
+                .withColumn("joinSplit", s)
+                .drop(s)
               firstSplit
+                .withColumn("joinSplit", s)
+                .join(anPnDF, Seq("joinSplit"))
+                .drop("joinSplit")
+                .withColumn("total", col("total").withField("pn", col("pn")).withField("an", col("an")))
                 .groupByLocus()
                 .agg(
                   collect_list(
-                    struct(s :: col("total") :: extraAggregationsFiltered: _*)
+                    struct(s :: afpf("total") :: extraAggregationsFiltered: _*)
                   ) as split.name
                 )
 
-          }.getOrElse(
+          }.getOrElse {
+            val anPnRow: Row = df.select(countDistinct(participantId) as "pn").withColumn("an", col("pn") * 2).collect().head
+            val pn = anPnRow.getLong(0)
+            val an = anPnRow.getLong(1)
             firstSplit
-              .withColumn(split.name, struct(col("total") :: extraAggregationsFiltered: _*) as split.name)
+              .withColumn("total", col("total").withField("pn", lit(pn)).withField("an", lit(an)))
+              .withColumn(split.name, struct(afpf("total") :: extraAggregationsFiltered: _*) as split.name)
               .drop("total" :: split.extraAggregations.map(_.name).toList: _*)
-          )
+          }
+
         }
 
 
@@ -214,6 +279,17 @@ object Frequencies {
       allDataframes.reduce((df1, df2) => df1.joinByLocus(df2, "inner"))
 
     }
+  }
+
+  /**
+   * Calculate af and pf values for a given struct column. af = ac / an and pf = pc / pn
+   */
+  private def afpf(columnName: String): Column = {
+    val f = col(columnName)
+    f
+      .withField("af", when(f("an") === 0, 0.0).otherwise(f("ac") / f("an")))
+      .withField("pf", when(f("pn") === 0, 0.0).otherwise(f("pc") / f("pn")))
+      .alias(columnName)
   }
 
   private def ifAffected(c: Column) = when(col("affected_status"), c).otherwise(0)
@@ -249,18 +325,19 @@ object Frequencies {
 /**
  * Represents a split for a frequency.
  *
- * @param name       column name used as an output for this split
- * @param filter     column used to filter input dataframe
- * @param splitBy    column used to split frequencies
- * @param byAffected flag that indicates if we need to calculate distinct frequencies by affected and not affected
+ * @param name              column name used as an output for this split
+ * @param filter            column used to filter input dataframe
+ * @param splitBy           column used to split frequencies
+ * @param byAffected        flag that indicates if we need to calculate distinct frequencies by affected and not affected
  * @param extraAggregations extra aggregations to be calculated. See [[OccurrenceAggregation]]
  */
 case class FrequencySplit(name: String, filter: Option[Column] = None, splitBy: Option[Column] = None, byAffected: Boolean = false, extraAggregations: Seq[OccurrenceAggregation] = Nil)
 
 /**
  * Represents an aggregation to be calculated.
- * @param name name of the aggregation
- * @param c column to be aggregated
+ *
+ * @param name   name of the aggregation
+ * @param c      column to be aggregated
  * @param filter filter to be applied to the aggregation. Only aggregations matching the filter will be return. Otherwise it will be replaced by null. The default is no filter.
  */
 trait OccurrenceAggregation {
@@ -268,22 +345,45 @@ trait OccurrenceAggregation {
 
   def c: Column
 
+  def agg(column: Column = c): Column = collect_set(column) as name
+
+  /**
+   * How to aggregate when data is an array.
+   *
+   * @return
+   */
+  def aggArray: Column = array_distinct(flatten(agg(col(name)))) as name
+
   def filter: Column => Column = aggColumn => aggColumn
 }
 
 /**
  * Represents a simple aggregation that returns the collected set of column c from original dataframe.
+ *
  * @param name name of the aggregation
- * @param c column to be collected
+ * @param c    column to be collected
  */
 case class SimpleAggregation(override val name: String, override val c: Column) extends OccurrenceAggregation
 
 /**
  * Represents an aggregation that returns the collected set of column c from original dataframe. It will return null if the size of the collected set is less than n.
+ *
  * @param name name of the aggregation
- * @param c column to be collected
+ * @param c    column to be collected
  */
 case class AtLeastNElements(override val name: String, override val c: Column, n: Int) extends OccurrenceAggregation {
   override val filter: Column => Column = aggColumn => when(size(aggColumn) >= n, aggColumn).otherwise(lit(null))
+}
+
+/**
+ * Return only the first element of the aggregated column.
+ *
+ * @param name name of the aggregation
+ * @param c    column to be aggregated
+ */
+case class FirstElement(override val name: String, override val c: Column) extends OccurrenceAggregation {
+  override def agg(column: Column = c): Column = first(column) as name
+
+  override def aggArray: Column = agg(col(name)) as name
 }
 
