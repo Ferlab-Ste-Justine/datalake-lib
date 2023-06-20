@@ -19,9 +19,10 @@ case class PreparedVariantCentric(`chromosome`: String = "1",
                                   `clinvar`: CLINVAR = CLINVAR(),
                                   `rsnumber`: String = "rs200676709",
                                   `dna_change`: String = "T>C",
+                                  max_impact_score:Int = 10,
                                   `genes`: Set[GENES] = Set(
                                     GENES(),
-                                    GENES(`symbol` = "gene2", `consequences` = Seq(CONSEQUENCES(`ensembl_transcript_id` = "transcript3"), CONSEQUENCES(`ensembl_transcript_id` = "transcript4"))),
+                                    GENES(`symbol` = "gene2", `consequences` = Seq(CONSEQUENCES(`ensembl_transcript_id` = "transcript3"), CONSEQUENCES(`ensembl_transcript_id` = "transcript4", `impact_score` = 10))),
                                     noGene(Seq(CONSEQUENCES(`ensembl_transcript_id` = "transcript2")))
                                   ),
                                   `variant_external_reference`: Seq[String] = Seq("DBSNP", "Clinvar"),

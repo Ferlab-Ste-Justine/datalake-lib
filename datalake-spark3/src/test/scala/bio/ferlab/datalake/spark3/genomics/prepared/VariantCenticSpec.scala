@@ -26,7 +26,7 @@ class VariantCenticSpec extends AnyFlatSpec with WithSparkSession with WithTestC
       EnrichedConsequences(),
       EnrichedConsequences(`symbol` = null, `ensembl_transcript_id` = "transcript2"),
       EnrichedConsequences(`symbol` = "gene2", `ensembl_transcript_id` = "transcript3"),
-      EnrichedConsequences(`symbol` = "gene2", `ensembl_transcript_id` = "transcript4"),
+      EnrichedConsequences(`symbol` = "gene2", `ensembl_transcript_id` = "transcript4", `impact_score` = 10),
       EnrichedConsequences(chromosome = "2")
     ).toDF,
 
@@ -40,7 +40,7 @@ class VariantCenticSpec extends AnyFlatSpec with WithSparkSession with WithTestC
 
     result.length shouldBe 2
     result.find(_.`chromosome` == "1") shouldBe Some(PreparedVariantCentric())
-    result.find(_.`chromosome` == "2") shouldBe Some(PreparedVariantCentric(`chromosome` = "2", `genes` = Set(PreparedVariantCentric.GENES())))
+    result.find(_.`chromosome` == "2") shouldBe Some(PreparedVariantCentric(`chromosome` = "2", `genes` = Set(PreparedVariantCentric.GENES()), max_impact_score = 2))
 
   }
 
