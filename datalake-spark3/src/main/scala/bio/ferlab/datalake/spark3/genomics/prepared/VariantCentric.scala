@@ -129,6 +129,10 @@ class VariantCentric(implicit configuration: Configuration) extends ETLSingleDes
       .withColumn("genes", functions.transform(col("genes"), g => g.withField("consequences", col("consequences")(g("symbol")))))
       .drop("consequences")
       .withColumn("genes", functions.filter(col("genes"), g => not(g("symbol") === NO_GENE && g("consequences").isNull))) // cleanup no gene without consequences
+      .withColumn("csq", flatten(col("genes.consequences")))
+      .withColumn("max_impact_score", array_max(col("csq.impact_score")))
+      .drop("csq")
+
 
     joinedVariants
   }
