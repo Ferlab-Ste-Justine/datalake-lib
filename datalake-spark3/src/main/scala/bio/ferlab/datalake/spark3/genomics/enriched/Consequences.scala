@@ -53,8 +53,9 @@ class Consequences()(implicit configuration: Configuration) extends ETLSingleDes
     val dbnsfp = data(dbnsfp_original.id).where(col("chromosome").isin(chromosomes: _*))
 
     val csq = consequences
-      .drop("batch_id", "name", "end", "hgvsg", "variant_class", "ensembl_regulatory_id")
+      .drop("batch_id", "name", "end", "hgvsg", "variant_class", "ensembl_regulatory_id", "study_id")
       .withColumn("consequence", formatted_consequences)
+      .drop("consequences")
       .withColumnRenamed("impact", "vep_impact")
 
     joinWithDBNSFP(csq, dbnsfp)

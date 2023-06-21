@@ -65,7 +65,6 @@ object PreparedVariantCentric {
                          `variant`: Option[String] = None)
 
   case class CONSEQUENCES(`ensembl_transcript_id`: String = "ENST00000335137",
-                          `consequences`: Seq[String] = Seq("synonymous_variant"),
                           `vep_impact`: String = "LOW",
                           `ensembl_feature_id`: String = "ENST00000335137",
                           `feature_type`: String = "Transcript",
