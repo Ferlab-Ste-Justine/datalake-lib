@@ -25,7 +25,7 @@ import java.time.LocalDateTime
  * @param frequencies    the frequencies to calculate. See [[FrequencyOperations.freq]]
  * @param configuration  the configuration object
  */
-class Variants(participantId: Column = col("participant_id"), affectedStatus: Column = col("affected_status"), snvDatasetId: String, frequencies: Seq[FrequencySplit])(implicit configuration: Configuration) extends ETLSingleDestination {
+class Variants(participantId: Column = col("participant_id"), affectedStatus: Column = col("affected_status"), filterSnv: Option[Column] = Some(col("has_alt")), snvDatasetId: String, frequencies: Seq[FrequencySplit])(implicit configuration: Configuration) extends ETLSingleDestination {
 
   override val mainDestination: DatasetConf = conf.getDataset("enriched_variants")
   protected val thousand_genomes: DatasetConf = conf.getDataset("normalized_1000_genomes")
@@ -57,14 +57,15 @@ class Variants(participantId: Column = col("participant_id"), affectedStatus: Co
   override def transformSingle(data: Map[String, DataFrame],
                                lastRunDateTime: LocalDateTime = minDateTime,
                                currentRunDateTime: LocalDateTime = LocalDateTime.now())(implicit spark: SparkSession): DataFrame = {
-    val variants = data(snvDatasetId).selectLocus(col("hgvsg"), col("genes_symbol"), col("name"), col("end"), col("variant_class"))
+    val snv = filterSnv.map(f => data(snvDatasetId).where(f)).getOrElse(data(snvDatasetId))
+    val variants = snv.selectLocus(col("hgvsg"), col("genes_symbol"), col("name"), col("end"), col("variant_class"))
       .groupByLocus()
       .agg(firstAs("hgvsg"), firstAs("genes_symbol"), firstAs("name"), firstAs("end"), firstAs("variant_class"))
       .withColumn("dna_change", concat_ws(">", col("reference"), col("alternate")))
       .withColumn("assembly_version", lit("GRCh38"))
 
     variants
-      .withFrequencies(participantId, affectedStatus, data(snvDatasetId), frequencies)
+      .withFrequencies(participantId, affectedStatus, snv, frequencies)
       .withPopulations(data(thousand_genomes.id), data(topmed_bravo.id), data(gnomad_genomes_v2.id), data(gnomad_exomes_v2.id), data(gnomad_genomes_v3.id))
       .withDbSNP(data(dbsnp.id))
       .withClinvar(data(clinvar.id))

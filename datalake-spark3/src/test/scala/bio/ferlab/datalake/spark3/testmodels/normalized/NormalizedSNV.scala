@@ -17,5 +17,6 @@ case class NormalizedSNV(chromosome: String = "1",
                          ethnicity: Option[String] = None,
                          participant_id: String = "P1",
                          transmission_mode: String = "AR",
-                         study_code: String = "STUDY_CODE_1"
+                         study_code: String = "STUDY_CODE_1",
+                         has_alt:Boolean = true
                         )

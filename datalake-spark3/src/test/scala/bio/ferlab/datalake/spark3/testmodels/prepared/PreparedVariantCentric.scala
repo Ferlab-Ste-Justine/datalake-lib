@@ -128,9 +128,9 @@ object PreparedVariantCentric {
                   `inheritance_code`: Seq[String] = Seq("AD"))
 
   case class TOTAL(`ac`: Long = 4,
-                   `an`: Long = 6,
+                   `an`: Long = 4,
                    `pc`: Long = 2,
-                   `pn`: Long = 3,
+                   `pn`: Long = 2,
                    `hom`: Long = 2)
 
   case class HPO(`hpo_term_id`: String = "HP:0001347",
