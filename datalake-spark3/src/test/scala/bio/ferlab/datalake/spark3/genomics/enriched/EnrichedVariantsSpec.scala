@@ -30,7 +30,7 @@ class EnrichedVariantsSpec extends AnyFlatSpec with WithSparkSession with WithTe
   val occurrencesDf: DataFrame = Seq(
     NormalizedSNV(`participant_id` = "PA0001"),
     NormalizedSNV(`participant_id` = "PA0002"),
-    NormalizedSNV(`participant_id` = "PA0003", `zygosity` = "WT", `calls` = List(0, 0))
+    NormalizedSNV(`participant_id` = "PA0003", `zygosity` = "WT", `calls` = List(0, 0), has_alt = false)
   ).toDF
   val genomesDf: DataFrame = Seq(NormalizedOneKGenomes()).toDF
   val topmed_bravoDf: DataFrame = Seq(NormalizedTopmed()).toDF
