@@ -32,6 +32,7 @@ case class EnrichedConsequences(`chromosome`: String = "1",
                                 `codons`: CODONS = CODONS(),
                                 `original_canonical`: Boolean = true,
                                 `refseq_mrna_id`: Seq[String] = Seq("NM_001005484.1", "NM_001005484.2"),
+                                `refseq_protein_id`: Option[String] = Some("NP_001005277"),
                                 `aa_change`: String = "p.Ser269=",
                                 `coding_dna_change`: String = "c.807T>C",
                                 `impact_score`: Int = 2,
@@ -42,10 +43,10 @@ case class EnrichedConsequences(`chromosome`: String = "1",
                                 `predictions`: PREDICTIONS = PREDICTIONS(),
                                 `conservations`: CONSERVATIONS = CONSERVATIONS(),
                                 `consequences_oid`: Timestamp = java.sql.Timestamp.valueOf("2022-04-06 13:41:31.039545"),
-                                `uniprot_id`: Option[String] = None,
-                                `mane_select`: Boolean = false,
-                                `mane_plus`: Boolean = false,
-                                `canonical`: Boolean = false,
+                                `uniprot_id`: Option[String] = Some("Q6IEY1"),
+                                `mane_select`: Boolean = true,
+                                `mane_plus`: Boolean = true,
+                                `canonical`: Boolean = true,
                                 `picked`: Option[Boolean] = Some(true))
 
 case class PREDICTIONS(`sift_score`: Option[Double] = None,
@@ -61,4 +62,4 @@ case class PREDICTIONS(`sift_score`: Option[Double] = None,
                        `lrt_score`: Option[Double] = None,
                        `lrt_pred`: Option[String] = None)
 
-case class CONSERVATIONS(`phyloP17way_primate`: Option[Double] = None, phyloP100way_vertebrate:Option[Double] = None)
+case class CONSERVATIONS(`phyloP17way_primate`: Option[Double] = None, phyloP100way_vertebrate: Option[Double] = None)
