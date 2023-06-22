@@ -115,7 +115,7 @@ class VariantCentric(implicit configuration: Configuration) extends ETLSingleDes
         csq("*")
       ).dropFields("symbol" :: columns.locusColumnNames: _*))
       .groupByLocus(col("symbol"))
-      .agg(min("consequences.sort_csq") as "sort_csq", array_sort(collect_list("consequences") as "consequences"))
+      .agg(min("consequences.sort_csq") as "sort_csq", array_sort(collect_list("consequences")) as "consequences")
       //cleanup sort_csq
       .withColumn("consequences", functions.transform(col("consequences"), c => c.dropFields("sort_csq")) )
       .withColumn("consequences", struct(
