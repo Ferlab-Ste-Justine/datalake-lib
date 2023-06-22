@@ -24,7 +24,7 @@ class EnrichConsequencesSpec extends AnyFlatSpec with WithSparkSession with With
   private val data = Map(
     normalized_consequences.id -> Seq(NormalizedConsequences()).toDF(),
     dbnsfp_original.id -> Seq(EnrichedDbnsfp()).toDF,
-    normalized_ensembl_mapping.id -> Seq(NormalizedEnsemblMapping()).toDF,
+    normalized_ensembl_mapping.id -> Seq(NormalizedEnsemblMapping(`ensembl_gene_id` = "ENSG00000186092", `ensembl_transcript_id` = "ENST00000335137")).toDF,
     enriched_genes.id -> Seq(EnrichedGenes()).toDF,
   )
 

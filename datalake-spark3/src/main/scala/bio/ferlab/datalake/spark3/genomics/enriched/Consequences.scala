@@ -44,6 +44,7 @@ class Consequences()(implicit configuration: Configuration) extends ETLSingleDes
         $"ensembl_gene_id",
         $"uniprot_id",
         array($"refseq_mrna_id") as "ensembl_refseq_mrna_id",
+        $"refseq_protein_id",
         $"is_mane_select" as "mane_select",
         $"is_mane_plus" as "mane_plus",
         $"is_canonical")
