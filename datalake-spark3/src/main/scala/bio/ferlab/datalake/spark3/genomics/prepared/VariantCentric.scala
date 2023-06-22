@@ -106,13 +106,25 @@ class VariantCentric(implicit configuration: Configuration) extends ETLSingleDes
     val csq = data(enriched_consequences.id)
       .withColumn("symbol", coalesce(col("symbol"), lit(NO_GENE))) //Manage consequences without gene
       .drop("biotype", "ensembl_gene_id", "updated_on", "created_on", "consequences_oid", "normalized_consequences_oid", "original_canonical")
+      .withColumn("picked", coalesce(col("picked"), lit(false)))
+
     val csqByGene = csq
-      .withColumn("consequences", struct(csq("*")).dropFields("symbol" :: columns.locusColumnNames: _*))
+      .withColumn("consequences", struct(
+        //order array of xsq by picked
+        when(col("picked") === true, 0).when(col("canonical") === true, 1).otherwise(2) as "sort_csq",
+        csq("*")
+      ).dropFields("symbol" :: columns.locusColumnNames: _*))
       .groupByLocus(col("symbol"))
-      .agg(collect_list("consequences") as "consequences")
-      .withColumn("consequences", struct(col("symbol"), col("consequences")))
+      .agg(min("consequences.sort_csq") as "sort_csq", array_sort(collect_list("consequences") as "consequences"))
+      //cleanup sort_csq
+      .withColumn("consequences", functions.transform(col("consequences"), c => c.dropFields("sort_csq")) )
+      .withColumn("consequences", struct(
+        //order array of gene by sort_csq
+        col("sort_csq").as("sort_gene"),
+        col("symbol"), col("consequences")))
       .groupByLocus()
-      .agg(collect_list("consequences") as "consequences")
+      .agg(array_sort(collect_list("consequences")) as "consequences")
+      .withColumn("consequences", functions.transform(col("consequences"), c => c.dropFields("sort_gene")) )
       .withColumn("consequences", map_from_entries(col("consequences")))
       .selectLocus(col("consequences"))
 
@@ -132,7 +144,6 @@ class VariantCentric(implicit configuration: Configuration) extends ETLSingleDes
       .withColumn("csq", flatten(col("genes.consequences")))
       .withColumn("max_impact_score", array_max(col("csq.impact_score")))
       .drop("csq")
-
 
     joinedVariants
   }
