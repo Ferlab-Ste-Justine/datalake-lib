@@ -115,16 +115,13 @@ class VariantCentric(implicit configuration: Configuration) extends ETLSingleDes
         csq("*")
       ).dropFields("symbol" :: columns.locusColumnNames: _*))
       .groupByLocus(col("symbol"))
-      .agg(min("consequences.sort_csq") as "sort_csq", array_sort(collect_list("consequences")) as "consequences")
+      .agg(array_sort(collect_list("consequences")) as "consequences")
       //cleanup sort_csq
-      .withColumn("consequences", functions.transform(col("consequences"), c => c.dropFields("sort_csq")) )
+      //      .withColumn("consequences", functions.transform(col("consequences"), c => c.dropFields("sort_csq")))
       .withColumn("consequences", struct(
-        //order array of gene by sort_csq
-        col("sort_csq").as("sort_gene"),
         col("symbol"), col("consequences")))
       .groupByLocus()
-      .agg(array_sort(collect_list("consequences")) as "consequences")
-      .withColumn("consequences", functions.transform(col("consequences"), c => c.dropFields("sort_gene")) )
+      .agg(collect_list("consequences") as "consequences")
       .withColumn("consequences", map_from_entries(col("consequences")))
       .selectLocus(col("consequences"))
 
@@ -141,6 +138,18 @@ class VariantCentric(implicit configuration: Configuration) extends ETLSingleDes
       .withColumn("genes", functions.transform(col("genes"), g => g.withField("consequences", col("consequences")(g("symbol")))))
       .drop("consequences")
       .withColumn("genes", functions.filter(col("genes"), g => not(g("symbol") === NO_GENE && g("consequences").isNull))) // cleanup no gene without consequences
+      //sort gene by min sort_csq
+      .withColumn("genes", functions.transform(col("genes"), g => {
+        struct(array_min(g("consequences"))("sort_csq") as "sort_gene", g as "g")
+      }))
+      .withColumn("genes", array_sort(col("genes")))
+      .withColumn("genes", functions.transform(col("genes"), g => g("g")))
+      //Cleanup sort_csq into consequences
+      .withColumn("genes", functions.transform(col("genes"), g => {
+        val cleanupCsq = functions.transform(g("consequences"), c => c.dropFields("sort_csq"))
+        g.dropFields("sort_gene", "consequences").withField("consequences", cleanupCsq)
+      }))
+      //calculate mac_impact_score
       .withColumn("csq", flatten(col("genes.consequences")))
       .withColumn("max_impact_score", array_max(col("csq.impact_score")))
       .drop("csq")
