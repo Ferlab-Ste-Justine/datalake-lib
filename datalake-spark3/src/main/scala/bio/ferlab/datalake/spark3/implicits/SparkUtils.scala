@@ -72,6 +72,8 @@ object SparkUtils {
   def getColumnOrElse(colName: String, default: Any = ""): Column =
     when(col(colName).isNull, lit(default)).otherwise(trim(col(colName)))
 
+  def getColumnOrElseArray(colName: String, default: Any = ""): Column = when(col(colName).isNull, array(lit(default))).otherwise(transform(col(colName), c => trim(c)))
+
   def isNestedFieldExists(df: DataFrame, fieldName: String): Boolean = isNestedFieldExists(df.schema, fieldName)
 
   def isNestedFieldExists(dfSchema: StructType, fieldName: String): Boolean = {

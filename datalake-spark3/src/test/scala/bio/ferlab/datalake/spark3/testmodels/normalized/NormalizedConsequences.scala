@@ -43,10 +43,10 @@ case class NormalizedConsequences(`chromosome`: String = "1",
                                   `updated_on`: Timestamp = java.sql.Timestamp.valueOf("2022-04-06 13:41:31.039545"),
                                   `normalized_consequences_oid`: Timestamp = java.sql.Timestamp.valueOf("2022-04-06 13:41:31.039545"))
 
-case class Exon(`rank`: Int = 1,
+case class Exon(`rank`: String = "1",
                 `total`: Int = 1)
 
-case class Intron(`rank`: Option[Int] = None,
+case class Intron(`rank`: Option[String] = None,
                   `total`: Option[Int] = None)
 
 case class AminoAcids(`reference`: String = "S",

@@ -119,7 +119,7 @@ object PreparedVariantCentric {
 
   case class COSMIC(`tumour_types_germline`: Seq[String] = Seq("breast", "colon", "endometrial cancer under age 50"))
 
-  case class EXON(`rank`: Int = 1,
+  case class EXON(`rank`: String = "1",
                   `total`: Int = 1)
 
   case class OMIM(`name`: String = "Epileptic encephalopathy, early infantile, 69",
@@ -151,7 +151,7 @@ object PreparedVariantCentric {
                                  `af`: Double = 0.0,
                                  `hom`: Long = 0)
 
-  case class INTRON(`rank`: Option[Int] = None,
+  case class INTRON(`rank`: Option[String] = None,
                     `total`: Option[Int] = None)
 
   case class CODONS(`reference`: String = "tcT",
