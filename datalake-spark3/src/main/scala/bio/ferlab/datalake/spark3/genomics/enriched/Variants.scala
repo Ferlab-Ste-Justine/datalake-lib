@@ -60,7 +60,7 @@ class Variants(participantId: Column = col("participant_id"), affectedStatus: Co
     val snv = filterSnv.map(f => data(snvDatasetId).where(f)).getOrElse(data(snvDatasetId))
     val variants = snv.selectLocus(col("hgvsg"), col("genes_symbol"), col("name"), col("end"), col("variant_class"))
       .groupByLocus()
-      .agg(firstAs("hgvsg"), firstAs("genes_symbol"), firstAs("name"), firstAs("end"), firstAs("variant_class"))
+      .agg(firstAs("hgvsg", ignoreNulls = true), firstAs("genes_symbol", ignoreNulls = true), firstAs("name", ignoreNulls = true), firstAs("end", ignoreNulls = true), firstAs("variant_class", ignoreNulls = true))
       .withColumn("dna_change", concat_ws(">", col("reference"), col("alternate")))
       .withColumn("assembly_version", lit("GRCh38"))
 

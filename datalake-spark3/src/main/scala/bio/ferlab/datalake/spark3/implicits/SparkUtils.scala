@@ -57,7 +57,7 @@ object SparkUtils {
     case _ => spark.emptyDataFrame
   }
 
-  def firstAs(c: String): Column = first(col(c)) as c
+  def firstAs(c: String, ignoreNulls: Boolean = false): Column = first(col(c)) as c
 
   def escapeInfoAndLowercase(df: DataFrame, excludes: String*): Seq[Column] = {
     df.columns.collect {
