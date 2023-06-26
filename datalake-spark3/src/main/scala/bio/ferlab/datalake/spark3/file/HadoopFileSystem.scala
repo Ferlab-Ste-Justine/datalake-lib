@@ -6,6 +6,7 @@ import org.apache.hadoop
 import org.apache.hadoop.fs._
 import org.apache.spark.sql.SparkSession
 
+import scala.annotation.tailrec
 import scala.language.implicitConversions
 
 object HadoopFileSystem extends file.FileSystem {
@@ -16,17 +17,27 @@ object HadoopFileSystem extends file.FileSystem {
     folderPath.getFileSystem(conf)
   }
 
+  private def toFile(f: FileStatus): File = File(f.getPath.toString, f.getPath.getName, f.getLen, f.isDirectory)
+
   implicit def stringToPath(path: String): Path = new Path(path)
 
   override def list(path: String, recursive: Boolean): List[File] = {
     val fs = getFileSystem(path)
-    val it = fs.listFiles(path, true)
-    var files: List[File] = List.empty[File]
-    while(it.hasNext) {
-      val item = it.next()
-      files = files :+ File(item.getPath.toString, item.getPath.getName, item.getLen ,item.isDirectory)
+
+    @tailrec
+    def listRecursive(queue: List[Path], acc: List[File]): List[File] = {
+      queue match {
+        case Nil => acc
+        case head :: tail =>
+          val statuses = fs.listStatus(head)
+          val (dirs, files) = statuses.partition(_.isDirectory)
+          val updatedAcc = acc ++ files.map(toFile) ++ dirs.map(toFile)
+          listRecursive(tail ++ dirs.map(_.getPath), updatedAcc)
+      }
     }
-    files
+
+    if (recursive) listRecursive(List(path), Nil)
+    else fs.listStatus(path).map(toFile).toList
   }
 
   override def copy(source: String, destination: String, overwrite: Boolean): Unit = {
