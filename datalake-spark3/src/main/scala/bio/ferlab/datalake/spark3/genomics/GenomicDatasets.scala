@@ -11,7 +11,7 @@ case class GenomicDatasets(alias: String, tableDatabase: Option[String], viewDat
     DatasetConf("enriched_variants", alias, "/enriched/variants", DELTA, OverWrite, partitionby = List("chromosome"), table = table("variants"), view = view("variants"), repartition = Some(RepartitionByRange(Seq("chromosome", "start"), n = Some(100)))),
     DatasetConf("es_index_variant_centric", alias, "/es_index/variant_centric", PARQUET, OverWrite, partitionby = List("chromosome"), table = table("variant_centric"), view = view("variant_centric"), repartition = Some(RepartitionByColumns(columnNames = Seq("chromosome"), n = Some(100)))),
     DatasetConf("es_index_variant_suggestions", alias, "/es_index/variant_suggestions", PARQUET, OverWrite, partitionby = List("chromosome"), table = table("variant_suggestions"), view = view("variant_suggestions"), repartition = Some(RepartitionByColumns(columnNames = Seq("chromosome"), n = Some(100)))),
-    DatasetConf("es_index_gene_centric", alias, "/es_index/gene_centric", PARQUET, OverWrite, partitionby = List("chromosome"), table = table("gene_centric"), view = view("gene_centric"), repartition = Some(FixedRepartition(20))),
-    DatasetConf("es_index_gene_suggestions", alias, "/es_index/gene_suggestions", PARQUET, OverWrite, partitionby = List("chromosome"), table = table("gene_suggestions"), view = view("gene_suggestions"), repartition = Some(FixedRepartition(20)))
+    DatasetConf("es_index_gene_centric", alias, "/es_index/gene_centric", PARQUET, OverWrite, table = table("gene_centric"), view = view("gene_centric"), repartition = Some(FixedRepartition(20))),
+    DatasetConf("es_index_gene_suggestions", alias, "/es_index/gene_suggestions", PARQUET, OverWrite, table = table("gene_suggestions"), view = view("gene_suggestions"), repartition = Some(FixedRepartition(20)))
   )
 }
