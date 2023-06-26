@@ -114,5 +114,23 @@ class SparkUtilsSpec extends AnyFlatSpec with WithSparkSession with Matchers {
     result should be(false)
   }
 
+  "array_remove_empty" should "return an array without empty values" in {
+    val df = Seq(
+      (Seq("a", "b", "c", "d")),
+      (Seq("a", "", "c", "d")),
+      (Seq("a", null, "c", "d")),
+      (Seq("a", "b", "", "d")),
+      (Seq("a", "b", "c", ""))
+    ).toDF("array")
+
+    val res = df.select(array_remove_empty($"array") as "array")
+    res.as[Seq[String]].collect() should contain theSameElementsAs Seq(
+      Seq("a", "b", "c", "d"),
+      Seq("a", "c", "d"),
+      Seq("a", "c", "d"),
+      Seq("a", "b", "d"),
+      Seq("a", "b", "c")
+    )
+  }
 }
 

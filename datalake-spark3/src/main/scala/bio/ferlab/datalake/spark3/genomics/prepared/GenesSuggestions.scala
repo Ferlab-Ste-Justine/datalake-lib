@@ -3,7 +3,7 @@ package bio.ferlab.datalake.spark3.genomics.prepared
 import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf}
 import bio.ferlab.datalake.spark3.etl.ETLSingleDestination
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits.DatasetConfOperations
-import bio.ferlab.datalake.spark3.implicits.SparkUtils.getColumnOrElse
+import bio.ferlab.datalake.spark3.implicits.SparkUtils.{array_remove_empty, getColumnOrElse}
 import org.apache.spark.sql._
 import org.apache.spark.sql.functions._
 
@@ -51,14 +51,13 @@ class GenesSuggestions(override implicit val conf: Configuration) extends ETLSin
             lit(geneSymbolWeight) as "weight"
           ),
           struct(
-            array_remove(
+            array_remove_empty(
               flatten(
                 array(
                   functions.transform(col("alias"), c => when(c.isNull, lit("")).otherwise(c)),
                   array(col("ensembl_gene_id"))
                 )
-              ),
-              ""
+              )
             ) as "input",
             lit(geneAliasesWeight) as "weight"
           )

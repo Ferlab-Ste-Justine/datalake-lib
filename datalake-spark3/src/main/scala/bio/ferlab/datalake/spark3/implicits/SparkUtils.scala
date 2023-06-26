@@ -72,6 +72,11 @@ object SparkUtils {
   def getColumnOrElse(colName: String, default: Any = ""): Column =
     when(col(colName).isNull, lit(default)).otherwise(trim(col(colName)))
 
+  def array_remove_empty(array: Column): Column = {
+    //array_reoe null does not work
+    array_remove(filter(array, a => a.isNotNull), lit(""))
+  }
+
   def getColumnOrElseArray(colName: String, default: Any = ""): Column = when(col(colName).isNull, array(lit(default))).otherwise(transform(col(colName), c => trim(c)))
 
   def isNestedFieldExists(df: DataFrame, fieldName: String): Boolean = isNestedFieldExists(df.schema, fieldName)

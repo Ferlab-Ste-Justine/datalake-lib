@@ -5,7 +5,7 @@ import bio.ferlab.datalake.spark3.etl.ETLSingleDestination
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits.DatasetConfOperations
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits._
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns.locus
-import bio.ferlab.datalake.spark3.implicits.SparkUtils.{getColumnOrElse, getColumnOrElseArray}
+import bio.ferlab.datalake.spark3.implicits.SparkUtils.{array_remove_empty, getColumnOrElse, getColumnOrElseArray}
 import org.apache.spark.sql._
 import org.apache.spark.sql.functions._
 
@@ -69,8 +69,8 @@ class VariantsSuggestions(override implicit val conf: Configuration)
       .withColumn("refseq_protein_id", getColumnOrElse("refseq_protein_id"))
       .groupBy(locus: _*)
       .agg(
-        array_remove(collect_set(col("aa_change")), "") as "aa_change",
-        array_remove(collect_set(col("symbol_aa_change")), "") as "symbol_aa_change",
+        array_remove_empty(collect_set(col("aa_change"))) as "aa_change",
+        array_remove_empty(collect_set(col("symbol_aa_change"))) as "symbol_aa_change",
         collect_set(col("ensembl_gene_id")) as "ensembl_gene_id",
         collect_set(col("ensembl_transcript_id")) as "ensembl_transcript_id",
         array_distinct(flatten(collect_list(col("refseq_mrna_id")))) as "refseq_mrna_id",
@@ -93,7 +93,7 @@ class VariantsSuggestions(override implicit val conf: Configuration)
         "suggest",
         array(
           struct(
-            array_remove(
+            array_remove_empty(
               flatten(
                 array(
                   array(col("hgvsg")),
@@ -101,14 +101,12 @@ class VariantsSuggestions(override implicit val conf: Configuration)
                   array(col("rsnumber")),
                   array(col("clinvar_id"))
                 )
-              ),
-              ""
-            ) as "input",
+              )) as "input",
             lit(variantSymbolAaChangeWeight) as "weight"
           ),
           struct(
             array_distinct(
-              array_remove(
+              array_remove_empty(
                 flatten(
                   array(
                     col("aa_change"),
@@ -118,9 +116,7 @@ class VariantsSuggestions(override implicit val conf: Configuration)
                     col("refseq_mrna_id"),
                     col("refseq_protein_id")
                   )
-                ),
-                ""
-              )
+                ))
             ) as "input",
             lit(variantSymbolWeight) as "weight"
           )
