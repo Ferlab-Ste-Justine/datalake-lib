@@ -5,8 +5,6 @@
 package bio.ferlab.datalake.spark3.testmodels.prepared
 
 
-
-
 case class PreparedGeneCentric(`symbol`: String = "OR4F5",
                                `entrez_gene_id`: Int = 777,
                                `omim_gene_id`: String = "601013",
@@ -23,7 +21,9 @@ case class PreparedGeneCentric(`symbol`: String = "OR4F5",
                                `ddd`: Seq[DDD] = Seq(DDD()),
                                `cosmic`: Seq[COSMIC] = Seq(COSMIC()),
                                `gnomad`: GNOMAD = GNOMAD(),
-                               `hash`: String = "9b8016c31b93a7504a8314ce3d060792f67ca2ad")
+                               `hash`: String = "9b8016c31b93a7504a8314ce3d060792f67ca2ad",
+                               `search_text`: Seq[String] = Seq("OR4F5", "ENSG00000198216", "BII", "CACH6", "CACNL1A6", "Cav2.3", "EIEE69", "gm139")
+                              )
 
 case class ORPHANET(`disorder_id`: Long = 17827,
                     `panel`: String = "Immunodeficiency due to a classical component pathway complement deficiency",

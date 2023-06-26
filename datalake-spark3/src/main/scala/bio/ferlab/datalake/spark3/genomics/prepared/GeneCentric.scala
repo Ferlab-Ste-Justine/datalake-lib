@@ -3,7 +3,7 @@ package bio.ferlab.datalake.spark3.genomics.prepared
 import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf}
 import bio.ferlab.datalake.spark3.etl.ETLSingleDestination
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits.DatasetConfOperations
-import org.apache.spark.sql.functions.{col, sha1}
+import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
 import java.time.LocalDateTime
@@ -23,6 +23,18 @@ class GeneCentric(override implicit val conf: Configuration) extends ETLSingleDe
                                currentRunDateTime: LocalDateTime = LocalDateTime.now())(implicit spark: SparkSession): DataFrame = {
     data(enriched_genes.id)
       .withColumn("hash", sha1(col("symbol")))
+      .withColumn(
+        "search_text",
+        filter(
+          // Note: array_union([a, b], null) => null whereas array_union([a, b], []) => [a, b]
+          array_union(
+            array(col("symbol"), col("ensembl_gene_id")),
+            // falling back on [] if no "alias" so that we have: array_union([a, b], []) => [a, b]
+            when(col("alias").isNotNull, col("alias")).otherwise(array().cast("array<string>"))
+          ),
+          x => x.isNotNull && x =!= ""
+        )
+      )
   }
 
 
