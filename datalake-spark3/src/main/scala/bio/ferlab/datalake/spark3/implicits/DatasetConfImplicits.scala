@@ -78,22 +78,32 @@ object DatasetConfImplicits {
     }
 
     /**
-     * Replace the substrings matching the pattern with the replacement value in the table name.
+     * Replace the substrings matching the pattern with the replacement value in the table name. Valid table names
+     * only contain alphabet characters, numbers and _. If clean is set to true, all invalid characters will be replaced
+     * by an _. The method will not fail when using a replacement value with invalid characters, but Spark might fail
+     * later when trying to create the table.
      *
      * @param pattern     The sequence to be replaced
      * @param replacement The replacement sequence
+     * @param clean       If true, cleans the replacement sequence
      * @return A new [[DatasetConf]] with its table name updated
      */
-    def replaceTableName(pattern: String, replacement: String): DatasetConf = {
+    def replaceTableName(pattern: String, replacement: String, clean: Boolean): DatasetConf = {
       val table = ds.table
+      val cleanedReplacement = if (clean) {
+        val invalidCharacters = "[^a-zA-Z0-9_]".r
+        invalidCharacters.replaceAllIn(replacement, "_")
+      } else replacement
       if (table.isDefined) {
-        val newTableName = table.get.name.replace(pattern, replacement)
+        val newTableName = table.get.name.replace(pattern, cleanedReplacement)
         ds.copy(table = Some(table.get.copy(name = newTableName)))
       } else ds
     }
 
     /**
-     * Replace the placeholders in the [[DatasetConf]] with the replacement value.
+     * Replace the placeholders in the [[DatasetConf]] with the replacement value. The replacement value will be
+     * cleaned before being used in the table name. Valid table names only contain alphabet characters, numbers and _.
+     * All invalid characters will be replaced by an _.
      *
      * @param placeholder The placeholder value to be replaced
      * @param replacement The replacement sequence
@@ -101,7 +111,7 @@ object DatasetConfImplicits {
      */
     def replacePlaceholders(placeholder: String, replacement: String): DatasetConf = {
       ds.replacePath(placeholder, replacement)
-        .replaceTableName(placeholder, replacement)
+        .replaceTableName(placeholder, replacement, clean = true)
     }
   }
 }

@@ -94,6 +94,16 @@ class DatasetConfImplicitsSpec extends AnyFlatSpec with WithSparkSession with Gi
     )
   }
 
+  "replaceTableName" should "clean invalid characters from table name" in {
+    val invalidReplacement = "new.$name.1"
+    val validReplacement = "new__name_1"
+
+    val datasetConf = conf.getDataset("placeholder_table")
+      .replaceTableName("placeholder", invalidReplacement, clean = true)
+
+    datasetConf.table.get.name shouldBe s"${validReplacement}_table"
+  }
+
   "replacePlaceholders" should "override a DatasetConf path and tableName" in {
     val ds = conf.getDataset("placeholder_table")
     val customVal = "custom"
