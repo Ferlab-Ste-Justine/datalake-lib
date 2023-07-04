@@ -858,7 +858,7 @@ class GenomicImplicitsSpec extends AnyFlatSpec with WithSparkSession with Matche
   }
 
   it should "return an empty DataFrame if optional VCF is missing" in {
-    val df = vcf(List("f1", "f2"), None , optional = true)
+    val df = vcf(List("f1", "f2"), None, optional = true)
     df shouldEqual spark.emptyDataFrame
   }
 
