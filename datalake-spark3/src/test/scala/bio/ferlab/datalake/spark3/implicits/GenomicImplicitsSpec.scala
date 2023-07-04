@@ -5,11 +5,12 @@ import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns._
 import bio.ferlab.datalake.spark3.testmodels.{AlleleDepthOutput, CompoundHetInput, CompoundHetOutput, ConsequencesInput, FullCompoundHetOutput, Genotype, HCComplement, OtherCompoundHetInput, PickedConsequencesOuput, PossiblyCompoundHetOutput, PossiblyHCComplement, RefSeqAnnotation, RefSeqMrnaIdInput, RefSeqMrnaIdInputWithoutAnnotation, RefSeqMrnaIdInputWithoutRefSeq, RelativesGenotype, RelativesGenotypeOutput}
 import bio.ferlab.datalake.spark3.testutils.WithSparkSession
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.{Column, DataFrame, functions}
+import org.apache.spark.sql.{AnalysisException, Column, DataFrame, functions}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.ParentalOrigin._
 import bio.ferlab.datalake.spark3.testmodels.enriched.EnrichedGenes
+import org.slf4j
 
 import scala.collection.Seq
 
@@ -17,7 +18,9 @@ class GenomicImplicitsSpec extends AnyFlatSpec with WithSparkSession with Matche
 
   import spark.implicits._
 
-  spark.sparkContext.setLogLevel("ERROR")
+  implicit val log: slf4j.Logger = slf4j.LoggerFactory.getLogger(getClass.getCanonicalName)
+
+  spark.sparkContext.setLogLevel("WARN")
 
   val wtDf: DataFrame = Seq(Genotype(Array(0, 0)), Genotype(Array(-1, -1)), Genotype(Array(0))).toDF()
   val homDf: DataFrame = Seq(Genotype(Array(1, 1))).toDF()
@@ -852,6 +855,18 @@ class GenomicImplicitsSpec extends AnyFlatSpec with WithSparkSession with Matche
     input.withRefseqMrnaId().select("id", "refseq_mrna_id").as[(String, Seq[String])].collect() should contain theSameElementsAs Seq(
       ("1", null)
     )
+  }
+
+  it should "return an empty DataFrame if optional VCF is missing" in {
+    val df = vcf(List("f1", "f2"), None , optional = true)
+    df shouldEqual spark.emptyDataFrame
+  }
+
+  it should "throw an exception if VCF is missing when not optional" in {
+    val exception = intercept[AnalysisException] {
+      vcf(List("f1", "f2"), None, optional = false)
+    }
+    exception.getMessage should include("Path does not exist:")
   }
 
 }

@@ -7,7 +7,8 @@ import io.projectglow.Glow
 import org.apache.spark.sql.expressions.{Window, WindowSpec}
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.{DecimalType, DoubleType, StringType, StructType}
-import org.apache.spark.sql.{Column, DataFrame, RelationalGroupedDataset, SparkSession}
+import org.apache.spark.sql.{AnalysisException, Column, DataFrame, RelationalGroupedDataset, SparkSession}
+import org.slf4j.Logger
 
 import scala.collection.immutable
 
@@ -798,26 +799,33 @@ object GenomicImplicits {
    * @param spark               a Spark session
    * @return data into a dataframe
    */
-  def vcf(input: String, referenceGenomePath: Option[String])(implicit spark: SparkSession): DataFrame = {
-    val inputs = input.split(",")
-
-    val df = spark.read
-      .format("vcf")
-      .option("flattenInfoFields", "true")
-      .load(inputs: _*)
-      .withColumnRenamed("filters", "INFO_FILTERS") // Avoid losing filters columns before split
-      .withSplitMultiAllelic
-    referenceGenomePath
-      .fold(
-        df.withColumn("normalizationStatus",
-          struct(
-            lit(false) as "changed",
-            lit(null).cast(StringType) as "errorMessage"))
-      )(path => df.withNormalizedVariants(path))
+  def vcf(input: String, referenceGenomePath: Option[String], optional: Boolean)(implicit spark: SparkSession, log: Logger): DataFrame = {
+    try {
+      val inputs = input.split(",")
+      val df = spark.read
+        .format("vcf")
+        .option("flattenInfoFields", "true")
+        .load(inputs: _*)
+        .withColumnRenamed("filters", "INFO_FILTERS") // Avoid losing filters columns before split
+        .withSplitMultiAllelic
+      referenceGenomePath
+        .fold(
+          df.withColumn("normalizationStatus",
+            struct(
+              lit(false) as "changed",
+              lit(null).cast(StringType) as "errorMessage"))
+        )(path => df.withNormalizedVariants(path))
+    } catch {
+      case e: AnalysisException if e.message.contains("Path does not exist") && optional => {
+        log.warn(s"No VCF files found at location: $input returning empty DataFrame")
+        spark.emptyDataFrame
+      }
+      case e: Exception => throw e
+    }
   }
 
-  def vcf(files: List[String], referenceGenomePath: Option[String])(implicit spark: SparkSession): DataFrame = {
-    vcf(files.mkString(","), referenceGenomePath)
+  def vcf(files: List[String], referenceGenomePath: Option[String], optional: Boolean)(implicit spark: SparkSession, log: Logger): DataFrame = {
+    vcf(files.mkString(","), referenceGenomePath, optional)
   }
 
 }
