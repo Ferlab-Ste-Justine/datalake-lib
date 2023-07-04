@@ -6,6 +6,7 @@ import bio.ferlab.datalake.commons.config._
 import bio.ferlab.datalake.commons.file.FileSystemType.LOCAL
 import bio.ferlab.datalake.spark3.file.{FileSystemResolver, HadoopFileSystem}
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
+import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.vcf
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.LongType
@@ -13,6 +14,7 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.{BeforeAndAfterAll, GivenWhenThen}
+import org.slf4j
 
 import java.sql.{Date, Timestamp}
 import java.time.{LocalDate, LocalDateTime}
@@ -84,7 +86,26 @@ class ETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers with BeforeAn
 
   }
 
+  case class TestOptionalETL() extends ETL() {
+
+    override val mainDestination: DatasetConf = destConf
+    implicit val logger: slf4j.Logger = log
+
+    override def extract(lastRunDateTime: LocalDateTime = minDateTime,
+                         currentRunDateTime: LocalDateTime = LocalDateTime.now())(implicit spark: SparkSession): Map[String, DataFrame] = {
+      Map(srcConf.id -> vcf("file.vcf", None, optional = true))
+    }
+
+    override def transform(data: Map[String, DataFrame],
+                           lastRunDateTime: LocalDateTime = minDateTime,
+                           currentRunDateTime: LocalDateTime = LocalDateTime.now())(implicit spark: SparkSession): Map[String, DataFrame] = {
+      Map(mainDestination.id -> spark.emptyDataFrame)
+    }
+
+  }
+
   val job: ETL = TestETL()
+  val optionalJob: TestOptionalETL = TestOptionalETL()
 
   override def beforeAll(): Unit = {
     spark.sql("CREATE DATABASE IF NOT EXISTS raw_db")
@@ -210,6 +231,11 @@ class ETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers with BeforeAn
     finalDf(destConf.id).show(false)
     finalDf(destConf.id).count() shouldBe 3
     finalDf(destConf.id).where("airport_id=999").count() shouldBe 1
+  }
+
+  "run optional VCF" should "run the ETL using an optional VCF extract" in {
+    val finalDf = optionalJob.run()
+    finalDf.size shouldBe 0
   }
 
 }
