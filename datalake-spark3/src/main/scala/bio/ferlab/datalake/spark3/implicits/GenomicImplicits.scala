@@ -799,7 +799,7 @@ object GenomicImplicits {
    * @param spark               a Spark session
    * @return data into a dataframe
    */
-  def vcf(input: String, referenceGenomePath: Option[String], optional: Boolean)(implicit spark: SparkSession, log: Logger): DataFrame = {
+  def vcf(input: String, referenceGenomePath: Option[String], optional: Boolean = false)(implicit spark: SparkSession, log: Logger): DataFrame = {
     try {
       val inputs = input.split(",")
       val df = spark.read
