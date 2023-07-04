@@ -3,12 +3,13 @@ package bio.ferlab.datalake.spark3.elasticsearch
 import bio.ferlab.datalake.spark3.utils.ResourceLoader.loadResource
 import org.apache.commons.io.FilenameUtils
 import org.apache.spark.sql.SparkSession
+import org.json4s.DefaultFormats
+import org.json4s.jackson.Serialization.write
 import org.slf4j.{Logger, LoggerFactory}
 import sttp.client3.logging.slf4j.Slf4jLoggingBackend
-import sttp.client3.upicklejson._
 import sttp.client3.{SimpleHttpClient, UriContext, basicRequest}
 import sttp.model.{MediaType, Uri}
-import upickle.default._
+import sttp.client3.json4s._
 
 import scala.util.{Failure, Success, Try}
 
@@ -20,6 +21,8 @@ class ElasticSearchClient(url: String, username: Option[String] = None, password
   private val log: Logger = LoggerFactory.getLogger(getClass.getCanonicalName)
   private val client = SimpleHttpClient().wrapBackend(Slf4jLoggingBackend(_))
   private val esUri: Uri = uri"$url"
+  private implicit val serialization = org.json4s.jackson.Serialization
+  private implicit val formats = org.json4s.DefaultFormats
   private val esRequest =
     if (username.isDefined && password.isDefined)
       basicRequest.auth.basic(username.get, password.get)
@@ -62,13 +65,7 @@ class ElasticSearchClient(url: String, username: Option[String] = None, password
     val templateName = FilenameUtils.getBaseName(templatePath)
 
     // find template in resources first then with spark if failed
-    val fileContent = Try(loadResource(templatePath)) match {
-      case Success(content) => content
-      case Failure(exception) =>
-        log.warn("Failed to load template from resources: {}, trying with spark", exception.getMessage)
-        spark.read.option("wholetext", "true").textFile(templatePath).collect().mkString
-    }
-
+    val fileContent = loadResource(templatePath).getOrElse(spark.read.option("wholetext", "true").textFile(templatePath).collect().mkString)
 
     val request = basicRequest
       .put(templateUri(templateName))
@@ -92,12 +89,13 @@ class ElasticSearchClient(url: String, username: Option[String] = None, password
    */
   def setAlias(add: List[String], remove: List[String], alias: String): Unit = {
 
-    val action = ActionsRequest(
+    val action = AliasActionsRequest(
       add.map(name => AddAction(Map("index" -> name, "alias" -> alias))) ++
         remove.map(name => RemoveAction(Map("index" -> name, "alias" -> alias)))
     )
 
-    implicit val myRequestRW: Writer[ActionsRequest] = macroW[ActionsRequest]
+    //    println(write(action))
+
     val request = basicRequest
       .post(aliasesUri)
       .contentType(MediaType.ApplicationJson)
@@ -112,8 +110,8 @@ class ElasticSearchClient(url: String, username: Option[String] = None, password
 
   /**
    * Delete an index
-   * @throws IllegalStateException if the server could not delete the index
    *
+   * @throws IllegalStateException if the server could not delete the index
    * @param indexName name of the index to delete
    */
   def deleteIndex(indexName: String): Unit = {
@@ -125,13 +123,6 @@ class ElasticSearchClient(url: String, username: Option[String] = None, password
     }
   }
 
-  private sealed trait AliasAction
-
-  private case class AddAction(add: Map[String, String]) extends AliasAction
-
-  private case class RemoveAction(remove: Map[String, String]) extends AliasAction
-
-  private case class ActionsRequest(actions: Seq[AliasAction])
 
 }
 

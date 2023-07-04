@@ -55,10 +55,10 @@ lazy val `datalake-spark3` = (project in file("datalake-spark3"))
       "com.microsoft.azure"           %  "spark-mssql-connector_2.12"     % "1.1.0"              % Provided,
       //Use by ElasticsearchClient
       "com.softwaremill.sttp.client3" %% "core"                           % "3.8.15",
-      "com.softwaremill.sttp.client3" %% "upickle"                        % "3.8.15",
+      "com.softwaremill.sttp.client3" %% "json4s"                         % "3.8.15" exclude("org.json4s", "json4s-core_2.12"), //Exclusion because json4s is used in spark
       "com.softwaremill.sttp.client3" %% "slf4j-backend"                  % "3.8.15",
-      "com.dimafeng"                  %% "testcontainers-scala-scalatest" % "0.38.8"             % Test,
-      "org.testcontainers"            %  "localstack"                     % "1.15.2"             % Test,
+      "com.dimafeng"                  %% "testcontainers-scala-scalatest" % "0.40.17"            % Test,
+      "com.dimafeng"                  %% "testcontainers-scala-elasticsearch" % "0.40.17"        % Test,
       "org.scalatest"                 %% "scalatest"                      % scalatestVersion     % Test,
       "org.apache.spark"              %% "spark-hive"                     % spark3Version        % Test,
 ),
