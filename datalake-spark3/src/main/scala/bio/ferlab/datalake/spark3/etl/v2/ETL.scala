@@ -123,16 +123,14 @@ abstract class ETL()(implicit val conf: Configuration) extends Runnable {
         Map()
       }
 
-    val containsEmptyDataFrame = data.count(d => d._2 == spark.emptyDataFrame) > 0;
-
     val output: Map[String, DataFrame] =
-      if (runSteps.contains(RunStep.transform) && !containsEmptyDataFrame) {
+      if (runSteps.contains(RunStep.transform)) {
         transform(data, lastRunDate, currentRunDate)
       } else {
         Map()
       }
 
-    if (runSteps.contains(RunStep.load) && !containsEmptyDataFrame) {
+    if (runSteps.contains(RunStep.load)) {
       load(output)
     } else {
       output.foreach { case (dsid, df) =>
@@ -141,7 +139,7 @@ abstract class ETL()(implicit val conf: Configuration) extends Runnable {
       }
     }
 
-    if (runSteps.contains(RunStep.publish) && !containsEmptyDataFrame) {
+    if (runSteps.contains(RunStep.publish)) {
       publish()
     }
     //read all outputDf
