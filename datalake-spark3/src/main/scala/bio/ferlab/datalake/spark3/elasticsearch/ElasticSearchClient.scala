@@ -2,188 +2,123 @@ package bio.ferlab.datalake.spark3.elasticsearch
 
 import bio.ferlab.datalake.spark3.utils.ResourceLoader.loadResource
 import org.apache.commons.io.FilenameUtils
-import org.apache.hadoop.shaded.org.apache.http.client.methods.{HttpDelete, HttpGet, HttpPost, HttpPut}
-import org.apache.hadoop.shaded.org.apache.http.impl.client.{CloseableHttpClient, HttpClientBuilder}
-import org.apache.hadoop.shaded.org.apache.http.entity.StringEntity
-import org.apache.hadoop.shaded.org.apache.http.protocol.HttpContext
-import org.apache.hadoop.shaded.org.apache.http.util.EntityUtils
-import org.apache.hadoop.shaded.org.apache.http.{HttpHeaders, HttpRequest, HttpRequestInterceptor, HttpResponse}
 import org.apache.spark.sql.SparkSession
-import org.json4s.DefaultFormats
-import org.json4s.jackson.Serialization.write
 import org.slf4j.{Logger, LoggerFactory}
-import org.sparkproject.guava.io.BaseEncoding
-
-import java.nio.charset.StandardCharsets
-import scala.util.{Failure, Success, Try}
+import sttp.client3.json4s._
+import sttp.client3.logging.slf4j.Slf4jLoggingBackend
+import sttp.client3.{SimpleHttpClient, UriContext, basicRequest}
+import sttp.model.{MediaType, Uri}
 
 class ElasticSearchClient(url: String, username: Option[String] = None, password: Option[String] = None) {
 
-  private val indexUrl: String => String = indexName => s"$url/$indexName"
-  private val templateUrl: String => String = templateName => s"$url/_index_template/$templateName"
-  private val aliasesUrl: String = s"$url/_aliases"
-  val log: Logger = LoggerFactory.getLogger(getClass.getCanonicalName)
-
-  def http: CloseableHttpClient = {
-    val client = HttpClientBuilder.create()
-
-    if(username.isDefined && password.isDefined) {
-      client.addInterceptorFirst(new HttpRequestInterceptor {
-        override def process(request: HttpRequest, context: HttpContext): Unit = {
-          val auth = s"${username.get}:${password.get}"
-          request.addHeader(
-            "Authorization",
-            s"Basic ${BaseEncoding.base64().encode(auth.getBytes(StandardCharsets.UTF_8))}"
-          )
-        }
-      })
-    }
-    client.build()
-  }
+  private val indexUri: String => Uri = indexName => uri"$url/$indexName"
+  private val templateUri: String => Uri = templateName => uri"$url/_index_template/$templateName"
+  private val aliasesUri: Uri = uri"$url/_aliases"
+  private val log: Logger = LoggerFactory.getLogger(getClass.getCanonicalName)
+  private val client = SimpleHttpClient().wrapBackend(Slf4jLoggingBackend(_))
+  private val esUri: Uri = uri"$url"
+  private implicit val serialization = org.json4s.jackson.Serialization
+  private implicit val formats = org.json4s.DefaultFormats
+  private val esRequest =
+    if (username.isDefined && password.isDefined)
+      basicRequest.auth.basic(username.get, password.get)
+    else
+      basicRequest
 
   /**
    * Sends a GET on the url and verify the status code of the response is 200
+   *
    * @return true if running
    *         false if not running or if status code not 200
    */
   def isRunning: Boolean = {
-    val response = http.execute(new HttpGet(url))
-
-    log.info(s"""
-               |GET $url
-               |${response.toString}
-               |${EntityUtils.toString(response.getEntity)}
-               |""".stripMargin)
-    http.close()
-    response.getStatusLine.getStatusCode == 200
+    client
+      .send(esRequest.get(esUri))
+      .isSuccess
   }
 
   /**
    * Check roles/http endpoint
+   *
    * @return true if running
    *         false if not running or if status code not 200
    */
   def checkNodeRoles: Boolean = {
-    val response = http.execute(new HttpGet(url + "/_nodes/http"))
+    client
+      .send(esRequest.get(uri"$url/_nodes/http"))
+      .isSuccess
 
-    log.info(s"""
-               |GET $url/_nodes/http
-               |${response.toString}
-               |${EntityUtils.toString(response.getEntity)}
-               |""".stripMargin)
-    http.close()
-    response.getStatusLine.getStatusCode == 200
   }
 
   /**
    * Set a template to ElasticSearch
+   *
    * @param templatePath path of the template.json that is expected to be in the resource folder or spark
+   * @throws IllegalStateException if the server could not set the template
    * @return the http response sent by ElasticSearch
    */
-  def setTemplate(templatePath: String)(implicit spark: SparkSession): HttpResponse = {
+  def setTemplate(templatePath: String)(implicit spark: SparkSession): String = {
     val templateName = FilenameUtils.getBaseName(templatePath)
 
     // find template in resources first then with spark if failed
-    val fileContent = Try(loadResource(templatePath)) match {
-      case Success(content) => content
-      case Failure(exception) => {
-        log.warn("Failed to load template from resources: {}, trying with spark", exception.getMessage)
-        spark.read.option("wholetext", "true").textFile(templatePath).collect().mkString
-      }
+    val fileContent = loadResource(templatePath).getOrElse(spark.read.option("wholetext", "true").textFile(templatePath).collect().mkString)
+
+    val request = basicRequest
+      .put(templateUri(templateName))
+      .contentType(MediaType.ApplicationJson)
+      .body(fileContent)
+
+    val response = client.send(request)
+    response.body match {
+      case Left(e) => throw new IllegalStateException(s"Server could not set template and replied :${response.code + " : " + e}")
+      case Right(r) => r
     }
-
-    log.info(s"SENDING: PUT ${templateUrl(templateName)} with content: $fileContent")
-
-    val request = new HttpPut(templateUrl(templateName))
-    request.addHeader(HttpHeaders.CONTENT_TYPE,"application/json")
-    request.setEntity(new StringEntity(fileContent))
-    val response = http.execute(request)
-    val status = response.getStatusLine
-    if (!status.getStatusCode.equals(200))
-      throw new Exception(s"Server could not set template and replied :${status.getStatusCode + " : " + status.getReasonPhrase}")
-    http.close()
-    response
   }
 
   /**
    * Set alias
-   * @param indexName name of the name to add to the alias
-   * @param aliasName name of the alias to update
-   * @return the http response sent by ElasticSearch
+   *
+   * @param add    list of index to add to the alias
+   * @param remove list of index to remove from the alias
+   * @param alias  name of the alias to update
+   * @throws IllegalStateException if the server could not set the alias
    */
-  def setAlias(add: List[String], remove: List[String], alias: String): HttpResponse = {
+  def setAlias(add: List[String], remove: List[String], alias: String): Unit = {
 
-    val action = ActionsRequest(
+    val action = AliasActionsRequest(
       add.map(name => AddAction(Map("index" -> name, "alias" -> alias))) ++
         remove.map(name => RemoveAction(Map("index" -> name, "alias" -> alias)))
     )
 
-    implicit val formats = DefaultFormats
+    //    println(write(action))
 
-    val requestBody = write(action)
+    val request = basicRequest
+      .post(aliasesUri)
+      .contentType(MediaType.ApplicationJson)
+      .body(action)
 
-    log.info(requestBody)
+    client.send(request).body match {
+      case Left(e) => throw new IllegalStateException(s"Server could not set alias to $alias, replied :$e")
+      case _ => ()
+    }
 
-    val request = new HttpPost(aliasesUrl)
-    request.addHeader(HttpHeaders.CONTENT_TYPE,"application/json")
-    request.setEntity(new StringEntity(requestBody))
-
-    val response = http.execute(request)
-    val status = response.getStatusLine
-    if (!status.getStatusCode.equals(200))
-      throw new Exception(s"Server could not set alias to $alias and replied :${status.getStatusCode + " : " + status.getReasonPhrase}")
-    http.close()
-    response
-  }
-
-  /**
-   * Delete a template
-   * @param templateName name of the template to delete
-   * @return the http response sent by ElasticSearch
-   */
-  def deleteTemplate(templateName: String): HttpResponse = {
-    val response = http.execute(new HttpDelete(templateUrl(templateName)))
-    http.close()
-    response
-  }
-
-  /**
-   * Get an index
-   * @param indexName name of the index to fetch
-   * @return the http response sent by ElasticSearch
-   */
-  def getIndex(indexName: String): HttpResponse = {
-    val response = http.execute(new HttpGet(indexUrl(indexName)))
-    http.close()
-    response
-  }
-
-  /**
-   * Create an index
-   * @param indexName name of the index to create
-   * @return the http response sent by ElasticSearch
-   */
-  def createIndex(indexName: String): HttpResponse = {
-    val response = http.execute(new HttpPut(indexUrl(indexName)))
-    http.close()
-    response
   }
 
   /**
    * Delete an index
+   *
+   * @throws IllegalStateException if the server could not delete the index
    * @param indexName name of the index to delete
-   * @return the http response sent by ElasticSearch
    */
-  def deleteIndex(indexName: String): HttpResponse = {
-    val response = http.execute(new HttpDelete(indexUrl(indexName)))
-    http.close()
-    response
+  def deleteIndex(indexName: String): Unit = {
+    val request = esRequest
+      .delete(indexUri(indexName).addParam("ignore_unavailable", "true"))
+    client.send(request).body match {
+      case Left(e) => throw new IllegalStateException(s"Server could not delete index and replied :$e")
+      case _ => ()
+    }
   }
 
-  sealed trait Action
-  case class AddAction(add: Map[String, String]) extends Action
-  case class RemoveAction(remove: Map[String, String]) extends Action
-  case class ActionsRequest(actions: Seq[Action])
 
 }
 
