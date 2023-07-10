@@ -57,13 +57,12 @@ class ACMGImplicitsSpec extends AnyFlatSpec with WithSparkSession with Matchers 
 
   it should "return the correct BA1 schema" in {
     val f = ba1_fixture
-    f.result.collect() should contain theSameElementsAs f.resultData
+    f.result.schema should contain theSameElementsAs f.resultSchema
   }
 
   it should "return the correct BA1 classification data" in {
     val f = ba1_fixture
-    f.result.schema should contain theSameElementsAs f.resultSchema
-
+    f.result.collect() should contain theSameElementsAs f.resultData
   }
 
 }
