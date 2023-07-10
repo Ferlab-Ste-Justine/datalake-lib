@@ -8,8 +8,6 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 
-
-
 class ACMGImplicitsSpec extends AnyFlatSpec with WithSparkSession with Matchers {
 
   import spark.implicits._
