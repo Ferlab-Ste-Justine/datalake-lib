@@ -64,7 +64,7 @@ class ACMGImplicitsSpec extends AnyFlatSpec with WithSparkSession with Matchers 
 
     val result = queryDF.withColumn("BA1", queryDF.get_BA1).select("BA1")
 
-    resultDF.collect().sameElements(result.collect()) shouldEqual true
+    resultDF.collect() should contain theSameElementsAs result.collect()
   }
 
 }
