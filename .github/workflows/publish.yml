@@ -22,7 +22,8 @@ jobs:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.GPG_PASSPHRASE }}
           git_user_signingkey: false
-
+      - name: List keys
+        run: gpg -K
       - name: Publish Artifact
         shell: bash
         env:
