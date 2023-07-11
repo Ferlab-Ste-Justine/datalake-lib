@@ -3,8 +3,6 @@ package bio.ferlab.datalake.spark3.implicits
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.StructType
 import org.apache.spark.sql.{Column, DataFrame}
-import org.json4s._
-import org.json4s.jackson.JsonMethods._
 
 object ACMGImplicits {
 
