@@ -1,10 +1,10 @@
 package bio.ferlab.datalake.spark3.loader
+
 import bio.ferlab.datalake.spark3.elasticsearch.{ElasticSearchClient, EsWriteOptions}
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.elasticsearch.spark.sql._
 
 import java.time.LocalDate
-import scala.util.Try
 
 object ElasticsearchLoader extends Loader {
 
@@ -52,7 +52,7 @@ object ElasticsearchLoader extends Loader {
     val es_username: Option[String] = options.get(EsWriteOptions.ES_USERNAME)
     val es_password: Option[String] = options.get(EsWriteOptions.ES_PASSWORD)
     implicit val esClient: ElasticSearchClient = new ElasticSearchClient(es_url, es_username, es_password)
-    val ES_config = Map("es.write.operation"-> "index")
+    val ES_config = Map("es.write.operation" -> "index")
 
     options.get(EsWriteOptions.ES_INDEX_TEMPLATE_PATH).foreach(path => setupIndex(tableName, path))
 
@@ -116,14 +116,14 @@ object ElasticsearchLoader extends Loader {
    * @param spark       a valid spark session
    * @return the data as a dataframe
    */
-override def upsert(location: String,
-                    databaseName: String,
-                    tableName: String,
-                    updates: DataFrame,
-                    primaryKeys: Seq[String],
-                    partitioning: List[String],
-                    format: String,
-                    options: Map[String, String])(implicit spark: SparkSession): DataFrame = ???
+  override def upsert(location: String,
+                      databaseName: String,
+                      tableName: String,
+                      updates: DataFrame,
+                      primaryKeys: Seq[String],
+                      partitioning: List[String],
+                      format: String,
+                      options: Map[String, String])(implicit spark: SparkSession): DataFrame = ???
 
   /**
    * Update the data only if the data has changed
@@ -141,17 +141,17 @@ override def upsert(location: String,
    * @param spark         a valid spark session
    * @return the data as a dataframe
    */
-override def scd1(location: String,
-                  databaseName: String,
-                  tableName: String,
-                  updates: DataFrame,
-                  primaryKeys: Seq[String],
-                  oidName: String,
-                  createdOnName: String,
-                  updatedOnName: String,
-                  partitioning: List[String],
-                  format: String,
-                  options: Map[String, String])(implicit spark: SparkSession): DataFrame = ???
+  override def scd1(location: String,
+                    databaseName: String,
+                    tableName: String,
+                    updates: DataFrame,
+                    primaryKeys: Seq[String],
+                    oidName: String,
+                    createdOnName: String,
+                    updatedOnName: String,
+                    partitioning: List[String],
+                    format: String,
+                    options: Map[String, String])(implicit spark: SparkSession): DataFrame = ???
 
   /**
    * Update the data only if the data has changed
@@ -169,49 +169,44 @@ override def scd1(location: String,
    * @param spark         a valid spark session
    * @return the data as a dataframe
    */
-override def scd2(location: String,
-                  databaseName: String,
-                  tableName: String,
-                  updates: DataFrame,
-                  primaryKeys: Seq[String],
-                  buidName: String,
-                  oidName: String,
-                  isCurrentName: String,
-                  partitioning: List[String],
-                  format: String,
-                  validFromName: String,
-                  validToName: String,
-                  options: Map[String, String],
-                  minValidFromDate: LocalDate,
-                  maxValidToDate: LocalDate)(implicit spark: SparkSession): DataFrame = ???
+  override def scd2(location: String,
+                    databaseName: String,
+                    tableName: String,
+                    updates: DataFrame,
+                    primaryKeys: Seq[String],
+                    buidName: String,
+                    oidName: String,
+                    isCurrentName: String,
+                    partitioning: List[String],
+                    format: String,
+                    validFromName: String,
+                    validToName: String,
+                    options: Map[String, String],
+                    minValidFromDate: LocalDate,
+                    maxValidToDate: LocalDate)(implicit spark: SparkSession): DataFrame = ???
 
   def publish(alias: String,
               currentIndex: String,
               previousIndex: Option[String] = None)(implicit esClient: ElasticSearchClient): Unit = {
-    Try(esClient.setAlias(add = List(currentIndex), remove = List(), alias))
-      .foreach(_ => log.info(s"${currentIndex} added to $alias"))
-    Try(esClient.setAlias(add = List(), remove = previousIndex.toList, alias))
-      .foreach(_ => log.info(s"${previousIndex.toList.mkString} removed from $alias"))
+    esClient.setAlias(add = List(currentIndex), remove = List(), alias)
+    esClient.setAlias(add = List(), remove = previousIndex.toList, alias)
   }
 
 
   /**
    * Setup an index by checking that ES nodes are up, removing the old index and setting the template for this index.
    *
-   * @param indexName full index name
+   * @param indexName    full index name
    * @param templatePath path of the template.json that is expected to be in the resource folder or spark
-   * @param esClient an instance of [[ElasticSearchClient]]
+   * @param esClient     an instance of [[ElasticSearchClient]]
    */
   def setupIndex(indexName: String, templatePath: String)
                 (implicit spark: SparkSession, esClient: ElasticSearchClient): Unit = {
-    Try {
-      log.info(s"ElasticSearch 'isRunning' status: [${esClient.isRunning}]")
-      log.info(s"ElasticSearch 'checkNodes' status: [${esClient.checkNodeRoles}]")
 
-      val respDelete = esClient.deleteIndex(indexName)
-      log.info(s"DELETE INDEX[$indexName] : " + respDelete.getStatusLine.getStatusCode + " : " + respDelete.getStatusLine.getReasonPhrase)
-    }
-    val response = esClient.setTemplate(templatePath)
-    log.info(s"SET TEMPLATE[${templatePath}] : " + response.getStatusLine.getStatusCode + " : " + response.getStatusLine.getReasonPhrase)
+    log.info(s"ElasticSearch 'isRunning' status: [${esClient.isRunning}]")
+    log.info(s"ElasticSearch 'checkNodes' status: [${esClient.checkNodeRoles}]")
+    esClient.deleteIndex(indexName)
+    esClient.setTemplate(templatePath)
+
   }
 }

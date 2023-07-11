@@ -5,27 +5,25 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.elasticsearch.spark.sql._
 import org.slf4j
 
-import scala.util.Try
-
 /**
  *
  * @param spark instantiated spark session
  * {{{
  * val spark: SparkSession = SparkSession.builder
-    .config("es.index.auto.create", "true")
-    .config("es.nodes", "http://es_nodes_url")
-    .config("es.nodes.client.only", "false")
-    .config("es.nodes.discovery", "false")
-    .config("es.nodes.wan.only", "true")
-    .config("es.read.ignore_exception",  "true")
-    .config("es.port", "443")
-    .config("es.wan.only", "true")
-    .config("es.write.ignore_exception", "true")
-
-    .config("spark.es.nodes.client.only", "false")
-    .config("spark.es.nodes.wan.only", "true")
-    .appName(s"Indexer")
-    .getOrCreate()
+ *.config("es.index.auto.create", "true")
+ *.config("es.nodes", "http://es_nodes_url")
+ *.config("es.nodes.client.only", "false")
+ *.config("es.nodes.discovery", "false")
+ *.config("es.nodes.wan.only", "true")
+ *.config("es.read.ignore_exception",  "true")
+ *.config("es.port", "443")
+ *.config("es.wan.only", "true")
+ *.config("es.write.ignore_exception", "true")
+ *
+ *.config("spark.es.nodes.client.only", "false")
+ *.config("spark.es.nodes.wan.only", "true")
+ *.appName(s"Indexer")
+ *.getOrCreate()
  * }}}
  *
  */
@@ -40,7 +38,7 @@ class Indexer(jobType: String,
   val log: slf4j.Logger = slf4j.LoggerFactory.getLogger(getClass.getCanonicalName)
 
   def run(df: DataFrame)(implicit esClient: ElasticSearchClient): Unit = {
-    val ES_config = Map("es.write.operation"-> jobType)
+    val ES_config = Map("es.write.operation" -> jobType)
 
     if (jobType == "index") setupIndex(currentIndex, templateFilePath)
 
@@ -50,30 +48,24 @@ class Indexer(jobType: String,
   def publish(alias: String,
               currentIndex: String,
               previousIndex: Option[String] = None)(implicit esClient: ElasticSearchClient): Unit = {
-    Try(esClient.setAlias(add = List(currentIndex), remove = List(), alias))
-      .foreach(_ => log.info(s"${currentIndex} added to $alias"))
-    Try(esClient.setAlias(add = List(), remove = previousIndex.toList, alias))
-      .foreach(_ => log.info(s"${previousIndex.toList.mkString} removed from $alias"))
+    esClient.setAlias(add = List(currentIndex), remove = previousIndex.toList, alias)
   }
 
 
   /**
    * Setup an index by checking that ES nodes are up, removing the old index and setting the template for this index.
    *
-   * @param indexName full index name
+   * @param indexName    full index name
    * @param templatePath path of the template.json that is expected to be in the resource folder or spark
-   * @param esClient an instance of [[ElasticSearchClient]]
+   * @param esClient     an instance of [[ElasticSearchClient]]
    */
   def setupIndex(indexName: String, templatePath: String)(implicit esClient: ElasticSearchClient): Unit = {
-    Try {
-      log.info(s"ElasticSearch 'isRunning' status: [${esClient.isRunning}]")
-      log.info(s"ElasticSearch 'checkNodes' status: [${esClient.checkNodeRoles}]")
+    log.info(s"ElasticSearch 'isRunning' status: [${esClient.isRunning}]")
+    log.info(s"ElasticSearch 'checkNodes' status: [${esClient.checkNodeRoles}]")
 
-      val respDelete = esClient.deleteIndex(indexName)
-      log.info(s"DELETE INDEX[$indexName] : " + respDelete.getStatusLine.getStatusCode + " : " + respDelete.getStatusLine.getReasonPhrase)
-    }
-    val response = esClient.setTemplate(templatePath)
-    log.info(s"SET TEMPLATE[${templatePath}] : " + response.getStatusLine.getStatusCode + " : " + response.getStatusLine.getReasonPhrase)
+    esClient.deleteIndex(indexName)
+    esClient.setTemplate(templatePath)
+
   }
 }
 

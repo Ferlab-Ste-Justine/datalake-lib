@@ -1,0 +1,11 @@
+{
+  "index_patterns": [
+    "gene_centric*"
+  ],
+  "priority": 1,
+  "malformed": {
+    "settings": {
+      "number_of_shards": 1
+    }
+  }
+}
