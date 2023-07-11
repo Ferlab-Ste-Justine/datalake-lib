@@ -2,7 +2,7 @@ package bio.ferlab.datalake.spark3.implicits
 
 import org.apache.spark.sql.{Column, DataFrame, RelationalGroupedDataset, SparkSession}
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.types.{StructType}
+import org.apache.spark.sql.types.{StructField, StructType}
 
 
 object ACMGImplicits {
@@ -22,24 +22,23 @@ object ACMGImplicits {
      *         StructField(max_af, DoubleType, true),
      *         StructField(score, BooleanType, true)
      *         )
+     *
      */
-    def get_BA1: Column = {
+    def getBA1(colFreq:String = "external_frequencies"): Column = {
 
-      require(df.columns.contains("external_frequencies"), "Column `external_frequencies` is required for BA1.")
+      require(df.columns.contains(colFreq), s"Column `$colFreq` is required for BA1.")
 
-      val afCols = for (field <- df.select("external_frequencies.*").columns) yield s"external_frequencies.${field}.af"
+      val afCols = df.select(s"$colFreq.*").columns.map { field =>
+        struct(col(s"$colFreq.$field.af") as "v", lit(field) as "k")
+      }
 
-      val structs = afCols.map(
-        c => struct(col(c).as("v"), lit(c).as("k"))
-      )
-
-      val study = split(greatest(structs: _*).getItem("k"), "\\.")(1)
-      val max_af = greatest(structs: _*).getItem("v")
+      val maxAf = greatest(afCols: _*).getItem("v")
+      val study = greatest(afCols: _*).getItem("k")
 
       struct(
         study.as("study"),
-        max_af.as("max_af"),
-        (max_af >= 0.05).as("score")
+        maxAf.as("max_af"),
+        (maxAf >= 0.05).as("score")
       )
 
     }

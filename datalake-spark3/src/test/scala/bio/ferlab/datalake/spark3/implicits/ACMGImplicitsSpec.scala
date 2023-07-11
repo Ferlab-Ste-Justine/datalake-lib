@@ -12,7 +12,7 @@ class ACMGImplicitsSpec extends AnyFlatSpec with WithSparkSession with Matchers 
 
   spark.sparkContext.setLogLevel("ERROR")
 
-  def ba1_fixture = {
+  def ba1Fixture = {
     new {
       val querySchema = new StructType()
         .add("start", IntegerType, true)
@@ -31,7 +31,7 @@ class ACMGImplicitsSpec extends AnyFlatSpec with WithSparkSession with Matchers 
 
       val resultSchema = new StructType()
         .add("BA1", new StructType()
-          .add("study", StringType, true)
+          .add("study", StringType, false)
           .add("max_af", DoubleType, true)
           .add("score", BooleanType, true),
           false)
@@ -42,7 +42,7 @@ class ACMGImplicitsSpec extends AnyFlatSpec with WithSparkSession with Matchers 
       )
 
       val queryDF = spark.createDataFrame(spark.sparkContext.parallelize(queryData), querySchema)
-      val result = queryDF.withColumn("BA1", queryDF.get_BA1).select("BA1")
+      val result = queryDF.withColumn("BA1", queryDF.getBA1()).select("BA1")
     }
   }
 
@@ -52,16 +52,16 @@ class ACMGImplicitsSpec extends AnyFlatSpec with WithSparkSession with Matchers 
 
     val df = spark.createDataFrame(spark.sparkContext.parallelize(structureData), structureSchema)
 
-    an[IllegalArgumentException] should be thrownBy df.get_BA1
+    an[IllegalArgumentException] should be thrownBy df.getBA1()
   }
 
   it should "return the correct BA1 schema" in {
-    val f = ba1_fixture
-    f.result.schema should contain theSameElementsAs f.resultSchema
+    val f = ba1Fixture
+    f.result.schema shouldBe f.resultSchema
   }
 
   it should "return the correct BA1 classification data" in {
-    val f = ba1_fixture
+    val f = ba1Fixture
     f.result.collect() should contain theSameElementsAs f.resultData
   }
 
