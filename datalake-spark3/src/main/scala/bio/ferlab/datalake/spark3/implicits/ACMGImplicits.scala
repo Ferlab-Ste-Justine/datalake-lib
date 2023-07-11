@@ -1,9 +1,9 @@
 package bio.ferlab.datalake.spark3.implicits
 
-import org.apache.spark.sql.{Column, DataFrame, RelationalGroupedDataset, SparkSession}
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.types.{StructField, StructType}
-
+import org.apache.spark.sql.{Column, DataFrame}
+import org.json4s._
+import org.json4s.jackson.JsonMethods._
 
 object ACMGImplicits {
 
@@ -24,13 +24,15 @@ object ACMGImplicits {
      *         )
      *
      */
-    def getBA1(colFreq:String = "external_frequencies"): Column = {
+    def getBA1(colFreq: String = "external_frequencies"): Column = {
 
       require(df.columns.contains(colFreq), s"Column `$colFreq` is required for BA1.")
 
-      val afCols = df.select(s"$colFreq.*").columns.map { field =>
-        struct(col(s"$colFreq.$field.af") as "v", lit(field) as "k")
-      }
+      val afCols = parse(df.schema("external_frequencies").dataType.json).values
+        .asInstanceOf[Map[String, List[Map[String, Any]]]]("fields").map(c => c("name"))
+        .map { field =>
+          struct(col(s"$colFreq.$field.af") as "v", lit(field) as "k")
+        }
 
       val maxAf = greatest(afCols: _*).getItem("v")
       val study = greatest(afCols: _*).getItem("k")
