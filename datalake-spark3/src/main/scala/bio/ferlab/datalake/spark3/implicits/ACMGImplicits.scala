@@ -36,7 +36,7 @@ object ACMGImplicits {
           val study = greatest(afCols: _*).getItem("k")
 
           struct(
-            study.as("study"),
+            study.as("cohort"),
             maxAf.as("max_af"),
             (maxAf >= 0.05).as("score")
           )

@@ -31,7 +31,7 @@ class ACMGImplicitsSpec extends AnyFlatSpec with WithSparkSession with Matchers 
 
       val resultSchema = new StructType()
         .add("BA1", new StructType()
-          .add("study", StringType, false)
+          .add("cohort", StringType, false)
           .add("max_af", DoubleType, true)
           .add("score", BooleanType, true),
           false)
