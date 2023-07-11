@@ -43,20 +43,24 @@ lazy val `datalake-spark3` = (project in file("datalake-spark3"))
   .settings(
     scalaVersion := scala212,
     libraryDependencies ++= Seq(
-      "org.apache.spark"        %% "spark-core"                     % spark3Version        % Provided,
-      "org.apache.spark"        %% "spark-sql"                      % spark3Version        % Provided,
-      "io.delta"                %% "delta-core"                     % deltaVersion         % Provided,
-      "org.elasticsearch"       %% "elasticsearch-spark-30"         % elasticsearchVersion % Provided,
-      "com.github.pureconfig"   %% "pureconfig"                     % pureconfigVersion,
-      "org.typelevel"           %% "cats-core"                      % catsVersion,
-      "io.projectglow"          %% "glow-spark3"                    % glowVersion          % Provided exclude ("org.apache.hadoop", "hadoop-client"),
-      "com.microsoft.sqlserver" %  "mssql-jdbc"                     % "8.4.1.jre8"         % Provided,
-      "com.microsoft.aad"       %  "adal4j"                         % "0.0.2"              % Provided,
-      "com.microsoft.azure"     %  "spark-mssql-connector_2.12"     % "1.1.0"              % Provided,
-      "com.dimafeng"            %% "testcontainers-scala-scalatest" % "0.38.8"             % Test,
-      "org.testcontainers"      %  "localstack"                     % "1.15.2"             % Test,
-      "org.scalatest"           %% "scalatest"                      % scalatestVersion     % Test,
-      "org.apache.spark"        %% "spark-hive"                     % spark3Version        % Test
+      "org.apache.spark"              %% "spark-core"                     % spark3Version        % Provided,
+      "org.apache.spark"              %% "spark-sql"                      % spark3Version        % Provided,
+      "io.delta"                      %% "delta-core"                     % deltaVersion         % Provided,
+      "org.elasticsearch"             %% "elasticsearch-spark-30"         % elasticsearchVersion % Provided,
+      "com.github.pureconfig"         %% "pureconfig"                     % pureconfigVersion,
+      "org.typelevel"                 %% "cats-core"                      % catsVersion,
+      "io.projectglow"                %% "glow-spark3"                    % glowVersion          % Provided exclude ("org.apache.hadoop", "hadoop-client"),
+      "com.microsoft.sqlserver"       %  "mssql-jdbc"                     % "8.4.1.jre8"         % Provided,
+      "com.microsoft.aad"             %  "adal4j"                         % "0.0.2"              % Provided,
+      "com.microsoft.azure"           %  "spark-mssql-connector_2.12"     % "1.1.0"              % Provided,
+      //Use by ElasticsearchClient
+      "com.softwaremill.sttp.client3" %% "core"                           % "3.8.15",
+      "com.softwaremill.sttp.client3" %% "json4s"                         % "3.8.15" exclude("org.json4s", "json4s-core_2.12"), //Exclusion because json4s is used in spark
+      "com.softwaremill.sttp.client3" %% "slf4j-backend" % "3.8.15",
+      "com.dimafeng"                  %% "testcontainers-scala-scalatest" % "0.40.17" % Test,
+      "com.dimafeng"                  %% "testcontainers-scala-elasticsearch" % "0.40.17" % Test,
+      "org.scalatest"                 %% "scalatest"                      % scalatestVersion     % Test,
+      "org.apache.spark"              %% "spark-hive"                     % spark3Version        % Test,
 ),
     dependencyOverrides ++= Seq(
       "org.apache.commons"     % "commons-lang3"                    % "3.9",
