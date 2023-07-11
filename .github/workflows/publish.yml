@@ -15,26 +15,14 @@ jobs:
         with:
           distribution: 'adopt'
           java-version: '11'
-          cache: 'sbt'
-      - name: Import GPG key
-        id: import_gpg
-        uses: crazy-max/ghaction-import-gpg@v5
-        with:
-          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
-          passphrase: ${{ secrets.GPG_PASSPHRASE }}
-          git_user_signingkey: false
-      # trust myself
-      - name: Update Trust = Trust myself
-        id: trust_myself
+      - id: install-secret-key
+        name: Install gpg secret key
         run: |
-          gpg --no-tty --command-fd 0 --edit-key ${{ secrets.GPG_PRIVATE_KEY }} << EOTRUST
-          trust
-          5
-          y
-          quit
-          EOTRUST
-      - name: List keys
-        run: gpg -K
+          # Install gpg secret key
+          cat <(echo -e "${{ secrets.GPG_PRIVATE_KEY }}") | gpg --batch --import
+          # Verify gpg secret key
+          gpg --list-secret-keys --keyid-format LONG
+
       - name: Publish Artifact
         shell: bash
         env:
@@ -48,4 +36,5 @@ jobs:
           echo $SONATYPE_HOST >> /home/runner/.sbt/sonatype_credentials
           echo $SONATYPE_USERNAME >> /home/runner/.sbt/sonatype_credentials
           echo $SONATYPE_PASSWORD >> /home/runner/.sbt/sonatype_credentials
+          export PGP_PASSPHRASE=${{ secrets.GPG_PASSPHRASE }}
           sbt 'publishSigned; sonatypeRelease'
