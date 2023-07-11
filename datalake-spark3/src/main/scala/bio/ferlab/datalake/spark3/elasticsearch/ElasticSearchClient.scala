@@ -90,8 +90,6 @@ class ElasticSearchClient(url: String, username: Option[String] = None, password
         remove.map(name => RemoveAction(Map("index" -> name, "alias" -> alias)))
     )
 
-    //    println(write(action))
-
     val request = basicRequest
       .post(aliasesUri)
       .contentType(MediaType.ApplicationJson)

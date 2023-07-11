@@ -48,8 +48,7 @@ class Indexer(jobType: String,
   def publish(alias: String,
               currentIndex: String,
               previousIndex: Option[String] = None)(implicit esClient: ElasticSearchClient): Unit = {
-    esClient.setAlias(add = List(currentIndex), remove = List(), alias)
-    esClient.setAlias(add = List(), remove = previousIndex.toList, alias)
+    esClient.setAlias(add = List(currentIndex), remove = previousIndex.toList, alias)
   }
 
 
