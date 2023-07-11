@@ -15,5 +15,6 @@ jobs:
       with:
         distribution: 'adopt'
         java-version: '11'
+        cache: 'sbt'
     - name: Run tests
       run: sbt 'project datalake-spark3' 'test'
