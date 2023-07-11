@@ -1,6 +1,7 @@
 package bio.ferlab.datalake.spark3.implicits
 
 import org.apache.spark.sql.functions._
+import org.apache.spark.sql.types.StructType
 import org.apache.spark.sql.{Column, DataFrame}
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
@@ -28,21 +29,23 @@ object ACMGImplicits {
 
       require(df.columns.contains(colFreq), s"Column `$colFreq` is required for BA1.")
 
-      val afCols = parse(df.schema("external_frequencies").dataType.json).values
-        .asInstanceOf[Map[String, List[Map[String, Any]]]]("fields").map(c => c("name"))
-        .map { field =>
-          struct(col(s"$colFreq.$field.af") as "v", lit(field) as "k")
-        }
+      df.schema("external_frequencies").dataType match {
+        case s: StructType =>
+          val afCols = s.fields.map(_.name).map { field =>
+            struct(col(s"$colFreq.$field.af") as "v", lit(field) as "k")
+          }
+          val maxAf = greatest(afCols: _*).getItem("v")
+          val study = greatest(afCols: _*).getItem("k")
 
-      val maxAf = greatest(afCols: _*).getItem("v")
-      val study = greatest(afCols: _*).getItem("k")
+          struct(
+            study.as("study"),
+            maxAf.as("max_af"),
+            (maxAf >= 0.05).as("score")
+          )
 
-      struct(
-        study.as("study"),
-        maxAf.as("max_af"),
-        (maxAf >= 0.05).as("score")
-      )
 
+        case _ => throw new IllegalArgumentException(s"Column `$colFreq` must be a StructType.")
+      }
     }
 
   }
