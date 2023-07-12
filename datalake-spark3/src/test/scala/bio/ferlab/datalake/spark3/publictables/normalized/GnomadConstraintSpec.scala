@@ -4,8 +4,9 @@ import bio.ferlab.datalake.commons.config.DatasetConf
 import bio.ferlab.datalake.spark3.publictables.normalized.gnomad.GnomadConstraint
 import bio.ferlab.datalake.spark3.testmodels.normalized.NormalizedGnomadConstraint
 import bio.ferlab.datalake.spark3.testmodels.raw.RawGnomadConstraint
-import bio.ferlab.datalake.spark3.testutils.{WithSparkSession, WithTestConfig}
+import bio.ferlab.datalake.spark3.testutils.WithTestConfig
 import bio.ferlab.datalake.spark3.utils.ClassGenerator
+import bio.ferlab.datalake.testutils.WithSparkSession
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 

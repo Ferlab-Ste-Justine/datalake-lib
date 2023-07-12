@@ -4,7 +4,8 @@ import bio.ferlab.datalake.commons.config.DatasetConf
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import bio.ferlab.datalake.spark3.testmodels.enriched.{EnrichedGenes, OMIM, ORPHANET}
 import bio.ferlab.datalake.spark3.testmodels.normalized._
-import bio.ferlab.datalake.spark3.testutils.{WithSparkSession, WithTestConfig}
+import bio.ferlab.datalake.spark3.testutils.WithTestConfig
+import bio.ferlab.datalake.testutils.WithSparkSession
 import org.apache.spark.sql.functions
 import org.apache.spark.sql.functions.col
 import org.scalatest.flatspec.AnyFlatSpec

@@ -3,7 +3,8 @@ package bio.ferlab.datalake.spark3.genomics
 import bio.ferlab.datalake.spark3.genomics.Frequencies._
 import bio.ferlab.datalake.spark3.testmodels.frequency.{Frequency, FrequencyByStudyId, FrequencyByStudyIdAffected, GlobalFrequency, GlobalFrequencyAffected, VariantFrequencyOutputByStudy, VariantFrequencyOutputByStudyAffected}
 import bio.ferlab.datalake.spark3.testmodels.normalized.NormalizedSNV
-import bio.ferlab.datalake.spark3.testutils.{WithSparkSession, WithTestConfig}
+import bio.ferlab.datalake.spark3.testutils.WithTestConfig
+import bio.ferlab.datalake.testutils.WithSparkSession
 import org.apache.spark.sql.functions.col
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AnyFlatSpec

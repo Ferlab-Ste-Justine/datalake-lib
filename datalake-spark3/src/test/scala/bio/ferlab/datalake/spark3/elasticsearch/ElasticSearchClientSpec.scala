@@ -1,6 +1,6 @@
 package bio.ferlab.datalake.spark3.elasticsearch
 
-import bio.ferlab.datalake.spark3.testutils.WithSparkSession
+import bio.ferlab.datalake.testutils.WithSparkSession
 import com.dimafeng.testcontainers.ElasticsearchContainer
 import com.dimafeng.testcontainers.scalatest.TestContainerForEach
 import org.scalatest.flatspec.AnyFlatSpec

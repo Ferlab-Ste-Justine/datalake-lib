@@ -1,6 +1,6 @@
 package bio.ferlab.datalake.spark3.file
 
-import bio.ferlab.datalake.spark3.testutils.WithSparkSession
+import bio.ferlab.datalake.testutils.WithSparkSession
 import org.scalatest.GivenWhenThen
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
