@@ -46,6 +46,31 @@ object ACMGImplicits {
       }
     }
 
+    /**
+     * PM2 - ACMG criteria
+     * Moderate (supporting) evidence of pathogenic impact.
+     * Absent from controls (or at extremely low frequency if recessive) in Exome Sequencing Project, 1000 Genomes
+     * Project, or Exome Aggregration Consortium.
+     *
+     * WIP
+     *
+     */
+    def getPM2(omimDF: DataFrame): Column = {
+
+      val inheritance_modes = List(
+        "Pseudoautosomal recessive",
+        "Autosomal recessive",
+        "Digenic recessive",
+        "X-linked recessive")
+
+      val _df = omim_df.select("symbols", "phenotype.inheritance")
+        .withColumn("is_recessive", inheritance_modes.map(m => array_contains($"inheritance", m)).reduce(_ || _))
+        .select($"is_recessive", explode($"symbols").as("gene_symbol"))
+        .filter($"is_recessive" === true)
+
+      lit(1)
+    }
+
   }
 
 }
