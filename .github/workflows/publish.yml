@@ -34,14 +34,14 @@ jobs:
           tag: ${{ github.ref_name }}
         run: |
           mkdir -p /home/runner/.sbt
-          echo "realm=${{ secrets.SONATYPE_REALM }}" >> /home/runner/.sbt/sonatype_credentials
+          echo "realm=${{ secrets.SONATYPE_REALM }}" > /home/runner/.sbt/sonatype_credentials
           echo "host=${{ secrets.SONATYPE_HOST }}" >> /home/runner/.sbt/sonatype_credentials
           echo "user=${{ secrets.SONATYPE_USERNAME }}" >> /home/runner/.sbt/sonatype_credentials
           echo "password=${{ secrets.SONATYPE_PASSWORD }}" >> /home/runner/.sbt/sonatype_credentials
           export PGP_PASSPHRASE=${{ secrets.GPG_PASSPHRASE }}
           # Remove the leading 'v' from the tag string
           export version=${tag#v}
-          sbt 'set version := "version"; publishSigned; sonatypeRelease'
+          sbt 'set version := "$version" publishSigned; set version := "$version" sonatypeRelease'
 
       - name: Create release
         env:
