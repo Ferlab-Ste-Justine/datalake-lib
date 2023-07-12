@@ -2,10 +2,11 @@ name: Publish Artifact
 
 on:
   push:
-    branches: [ master ]
+    tags:
+      - v*
 
 jobs:
-  build:
+  release:
 
     runs-on: ubuntu-latest
 
@@ -23,15 +24,14 @@ jobs:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.GPG_PASSPHRASE }}
           git_user_signingkey: false
+
       - name: List keys
         run: gpg -K
+
       - name: Publish Artifact
         shell: bash
         env:
-          SONATYPE_REALM: ${{ secrets.SONATYPE_REALM }}
-          SONATYPE_HOST: ${{ secrets.SONATYPE_HOST }}
-          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
-          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+          tag: ${{ github.ref_name }}
         run: |
           mkdir /home/runner/.sbt
           echo "realm=${{ secrets.SONATYPE_REALM }}" >> /home/runner/.sbt/sonatype_credentials
@@ -39,4 +39,16 @@ jobs:
           echo "user=${{ secrets.SONATYPE_USERNAME }}" >> /home/runner/.sbt/sonatype_credentials
           echo "password=${{ secrets.SONATYPE_PASSWORD }}" >> /home/runner/.sbt/sonatype_credentials
           export PGP_PASSPHRASE=${{ secrets.GPG_PASSPHRASE }}
-          sbt 'publishSigned; sonatypeRelease'
+          # Remove the leading 'v' from the tag string
+          export version=${tag#v}
+          sbt 'set version := "version"; publishSigned; sonatypeRelease'
+
+      - name: Create release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.ref_name }}
+        run: |
+          gh release create "$tag" \
+              --repo="$GITHUB_REPOSITORY" \
+              --title="${GITHUB_REPOSITORY#*/} ${tag#v}" \
+              --generate-notes          
