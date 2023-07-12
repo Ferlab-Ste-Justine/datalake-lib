@@ -3,7 +3,8 @@ package bio.ferlab.datalake.spark3.genomics.prepared
 import bio.ferlab.datalake.commons.config.DatasetConf
 import bio.ferlab.datalake.spark3.testmodels.enriched.{EnrichedConsequences, EnrichedVariant}
 import bio.ferlab.datalake.spark3.testmodels.prepared.PreparedVariantCentric
-import bio.ferlab.datalake.spark3.testutils.{WithSparkSession, WithTestConfig}
+import bio.ferlab.datalake.spark3.testutils.WithTestConfig
+import bio.ferlab.datalake.testutils.WithSparkSession
 import org.apache.spark.sql.DataFrame
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AnyFlatSpec

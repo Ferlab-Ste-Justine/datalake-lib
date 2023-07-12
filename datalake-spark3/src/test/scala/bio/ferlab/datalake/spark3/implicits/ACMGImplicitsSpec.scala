@@ -1,7 +1,7 @@
 package bio.ferlab.datalake.spark3.implicits
 
 import bio.ferlab.datalake.spark3.implicits.ACMGImplicits._
-import bio.ferlab.datalake.spark3.testutils.WithSparkSession
+import bio.ferlab.datalake.testutils.WithSparkSession
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types._
 import org.scalatest.flatspec.AnyFlatSpec

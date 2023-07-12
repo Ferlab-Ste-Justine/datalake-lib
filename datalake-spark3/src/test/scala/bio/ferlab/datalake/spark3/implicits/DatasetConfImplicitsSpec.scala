@@ -5,7 +5,7 @@ import bio.ferlab.datalake.commons.config.LoadType.{OverWrite, OverWritePartitio
 import bio.ferlab.datalake.commons.config.{Configuration, DatalakeConf, DatasetConf, LoadType, SimpleConfiguration, StorageConf, TableConf, WriteOptions}
 import bio.ferlab.datalake.commons.file.FileSystemType.LOCAL
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
-import bio.ferlab.datalake.spark3.testutils.WithSparkSession
+import bio.ferlab.datalake.testutils.WithSparkSession
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.{BeforeAndAfterAll, GivenWhenThen}

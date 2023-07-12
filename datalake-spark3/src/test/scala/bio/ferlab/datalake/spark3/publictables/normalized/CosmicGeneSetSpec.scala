@@ -3,8 +3,9 @@ package bio.ferlab.datalake.spark3.publictables.normalized
 import bio.ferlab.datalake.commons.config.DatasetConf
 import bio.ferlab.datalake.spark3.testmodels.normalized.{NormalizedClinvar, NormalizedCosmic}
 import bio.ferlab.datalake.spark3.testmodels.raw.{RawClinvar, RawCosmic}
-import bio.ferlab.datalake.spark3.testutils.{WithSparkSession, WithTestConfig}
+import bio.ferlab.datalake.spark3.testutils.WithTestConfig
 import bio.ferlab.datalake.spark3.utils.ClassGenerator
+import bio.ferlab.datalake.testutils.WithSparkSession
 import io.delta.tables.DeltaTable
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
