@@ -40,8 +40,8 @@ jobs:
           echo "password=${{ secrets.SONATYPE_PASSWORD }}" >> /home/runner/.sbt/sonatype_credentials
           export PGP_PASSPHRASE=${{ secrets.GPG_PASSPHRASE }}
           # Remove the leading 'v' from the tag string
-          export version=${tag#v}
-          sbt 'set version := "$version" publishSigned; set version := "$version" sonatypeRelease'
+          export VERSION=${tag#v}
+          sbt 'publishSigned; sonatypeRelease'
 
       - name: Create release
         env:
