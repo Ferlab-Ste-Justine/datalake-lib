@@ -24,9 +24,6 @@ jobs:
           passphrase: ${{ secrets.GPG_PASSPHRASE }}
           git_user_signingkey: false
 
-      - name: List keys
-        run: gpg -K
-
       - name: Publish Artifact
         shell: bash
         env:
@@ -36,8 +33,8 @@ jobs:
           echo "realm=${{ secrets.SONATYPE_REALM }}" >> /home/runner/.sbt/sonatype_credentials
           echo "host=${{ secrets.SONATYPE_HOST }}" >> /home/runner/.sbt/sonatype_credentials
           cat /home/runner/.sbt/sonatype_credentials
-#          echo "user=${{ secrets.SONATYPE_USERNAME }}" >> /home/runner/.sbt/sonatype_credentials
-#          echo "password=${{ secrets.SONATYPE_PASSWORD }}" >> /home/runner/.sbt/sonatype_credentials
+          #          echo "user=${{ secrets.SONATYPE_USERNAME }}" >> /home/runner/.sbt/sonatype_credentials
+          #          echo "password=${{ secrets.SONATYPE_PASSWORD }}" >> /home/runner/.sbt/sonatype_credentials
           export PGP_PASSPHRASE=${{ secrets.GPG_PASSPHRASE }}
           # Remove the leading 'v' from the tag string
           export VERSION=${tag#v}
