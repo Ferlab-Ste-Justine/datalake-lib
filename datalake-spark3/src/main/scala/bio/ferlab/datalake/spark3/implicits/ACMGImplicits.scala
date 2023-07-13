@@ -55,18 +55,48 @@ object ACMGImplicits {
      * WIP
      *
      */
-    def getPM2(omimDF: DataFrame): Column = {
+    def getPM2(omim: DataFrame, frequencies: DataFrame): Column = {
 
-      val inheritance_modes = List(
+      // Extracting inheritance, identifying recessive genes
+      val inheritanceModes = List(
         "Pseudoautosomal recessive",
         "Autosomal recessive",
         "Digenic recessive",
         "X-linked recessive")
 
-      val _df = omim_df.select("symbols", "phenotype.inheritance")
-        .withColumn("is_recessive", inheritance_modes.map(m => array_contains($"inheritance", m)).reduce(_ || _))
+      val omimRecessive = omim.select("symbols", "phenotype.inheritance")
+        .withColumn("is_recessive", inheritanceModes.map(m => array_contains($"inheritance", m)).reduce(_ || _))
         .select($"is_recessive", explode($"symbols").as("gene_symbol"))
         .filter($"is_recessive" === true)
+        .distinct()
+
+
+      // Extracting frequency (and lack of)
+      val maxAf = frequencies.schema("external_frequencies").dataType match {
+        case s: StructType => {
+          val afCols = s.fields.map(_.name).map { field =>
+            struct(col(s"external_frequencies.$field.af") as "v", lit(field) as "k")
+          }
+          greatest(afCols: _*).getItem("v").as("max_af")
+        }
+      }
+
+      val freqPerSymbol = frequencies.select(
+        $"chromosome",
+        $"start",
+        $"end",
+        $"reference",
+        $"alternate",
+        explode($"genes_symbol").as("gene_symbol"),
+        maxAf,
+        maxAf.isNull.as("max_af_is_null")
+      )
+
+      // Joining and computing PM2
+      val pm2 = freqPerSymbol.join(omimRecessive, Seq("gene_symbol"), "leftouter")
+        .na.fill(false, Seq("is_recessive"))
+        .withColumn("PM2", $"max_af_is_null" || $"max_af" === 0 || ($"is_recessive" && $"max_af" < 0.0001))
+
 
       lit(1)
     }
@@ -74,3 +104,6 @@ object ACMGImplicits {
   }
 
 }
+
+
+
