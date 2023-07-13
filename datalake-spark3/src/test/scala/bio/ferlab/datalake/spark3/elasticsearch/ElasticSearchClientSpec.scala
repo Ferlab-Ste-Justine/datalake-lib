@@ -117,4 +117,30 @@ class ElasticSearchClientSpec extends AnyFlatSpec with GivenWhenThen with Matche
 
     }
   }
+
+  "getAliasIndices" should "return list of indices contained in a given alias" in {
+    withESContainer { url =>
+      //Create 3 indices
+      httpClient.send(basicRequest.put(uri"$url/test_index_1").body("{}").contentType("application/json")).isSuccess shouldBe true
+      httpClient.send(basicRequest.put(uri"$url/test_index_2").body("{}").contentType("application/json")).isSuccess shouldBe true
+      httpClient.send(basicRequest.put(uri"$url/test_index_3").body("{}").contentType("application/json")).isSuccess shouldBe true
+
+      val client = new ElasticSearchClient(url)
+      noException should be thrownBy client.setAlias(List("test_index_1", "test_index_2"), Nil, "test_alias")
+
+      val indices = client.getAliasIndices("test_alias")
+
+      indices should contain theSameElementsAs Seq("test_index_1", "test_index_2")
+
+    }
+  }
+
+  it should "return empty set if alias does not exist" in {
+    withESContainer { url =>
+      val client = new ElasticSearchClient(url)
+      noException should be thrownBy client.getAliasIndices("unknown_alias")
+      client.getAliasIndices("unknown_alias") shouldBe empty
+
+    }
+  }
 }
