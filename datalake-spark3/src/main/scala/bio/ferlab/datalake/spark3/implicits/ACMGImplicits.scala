@@ -97,8 +97,11 @@ object ACMGImplicits {
         .na.fill(false, Seq("is_recessive"))
         .withColumn("PM2", $"max_af_is_null" || $"max_af" === 0 || ($"is_recessive" && $"max_af" < 0.0001))
 
+      val _df = df.join(pm2, Seq("chromosome", "start", "end", "reference", "alternate"), "leftouter")
 
-      lit(1)
+      struct(
+        _df("PM2")
+      )
     }
 
   }
