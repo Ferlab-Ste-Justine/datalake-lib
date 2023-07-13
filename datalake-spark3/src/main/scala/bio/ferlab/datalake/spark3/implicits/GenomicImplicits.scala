@@ -1,19 +1,19 @@
 package bio.ferlab.datalake.spark3.implicits
 
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.ParentalOrigin._
-import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns.{familyInfo, fatherADAlt, fatherADRatio, fatherADRef, fatherADTotal, fatherAffectedStatus, fatherCalls, fatherCol, fatherDP, fatherFilters, fatherGQ, fatherQD, motherADAlt, motherADRatio, motherADRef, motherADTotal, motherAffectedStatus, motherCalls, motherCol, motherDP, motherFilters, motherGQ, motherQD}
+import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns.{familyInfo, fatherCol, motherCol}
 import bio.ferlab.datalake.spark3.implicits.SparkUtils.isNestedFieldExists
 import io.projectglow.Glow
 import org.apache.spark.sql.expressions.{Window, WindowSpec}
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.types.{DecimalType, DoubleType, StringType, StructType}
-import org.apache.spark.sql.{AnalysisException, Column, DataFrame, RelationalGroupedDataset, SparkSession}
-import org.slf4j.Logger
+import org.apache.spark.sql.types.{DoubleType, StringType}
+import org.apache.spark.sql._
+import org.slf4j
 
 import scala.collection.immutable
 
 object GenomicImplicits {
-
+  val log: slf4j.Logger = slf4j.LoggerFactory.getLogger(getClass.getCanonicalName)
   implicit class GenomicOperations(df: DataFrame) {
 
     def joinAndMerge(other: DataFrame, outputColumnName: String, joinType: String = "inner"): DataFrame = {
@@ -799,7 +799,7 @@ object GenomicImplicits {
    * @param spark               a Spark session
    * @return data into a dataframe
    */
-  def vcf(input: String, referenceGenomePath: Option[String], optional: Boolean)(implicit spark: SparkSession, log: Logger): DataFrame = {
+  def vcf(input: String, referenceGenomePath: Option[String], optional: Boolean)(implicit spark: SparkSession): DataFrame = {
     try {
       val inputs = input.split(",")
       val df = spark.read
@@ -824,15 +824,15 @@ object GenomicImplicits {
     }
   }
 
-  def vcf(input: String, referenceGenomePath: Option[String])(implicit spark: SparkSession, log: Logger): DataFrame = {
+  def vcf(input: String, referenceGenomePath: Option[String])(implicit spark: SparkSession): DataFrame = {
     vcf(input, referenceGenomePath, optional = false)
   }
 
-  def vcf(files: List[String], referenceGenomePath: Option[String], optional: Boolean)(implicit spark: SparkSession, log: Logger): DataFrame = {
+  def vcf(files: List[String], referenceGenomePath: Option[String], optional: Boolean)(implicit spark: SparkSession): DataFrame = {
     vcf(files.mkString(","), referenceGenomePath, optional)
   }
 
-  def vcf(files: List[String], referenceGenomePath: Option[String])(implicit spark: SparkSession, log: Logger): DataFrame = {
+  def vcf(files: List[String], referenceGenomePath: Option[String])(implicit spark: SparkSession): DataFrame = {
     vcf(files.mkString(","), referenceGenomePath, optional = false)
   }
 
