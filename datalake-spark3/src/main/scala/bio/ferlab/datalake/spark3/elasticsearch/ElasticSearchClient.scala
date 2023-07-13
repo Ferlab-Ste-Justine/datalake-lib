@@ -3,22 +3,22 @@ package bio.ferlab.datalake.spark3.elasticsearch
 import bio.ferlab.datalake.spark3.utils.ResourceLoader.loadResource
 import org.apache.commons.io.FilenameUtils
 import org.apache.spark.sql.SparkSession
-import org.slf4j.{Logger, LoggerFactory}
+import org.json4s.DefaultFormats
+import org.json4s.jackson.Serialization
 import sttp.client3.json4s._
 import sttp.client3.logging.slf4j.Slf4jLoggingBackend
 import sttp.client3.{SimpleHttpClient, UriContext, basicRequest}
-import sttp.model.{MediaType, Uri}
+import sttp.model.{MediaType, StatusCode, Uri}
 
 class ElasticSearchClient(url: String, username: Option[String] = None, password: Option[String] = None) {
 
   private val indexUri: String => Uri = indexName => uri"$url/$indexName"
   private val templateUri: String => Uri = templateName => uri"$url/_index_template/$templateName"
   private val aliasesUri: Uri = uri"$url/_aliases"
-  private val log: Logger = LoggerFactory.getLogger(getClass.getCanonicalName)
   private val client = SimpleHttpClient().wrapBackend(Slf4jLoggingBackend(_))
   private val esUri: Uri = uri"$url"
-  private implicit val serialization = org.json4s.jackson.Serialization
-  private implicit val formats = org.json4s.DefaultFormats
+  private implicit val serialization: Serialization.type = org.json4s.jackson.Serialization
+  private implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
   private val esRequest =
     if (username.isDefined && password.isDefined)
       basicRequest.auth.basic(username.get, password.get)
@@ -99,6 +99,31 @@ class ElasticSearchClient(url: String, username: Option[String] = None, password
       case Left(e) => throw new IllegalStateException(s"Server could not set alias to $alias, replied :$e")
       case _ => ()
     }
+
+  }
+
+  /**
+   * Get indices associates to a given alias
+   *
+   * @param aliasName name of the alias
+   * @return a set of indices. Empty if alias does not exist.
+   */
+  def getAliasIndices(aliasName: String): Set[String] = {
+
+    val aliasUrl = uri"$url/_alias/$aliasName"
+    val request = basicRequest
+      .get(aliasUrl)
+      .response(asJson[Map[String, Any]])
+    val response = client.send(request)
+    if (response.code == StatusCode.NotFound) {
+      Set.empty
+    } else {
+      response.body match {
+        case Left(e) => throw new IllegalStateException(s"Server could not get alias $aliasName, replied :$e")
+        case Right(r) => r.keys.toSet
+      }
+    }
+
 
   }
 
