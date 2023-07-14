@@ -1,4 +1,4 @@
-package bio.ferlab.datalake.testutils.models
+package bio.ferlab.datalake.testutils.models.genomicimplicits
 
 case class ConsequencesInput(chromosome: String = "1",
                              start: Long = 1,

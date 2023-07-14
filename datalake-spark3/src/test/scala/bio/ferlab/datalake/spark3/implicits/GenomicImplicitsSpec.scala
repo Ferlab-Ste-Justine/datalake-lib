@@ -9,7 +9,7 @@ import org.scalatest.matchers.should.Matchers
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.ParentalOrigin._
 import bio.ferlab.datalake.spark3.testmodels.enriched.EnrichedGenes
 import bio.ferlab.datalake.testutils.WithSparkSession
-import bio.ferlab.datalake.testutils.models.{AlleleDepthOutput, CompoundHetInput, CompoundHetOutput, ConsequencesInput, FullCompoundHetOutput, Genotype, HCComplement, OtherCompoundHetInput, PickedConsequencesOuput, PossiblyCompoundHetOutput, PossiblyHCComplement, RefSeqAnnotation, RefSeqMrnaIdInput, RefSeqMrnaIdInputWithoutAnnotation, RefSeqMrnaIdInputWithoutRefSeq, RelativesGenotype, RelativesGenotypeOutput}
+import bio.ferlab.datalake.testutils.models.genomicimplicits.{AlleleDepthOutput, CompoundHetInput, CompoundHetOutput, ConsequencesInput, FullCompoundHetOutput, Genotype, HCComplement, OtherCompoundHetInput, PickedConsequencesOuput, PossiblyCompoundHetOutput, PossiblyHCComplement, RefSeqAnnotation, RefSeqMrnaIdInput, RefSeqMrnaIdInputWithoutAnnotation, RefSeqMrnaIdInputWithoutRefSeq, RelativesGenotype, RelativesGenotypeOutput}
 import org.slf4j
 
 import scala.collection.Seq

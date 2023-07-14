@@ -1,4 +1,4 @@
-package bio.ferlab.datalake.testutils.models
+package bio.ferlab.datalake.testutils.models.genomicimplicits
 
 case class CompoundHetInput(patient_id: String,
                             chromosome: String,

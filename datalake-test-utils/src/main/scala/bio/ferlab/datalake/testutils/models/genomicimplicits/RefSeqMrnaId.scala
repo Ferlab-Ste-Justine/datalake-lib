@@ -1,4 +1,4 @@
-package bio.ferlab.datalake.testutils.models
+package bio.ferlab.datalake.testutils.models.genomicimplicits
 
 case class RefSeqMrnaIdInput(id: String = "1", annotation: Option[RefSeqAnnotation] = Some(RefSeqAnnotation()))
 
