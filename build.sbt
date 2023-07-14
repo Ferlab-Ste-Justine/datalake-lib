@@ -45,7 +45,8 @@ lazy val `datalake-test-utils` = (project in file("datalake-test-utils"))
     libraryDependencies ++= Seq(
       "org.apache.spark" %% "spark-core" % spark3Version % Provided,
       "org.apache.spark" %% "spark-sql" % spark3Version % Provided,
-      "io.delta" %% "delta-core" % deltaVersion % Provided
+      "io.delta" %% "delta-core" % deltaVersion % Provided,
+      "org.scalatest" %% "scalatest" % scalatestVersion % Test
     )
   )
 

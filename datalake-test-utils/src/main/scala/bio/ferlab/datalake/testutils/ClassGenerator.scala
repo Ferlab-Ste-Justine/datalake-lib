@@ -1,4 +1,4 @@
-package bio.ferlab.datalake.spark3.utils
+package bio.ferlab.datalake.testutils
 
 import org.apache.spark.sql._
 import org.apache.spark.sql.functions._
@@ -8,10 +8,7 @@ import org.slf4j
 import java.io.{File, PrintWriter}
 import java.time.LocalDateTime
 import scala.annotation.tailrec
-
-import org.apache.spark.sql.{DataFrame, Row}
 import scala.util.Random
-import scala.math.BigDecimal
 object ClassGenerator {
 
   val log: slf4j.Logger = slf4j.LoggerFactory.getLogger(getClass.getCanonicalName)
@@ -159,7 +156,7 @@ case class $className(${fields.mkString("", s",\n${spacing.mkString}" , ")")}"""
     case _ => null
   }
 
-  def writeCLassFile(
+  def writeClassFile(
                       packageName: String,
                       className: String,
                       df: DataFrame,
@@ -206,10 +203,10 @@ case class $className(${fields.mkString("", s",\n${spacing.mkString}" , ")")}"""
 
 object ClassGeneratorImplicits {
   implicit class ClassGenDataFrameOps(df: DataFrame) {
-    def writeCLassFile(packageName: String,
+    def writeClassFile(packageName: String,
                        className: String,
                        rootFolder: String): Unit =
-      ClassGenerator.writeCLassFile(packageName, className, df, rootFolder)
+      ClassGenerator.writeClassFile(packageName, className, df, rootFolder)
   }
 }
 

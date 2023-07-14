@@ -2,7 +2,6 @@ package bio.ferlab.datalake.spark3.implicits
 
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits._
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns._
-import bio.ferlab.datalake.spark3.testmodels.{AlleleDepthOutput, CompoundHetInput, CompoundHetOutput, ConsequencesInput, FullCompoundHetOutput, Genotype, HCComplement, OtherCompoundHetInput, PickedConsequencesOuput, PossiblyCompoundHetOutput, PossiblyHCComplement, RefSeqAnnotation, RefSeqMrnaIdInput, RefSeqMrnaIdInputWithoutAnnotation, RefSeqMrnaIdInputWithoutRefSeq, RelativesGenotype, RelativesGenotypeOutput}
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{AnalysisException, Column, DataFrame, functions}
 import org.scalatest.flatspec.AnyFlatSpec
@@ -10,6 +9,7 @@ import org.scalatest.matchers.should.Matchers
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.ParentalOrigin._
 import bio.ferlab.datalake.spark3.testmodels.enriched.EnrichedGenes
 import bio.ferlab.datalake.testutils.WithSparkSession
+import bio.ferlab.datalake.testutils.models.genomicimplicits.{AlleleDepthOutput, CompoundHetInput, CompoundHetOutput, ConsequencesInput, FullCompoundHetOutput, Genotype, HCComplement, OtherCompoundHetInput, PickedConsequencesOuput, PossiblyCompoundHetOutput, PossiblyHCComplement, RefSeqAnnotation, RefSeqMrnaIdInput, RefSeqMrnaIdInputWithoutAnnotation, RefSeqMrnaIdInputWithoutRefSeq, RelativesGenotype, RelativesGenotypeOutput}
 import org.slf4j
 
 import scala.collection.Seq

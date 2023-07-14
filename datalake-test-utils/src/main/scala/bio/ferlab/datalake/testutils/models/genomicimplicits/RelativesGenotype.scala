@@ -1,4 +1,4 @@
-package bio.ferlab.datalake.spark3.testmodels
+package bio.ferlab.datalake.testutils.models.genomicimplicits
 
 case class RelativesGenotype(chromosome: String = "1",
                              start: Long = 1000,
