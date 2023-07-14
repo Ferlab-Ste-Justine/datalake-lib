@@ -4,8 +4,7 @@ import bio.ferlab.datalake.commons.config.DatasetConf
 import bio.ferlab.datalake.spark3.testmodels.enriched.{EnrichedSpliceAi, MAX_SCORE}
 import bio.ferlab.datalake.spark3.testmodels.normalized.NormalizedSpliceAi
 import bio.ferlab.datalake.spark3.testutils.WithTestConfig
-import bio.ferlab.datalake.spark3.utils.ClassGenerator
-import bio.ferlab.datalake.testutils.WithSparkSession
+import bio.ferlab.datalake.testutils.{ClassGenerator, WithSparkSession}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 

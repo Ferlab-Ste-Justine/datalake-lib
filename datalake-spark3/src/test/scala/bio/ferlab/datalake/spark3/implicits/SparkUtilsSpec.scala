@@ -1,8 +1,8 @@
 package bio.ferlab.datalake.spark3.implicits
 
 import bio.ferlab.datalake.spark3.implicits.SparkUtils._
-import bio.ferlab.datalake.spark3.testmodels.Genotype
 import bio.ferlab.datalake.testutils.WithSparkSession
+import bio.ferlab.datalake.testutils.models.Genotype
 import org.apache.spark.sql.types.{IntegerType, StringType, StructField, StructType}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

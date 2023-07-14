@@ -4,8 +4,7 @@ import bio.ferlab.datalake.commons.config.DatasetConf
 import bio.ferlab.datalake.spark3.testmodels.enriched.EnrichedGenes
 import bio.ferlab.datalake.spark3.testmodels.prepared.PreparedGeneSuggestions
 import bio.ferlab.datalake.spark3.testutils.WithTestConfig
-import bio.ferlab.datalake.spark3.utils.ClassGenerator
-import bio.ferlab.datalake.testutils.WithSparkSession
+import bio.ferlab.datalake.testutils.{ClassGenerator, WithSparkSession}
 import org.apache.spark.sql.DataFrame
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AnyFlatSpec
