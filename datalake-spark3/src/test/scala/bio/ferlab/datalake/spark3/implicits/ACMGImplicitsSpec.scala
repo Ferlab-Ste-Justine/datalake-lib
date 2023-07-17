@@ -12,6 +12,46 @@ class ACMGImplicitsSpec extends AnyFlatSpec with WithSparkSession with Matchers 
 
   spark.sparkContext.setLogLevel("ERROR")
 
+
+  def pm2Fixture = {
+    new {
+      val omimSchema = new StructType()
+        .add("symbols", new ArrayType(StringType, true), true)
+        .add("phenotype", new StructType()
+          .add("inheritance", new ArrayType(StringType, true), true)
+        )
+
+      val omimData = Seq(
+        Row(Array("gene1", "gene2"), Row(Array("Digenic recessive"))),
+        Row(Array("gene3"), Row(Array("Autosomal Recessive"))),
+        Row(Array("gene4"), Row(Array("Autosomal Dominant")))
+      )
+
+      val omimDF = spark.createDataFrame(spark.sparkContext.parallelize(omimData), omimSchema)
+
+      val freqSchema = new StructType()
+        .add("chromosome", StringType, true)
+        .add("start", IntegerType, true)
+        .add("end", IntegerType, true)
+        .add("reference", StringType, true)
+        .add("alternate", StringType, true)
+        .add("external_frequencies", new StructType()
+          .add("thousand_genomes", new StructType()
+            .add("af", DoubleType, true)
+            .add("an", IntegerType, true))
+          .add("topmed_bravo", new StructType()
+            .add("af", DoubleType, true)
+            .add("an", IntegerType, true)))
+
+      val freqData = Seq(
+        Row("1", 1, 2, "A", "C", Row(Row(0.001, 2), Row(0.050, 50)))
+      )
+
+      val freqDF = spark.createDataFrame(spark.sparkContext.parallelize(omimData), omimSchema)
+
+    }
+  }
+
   def ba1Fixture = {
     new {
       val querySchema = new StructType()
@@ -63,6 +103,12 @@ class ACMGImplicitsSpec extends AnyFlatSpec with WithSparkSession with Matchers 
   it should "return the correct BA1 classification data" in {
     val f = ba1Fixture
     f.result.collect() should contain theSameElementsAs f.resultData
+  }
+
+  "getPM2" should "do something" in {
+    val f = pm2Fixture
+    
+    1 shouldBe 1
   }
 
 }
