@@ -65,9 +65,9 @@ object ACMGImplicits {
         "X-linked recessive")
 
       val omimRecessive = omim.select("symbols", "phenotype.inheritance")
-        .withColumn("is_recessive", inheritanceModes.map(m => array_contains($"inheritance", m)).reduce(_ || _))
-        .select($"is_recessive", explode($"symbols").as("gene_symbol"))
-        .filter($"is_recessive" === true)
+        .withColumn("is_recessive", inheritanceModes.map(m => array_contains(col("inheritance"), m)).reduce(_ || _))
+        .select(col("inheritance"), explode(col("symbols")).as("gene_symbol"))
+        .filter(col("inheritance") === true)
         .distinct()
 
 
@@ -82,12 +82,12 @@ object ACMGImplicits {
       }
 
       val freqPerSymbol = frequencies.select(
-        $"chromosome",
-        $"start",
-        $"end",
-        $"reference",
-        $"alternate",
-        explode($"genes_symbol").as("gene_symbol"),
+        col("chromosome"),
+        col("start"),
+        col("end"),
+        col("reference"),
+        col("alternate"),
+        explode(col("genes_symbol")).as("gene_symbol"),
         maxAf,
         maxAf.isNull.as("max_af_is_null")
       )
@@ -95,7 +95,10 @@ object ACMGImplicits {
       // Joining and computing PM2
       val pm2 = freqPerSymbol.join(omimRecessive, Seq("gene_symbol"), "leftouter")
         .na.fill(false, Seq("is_recessive"))
-        .withColumn("PM2", $"max_af_is_null" || $"max_af" === 0 || ($"is_recessive" && $"max_af" < 0.0001))
+        .withColumn("PM2",
+          col("max_af_is_null")
+            || col("max_af") === 0
+            || (col("is_recessive") && col("max_af") < 0.0001))
 
       val _df = df.join(pm2, Seq("chromosome", "start", "end", "reference", "alternate"), "leftouter")
 
