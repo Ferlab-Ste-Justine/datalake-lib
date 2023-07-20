@@ -55,7 +55,7 @@ object ACMGImplicits {
      * WIP
      *
      */
-    def getPM2(omim: DataFrame, frequencies: DataFrame): Column = {
+    def getPM2(omim: DataFrame, frequencies: DataFrame): DataFrame = {
 
       // Extracting inheritance, identifying recessive genes
       val inheritanceModes = List(
@@ -66,8 +66,8 @@ object ACMGImplicits {
 
       val omimRecessive = omim.select("symbols", "phenotype.inheritance")
         .withColumn("is_recessive", inheritanceModes.map(m => array_contains(col("inheritance"), m)).reduce(_ || _))
-        .select(col("inheritance"), explode(col("symbols")).as("gene_symbol"))
-        .filter(col("inheritance") === true)
+        .select(col("is_recessive"), explode(col("symbols")).as("symbol"))
+        .filter(col("is_recessive") === true)
         .distinct()
 
 
@@ -87,29 +87,29 @@ object ACMGImplicits {
         col("end"),
         col("reference"),
         col("alternate"),
-        explode(col("genes_symbol")).as("gene_symbol"),
+        explode(col("genes_symbol")).as("symbol"),
         maxAf,
         maxAf.isNull.as("max_af_is_null")
       )
 
-      // Joining and computing PM2
-      val pm2 = freqPerSymbol.join(omimRecessive, Seq("gene_symbol"), "leftouter")
+      df
+        .join(omimRecessive, Seq("symbol"), "leftouter")
         .na.fill(false, Seq("is_recessive"))
+        .join(freqPerSymbol, Seq("chromosome", "start", "end", "reference", "alternate", "symbol"), "leftouter")
+        .na.fill(false, Seq("max_af_is_null"))
+        .na.fill(0, Seq("max_af"))
         .withColumn("PM2",
-          col("max_af_is_null")
-            || col("max_af") === 0
-            || (col("is_recessive") && col("max_af") < 0.0001))
+          struct(
+            col("is_recessive").as("is_recessive"),
+            col("max_af").as("max_af"),
+            col("max_af_is_null").as("max_af_is_null"),
+            (col("max_af_is_null") ||
+              col("max_af") === 0 ||
+              (col("is_recessive") && col("max_af") < 0.0001)).as("score")
+          )
+        )
+        .drop("is_recessive", "max_af", "max_af_is_null")
 
-      val _df = df.join(pm2, Seq("chromosome", "start", "end", "reference", "alternate"), "leftouter")
-
-      struct(
-        _df("PM2")
-      )
     }
-
   }
-
 }
-
-
-
