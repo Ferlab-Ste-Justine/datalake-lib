@@ -1,22 +1,23 @@
 package bio.ferlab.datalake.spark3.publictables.enriched
 
-import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf, RepartitionByRange}
-import bio.ferlab.datalake.spark3.etl.ETLSingleDestination
+import bio.ferlab.datalake.commons.config.{DatasetConf, RepartitionByRange}
+import bio.ferlab.datalake.spark3.etl.v3.SimpleSingleETL
+import bio.ferlab.datalake.spark3.etl.{ETLContext, RuntimeETLContext}
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits.DatasetConfOperations
-import bio.ferlab.datalake.spark3.implicits.GenomicImplicits._
+import mainargs.{ParserForMethods, main}
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.{Column, DataFrame, SparkSession, functions}
+import org.apache.spark.sql.{Column, DataFrame, functions}
 
 import java.time.LocalDateTime
 
-class SpliceAi()(implicit conf: Configuration) extends ETLSingleDestination {
+case class SpliceAi(rc: ETLContext) extends SimpleSingleETL(rc) {
 
   override val mainDestination: DatasetConf = conf.getDataset("enriched_spliceai")
   val spliceai_indel: DatasetConf = conf.getDataset("normalized_spliceai_indel")
   val spliceai_snv: DatasetConf = conf.getDataset("normalized_spliceai_snv")
 
   override def extract(lastRunDateTime: LocalDateTime,
-                       currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): Map[String, DataFrame] = {
+                       currentRunDateTime: LocalDateTime): Map[String, DataFrame] = {
     Map(
       spliceai_indel.id -> spliceai_indel.read,
       spliceai_snv.id -> spliceai_snv.read
@@ -25,7 +26,7 @@ class SpliceAi()(implicit conf: Configuration) extends ETLSingleDestination {
 
   override def transformSingle(data: Map[String, DataFrame],
                                lastRunDateTime: LocalDateTime,
-                               currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): DataFrame = {
+                               currentRunDateTime: LocalDateTime): DataFrame = {
     import spark.implicits._
 
     val spliceai_snvDf = data(spliceai_snv.id)
@@ -47,10 +48,10 @@ class SpliceAi()(implicit conf: Configuration) extends ETLSingleDestination {
       .union(spliceai_indelDf)
       .select(
         originalColumns :+
-        $"ds_ag".as("AG") :+ // acceptor gain
-        $"ds_al".as("AL") :+ // acceptor loss
-        $"ds_dg".as("DG") :+ // donor gain
-        $"ds_dl".as("DL"): _* // donor loss
+          $"ds_ag".as("AG") :+ // acceptor gain
+          $"ds_al".as("AL") :+ // acceptor loss
+          $"ds_dg".as("DG") :+ // donor gain
+          $"ds_dl".as("DL"): _* // donor loss
       )
       .withColumn("max_score_temp", maxScore)
       .withColumn("max_score", struct(
@@ -62,4 +63,13 @@ class SpliceAi()(implicit conf: Configuration) extends ETLSingleDestination {
 
   override def defaultRepartition: DataFrame => DataFrame = RepartitionByRange(columnNames = Seq("chromosome", "start"), n = Some(500))
 
+}
+
+object SpliceAi {
+  @main
+  def run(rc: RuntimeETLContext): Unit = {
+    SpliceAi(rc).run()
+  }
+
+  def main(args: Array[String]): Unit = ParserForMethods(this).runOrThrow(args)
 }

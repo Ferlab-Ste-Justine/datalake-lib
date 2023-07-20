@@ -1,6 +1,7 @@
 package bio.ferlab.datalake.spark3.publictables.enriched
 
 import bio.ferlab.datalake.commons.config.DatasetConf
+import bio.ferlab.datalake.spark3.etl.v3.TestETLContext
 import bio.ferlab.datalake.spark3.testmodels.enriched.{EnrichedSpliceAi, MAX_SCORE}
 import bio.ferlab.datalake.spark3.testmodels.normalized.NormalizedSpliceAi
 import bio.ferlab.datalake.spark3.testutils.WithTestConfig
@@ -12,7 +13,7 @@ class SpliceAiSpec extends AnyFlatSpec with WithSparkSession with WithTestConfig
 
   import spark.implicits._
 
-  val job = new SpliceAi()
+  val job = new SpliceAi(TestETLContext())
 
   val spliceai_indel: DatasetConf = job.spliceai_indel
   val spliceai_snv: DatasetConf = job.spliceai_snv

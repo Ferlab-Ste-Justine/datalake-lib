@@ -1,6 +1,7 @@
 package bio.ferlab.datalake.spark3.publictables.normalized
 
 import bio.ferlab.datalake.commons.config.DatasetConf
+import bio.ferlab.datalake.spark3.etl.v3.TestETLContext
 import bio.ferlab.datalake.spark3.testmodels.normalized.NormalizedClinvar
 import bio.ferlab.datalake.spark3.testmodels.raw.RawClinvar
 import bio.ferlab.datalake.spark3.testutils.WithTestConfig
@@ -30,11 +31,11 @@ class ClinvarSpec extends AnyFlatSpec with GivenWhenThen with WithSparkSession w
   "transform" should "transform ClinvarInput to ClinvarOutput" in {
     val inputData = Map(source.id -> Seq(RawClinvar("2"), RawClinvar("3")).toDF())
 
-    val resultDF = new Clinvar().transformSingle(inputData)
+    val resultDF = new Clinvar(TestETLContext()).transformSingle(inputData)
 
     val expectedResults = Seq(NormalizedClinvar("2"), NormalizedClinvar("3"))
 
-    resultDF.as[NormalizedClinvar].collect() should contain allElementsOf(expectedResults)
+    resultDF.as[NormalizedClinvar].collect() should contain allElementsOf expectedResults
   }
 
   "load" should "overwrite data" in {
@@ -42,7 +43,7 @@ class ClinvarSpec extends AnyFlatSpec with GivenWhenThen with WithSparkSession w
     val secondLoad = Seq(NormalizedClinvar("1", name = "second"), NormalizedClinvar("3"))
     val expectedResults = Seq(NormalizedClinvar("1", name = "second"), NormalizedClinvar("3"))
 
-    val job = new Clinvar()
+    val job = new Clinvar(TestETLContext())
     job.loadSingle(firstLoad.toDF())
     val firstResult = spark.read.format("delta").load(destination.location)
     firstResult.select("chromosome", "start", "end", "reference", "alternate", "name").show(false)

@@ -1,19 +1,21 @@
 package bio.ferlab.datalake.spark3.publictables.normalized
 
-import bio.ferlab.datalake.commons.config.{Coalesce, Configuration, DatasetConf}
-import bio.ferlab.datalake.spark3.etl.ETLP
+import bio.ferlab.datalake.commons.config.{Coalesce, DatasetConf}
+import bio.ferlab.datalake.spark3.etl.v3.SimpleETLP
+import bio.ferlab.datalake.spark3.etl.{ETLContext, RuntimeETLContext}
+import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
+import mainargs.{ParserForMethods, main}
+import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.{DataFrame, SparkSession}
 
 import java.time.LocalDateTime
-import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 
-class DDDGeneSet()(implicit conf: Configuration) extends ETLP {
+case class DDDGeneSet(rc: ETLContext) extends SimpleETLP(rc) {
   private val ddd_gene_set = conf.getDataset("raw_ddd_gene_set")
   override val mainDestination: DatasetConf = conf.getDataset("normalized_ddd_gene_set")
 
   override def extract(lastRunDateTime: LocalDateTime = minDateTime,
-                       currentRunDateTime: LocalDateTime = LocalDateTime.now())(implicit spark: SparkSession): Map[String, DataFrame] = {
+                       currentRunDateTime: LocalDateTime = LocalDateTime.now()): Map[String, DataFrame] = {
     Map(
       ddd_gene_set.id -> ddd_gene_set.read
     )
@@ -21,7 +23,7 @@ class DDDGeneSet()(implicit conf: Configuration) extends ETLP {
 
   override def transformSingle(data: Map[String, DataFrame],
                                lastRunDateTime: LocalDateTime = minDateTime,
-                               currentRunDateTime: LocalDateTime = LocalDateTime.now())(implicit spark: SparkSession): DataFrame = {
+                               currentRunDateTime: LocalDateTime = LocalDateTime.now()): DataFrame = {
     import spark.implicits._
     data(ddd_gene_set.id)
       .select(
@@ -40,4 +42,13 @@ class DDDGeneSet()(implicit conf: Configuration) extends ETLP {
   }
 
   override val defaultRepartition: DataFrame => DataFrame = Coalesce()
+}
+
+object DDDGeneSet {
+  @main
+  def run(rc: RuntimeETLContext): Unit = {
+    DDDGeneSet(rc).run()
+  }
+
+  def main(args: Array[String]): Unit = ParserForMethods(this).runOrThrow(args)
 }

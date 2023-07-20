@@ -1,6 +1,7 @@
 package bio.ferlab.datalake.spark3.publictables.enriched
 
 import bio.ferlab.datalake.commons.config.DatasetConf
+import bio.ferlab.datalake.spark3.etl.v3.TestETLContext
 import bio.ferlab.datalake.spark3.testmodels.enriched.{EnrichedRareVariantInput, EnrichedRareVariantOutput, EnrichedSpliceAi, MAX_SCORE}
 import bio.ferlab.datalake.spark3.testmodels.normalized.NormalizedSpliceAi
 import bio.ferlab.datalake.spark3.testutils.WithTestConfig
@@ -12,7 +13,7 @@ class RareVariantSpec extends AnyFlatSpec with WithSparkSession with WithTestCon
 
   import spark.implicits._
 
-  val job = new RareVariant()
+  val job = new RareVariant(TestETLContext())
 
   val gnomad_df: DatasetConf = job.gnomad
 

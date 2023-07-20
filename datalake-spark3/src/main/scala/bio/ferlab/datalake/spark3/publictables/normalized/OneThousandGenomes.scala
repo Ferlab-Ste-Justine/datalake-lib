@@ -1,26 +1,27 @@
 package bio.ferlab.datalake.spark3.publictables.normalized
 
-import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf, RepartitionByColumns}
-import bio.ferlab.datalake.spark3.etl.ETLP
+import bio.ferlab.datalake.commons.config.{DatasetConf, RepartitionByColumns}
+import bio.ferlab.datalake.spark3.etl.v3.SimpleETLP
+import bio.ferlab.datalake.spark3.etl.{ETLContext, RuntimeETLContext}
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns._
-import org.apache.spark.sql.functions.col
-import org.apache.spark.sql.{DataFrame, SparkSession}
+import mainargs.{ParserForMethods, main}
+import org.apache.spark.sql.DataFrame
 
 import java.time.LocalDateTime
 
-class OneThousandGenomes()(implicit conf: Configuration) extends ETLP {
+case class OneThousandGenomes(rc: ETLContext) extends SimpleETLP(rc) {
   private val raw_1000_genomes = conf.getDataset("raw_1000_genomes")
   override val mainDestination: DatasetConf = conf.getDataset("normalized_1000_genomes")
 
   override def extract(lastRunDateTime: LocalDateTime = minDateTime,
-                       currentRunDateTime: LocalDateTime = LocalDateTime.now())(implicit spark: SparkSession): Map[String, DataFrame] = {
+                       currentRunDateTime: LocalDateTime = LocalDateTime.now()): Map[String, DataFrame] = {
     Map(raw_1000_genomes.id -> raw_1000_genomes.read)
   }
 
   override def transformSingle(data: Map[String, DataFrame],
-                         lastRunDateTime: LocalDateTime = minDateTime,
-                         currentRunDateTime: LocalDateTime = LocalDateTime.now())(implicit spark: SparkSession): DataFrame = {
+                               lastRunDateTime: LocalDateTime = minDateTime,
+                               currentRunDateTime: LocalDateTime = LocalDateTime.now()): DataFrame = {
     data(raw_1000_genomes.id)
       .select(
         chromosome,
@@ -42,4 +43,13 @@ class OneThousandGenomes()(implicit conf: Configuration) extends ETLP {
   }
 
   override val defaultRepartition: DataFrame => DataFrame = RepartitionByColumns(columnNames = Seq("chromosome"), sortColumns = Seq("start"))
+}
+
+object OneThousandGenomes {
+  @main
+  def run(rc: RuntimeETLContext): Unit = {
+    OneThousandGenomes(rc).run()
+  }
+
+  def main(args: Array[String]): Unit = ParserForMethods(this).runOrThrow(args)
 }

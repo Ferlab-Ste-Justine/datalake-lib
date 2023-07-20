@@ -1,6 +1,7 @@
 package bio.ferlab.datalake.spark3.publictables.normalized
 
 import bio.ferlab.datalake.commons.config.DatasetConf
+import bio.ferlab.datalake.spark3.etl.v3.TestETLContext
 import bio.ferlab.datalake.spark3.publictables.normalized.gnomad.GnomadConstraint
 import bio.ferlab.datalake.spark3.testmodels.normalized.NormalizedGnomadConstraint
 import bio.ferlab.datalake.spark3.testmodels.raw.RawGnomadConstraint
@@ -19,7 +20,7 @@ class GnomadConstraintSpec extends AnyFlatSpec with WithSparkSession with WithTe
   "transform" should "transform RawGnomadConstraint to NormalizedGnomadConstraint" in {
     val inputData = Map(source.id -> Seq(RawGnomadConstraint()).toDF())
 
-    val resultDF = new GnomadConstraint().transformSingle(inputData)
+    val resultDF = new GnomadConstraint(TestETLContext()).transformSingle(inputData)
 
 //    ClassGenerator
 //      .writeCLassFile(

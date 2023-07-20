@@ -33,8 +33,9 @@ abstract class ETL[T <: Configuration](runtimeConf: ETLContext)(implicit cr: Con
 
   val log: Logger = LoggerFactory.getLogger(getClass.getCanonicalName)
 
-  implicit val conf: T = runtimeConf.config
+  implicit val conf: Configuration = runtimeConf.config
   implicit val spark: SparkSession = runtimeConf.spark
+
 
   /**
    * Reads data from a file system and produce a Map[DatasetConf, DataFrame].
@@ -49,7 +50,7 @@ abstract class ETL[T <: Configuration](runtimeConf: ETLContext)(implicit cr: Con
    * Takes a Map[DatasetConf, DataFrame] as input and apply a set of transformation to it to produce the ETL output.
    * It is recommended to not read any additional data but to use the extract() method instead to inject input data.
    *
-   * @param data  input data
+   * @param data input data
    * @return
    */
   def transform(data: Map[String, DataFrame],
@@ -60,7 +61,7 @@ abstract class ETL[T <: Configuration](runtimeConf: ETLContext)(implicit cr: Con
    * Loads the output data into a persistent storage.
    * The output destination can be any of: object store, database or flat files...
    *
-   * @param data  output data produced by the transform method.
+   * @param data output data produced by the transform method.
    */
   def load(data: Map[String, DataFrame],
            lastRunDateTime: LocalDateTime = minDateTime,
@@ -151,7 +152,7 @@ abstract class ETL[T <: Configuration](runtimeConf: ETLContext)(implicit cr: Con
   /**
    * If possible, fetch the last run date time from the dataset passed in argument
    *
-   * @param ds    dataset
+   * @param ds dataset
    * @return the last run date or the [[minDateTime]]
    */
   def getLastRunDateFor(ds: DatasetConf): LocalDateTime = {
@@ -195,7 +196,7 @@ abstract class ETL[T <: Configuration](runtimeConf: ETLContext)(implicit cr: Con
   }
 
   /**
-   * Logic used when the ETL is run as a [[SAMPLE_LOAD]]
+   * Logic used when the ETL is run as a [[RunStep.sample]] step.
    *
    * @return
    */

@@ -1,19 +1,21 @@
 package bio.ferlab.datalake.spark3.publictables.normalized.orphanet
 
-import bio.ferlab.datalake.commons.config.{Coalesce, Configuration, DatasetConf}
-import bio.ferlab.datalake.spark3.etl.ETLP
-import org.apache.spark.sql.{DataFrame, SparkSession}
+import bio.ferlab.datalake.commons.config.{Coalesce, DatasetConf}
+import bio.ferlab.datalake.spark3.etl.v3.SimpleETLP
+import bio.ferlab.datalake.spark3.etl.{ETLContext, RuntimeETLContext}
+import mainargs.{ParserForMethods, main}
+import org.apache.spark.sql.DataFrame
 
 import java.time.LocalDateTime
 import scala.xml.{Elem, Node, XML}
 
-class OrphanetGeneSet()(implicit conf: Configuration) extends ETLP {
+case class OrphanetGeneSet(rc: ETLContext) extends SimpleETLP(rc) {
   override val mainDestination: DatasetConf = conf.getDataset("normalized_orphanet_gene_set")
   val orphanet_gene_association: DatasetConf = conf.getDataset("raw_orphanet_gene_association")
   val orphanet_disease_history: DatasetConf = conf.getDataset("raw_orphanet_disease_history")
 
   override def extract(lastRunDateTime: LocalDateTime,
-                       currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): Map[String, DataFrame] = {
+                       currentRunDateTime: LocalDateTime): Map[String, DataFrame] = {
     import spark.implicits._
 
     def loadXML: String => Elem = str =>
@@ -32,7 +34,7 @@ class OrphanetGeneSet()(implicit conf: Configuration) extends ETLP {
 
   override def transformSingle(data: Map[String, DataFrame],
                                lastRunDateTime: LocalDateTime,
-                               currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): DataFrame = {
+                               currentRunDateTime: LocalDateTime): DataFrame = {
     data(orphanet_gene_association.id)
       .join(
         data(orphanet_disease_history.id).select(
@@ -148,3 +150,11 @@ class OrphanetGeneSet()(implicit conf: Configuration) extends ETLP {
   override val defaultRepartition: DataFrame => DataFrame = Coalesce()
 }
 
+object OrphanetGeneSet {
+  @main
+  def run(rc: RuntimeETLContext): Unit = {
+    OrphanetGeneSet(rc).run()
+  }
+
+  def main(args: Array[String]): Unit = ParserForMethods(this).runOrThrow(args)
+}

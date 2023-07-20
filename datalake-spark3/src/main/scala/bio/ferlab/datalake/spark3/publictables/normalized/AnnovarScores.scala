@@ -1,28 +1,29 @@
 package bio.ferlab.datalake.spark3.publictables.normalized
 
-import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf, RepartitionByRange}
-import bio.ferlab.datalake.spark3.etl.ETLP
+import bio.ferlab.datalake.commons.config.{DatasetConf, RepartitionByRange}
+import bio.ferlab.datalake.spark3.etl.v3.SimpleETLP
+import bio.ferlab.datalake.spark3.etl.{ETLContext, RuntimeETLContext}
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits.DatasetConfOperations
 import bio.ferlab.datalake.spark3.transformation.Cast.{castFloat, castLong}
+import mainargs.{ParserForMethods, main}
+import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.types.{FloatType, LongType}
-import org.apache.spark.sql.{Column, DataFrame, SparkSession}
 
 import java.time.LocalDateTime
 
-class AnnovarScores()(implicit conf: Configuration) extends ETLP {
+case class AnnovarScores(rc: ETLContext) extends SimpleETLP(rc) {
 
   override val mainDestination: DatasetConf = conf.getDataset("normalized_dbnsfp_annovar")
   val raw_dbnsfp_annovar: DatasetConf = conf.getDataset("raw_dbnsfp_annovar")
 
   override def extract(lastRunDateTime: LocalDateTime = minDateTime,
-                       currentRunDateTime: LocalDateTime = LocalDateTime.now())(implicit spark: SparkSession): Map[String, DataFrame] = {
+                       currentRunDateTime: LocalDateTime = LocalDateTime.now()): Map[String, DataFrame] = {
     Map(raw_dbnsfp_annovar.id -> raw_dbnsfp_annovar.read)
   }
 
   override def transformSingle(data: Map[String, DataFrame],
                                lastRunDateTime: LocalDateTime = minDateTime,
-                               currentRunDateTime: LocalDateTime = LocalDateTime.now())(implicit spark: SparkSession): DataFrame = {
+                               currentRunDateTime: LocalDateTime = LocalDateTime.now()): DataFrame = {
     import spark.implicits._
     data(raw_dbnsfp_annovar.id)
       .select(
@@ -149,4 +150,14 @@ class AnnovarScores()(implicit conf: Configuration) extends ETLP {
 
   override def defaultRepartition: DataFrame => DataFrame = RepartitionByRange(columnNames = Seq("chomosome", "start"), n = Some(40))
 
+}
+
+
+object AnnovarScores {
+  @main
+  def run(rc: RuntimeETLContext): Unit = {
+    AnnovarScores(rc).run()
+  }
+
+  def main(args: Array[String]): Unit = ParserForMethods(this).runOrThrow(args)
 }

@@ -1,21 +1,22 @@
 package bio.ferlab.datalake.spark3.publictables.normalized
 
 import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf, RepartitionByRange}
-import bio.ferlab.datalake.spark3.etl.ETLP
+import bio.ferlab.datalake.spark3.etl.v3.SimpleETLP
+import bio.ferlab.datalake.spark3.etl.{ETLContext, ETLP, RuntimeETLContext}
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits.DatasetConfOperations
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns._
+import mainargs.{ParserForMethods, arg, main}
 import org.apache.spark.sql.functions.split
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
 import java.time.LocalDateTime
 
-class SpliceAi(variantType: String)(implicit conf: Configuration) extends ETLP {
+case class SpliceAi(rc: ETLContext, variantType: String) extends SimpleETLP(rc) {
   override val mainDestination: DatasetConf = conf.getDataset(s"normalized_spliceai_$variantType")
   val raw_spliceai: DatasetConf = conf.getDataset(s"raw_spliceai_$variantType")
 
   override def extract(lastRunDateTime: LocalDateTime = minDateTime,
-                       currentRunDateTime: LocalDateTime = LocalDateTime.now())
-                      (implicit spark: SparkSession): Map[String, DataFrame] = {
+                       currentRunDateTime: LocalDateTime = LocalDateTime.now()): Map[String, DataFrame] = {
     Map(
       raw_spliceai.id -> raw_spliceai.read
     )
@@ -23,8 +24,7 @@ class SpliceAi(variantType: String)(implicit conf: Configuration) extends ETLP {
 
   override def transformSingle(data: Map[String, DataFrame],
                                lastRunDateTime: LocalDateTime = minDateTime,
-                               currentRunDateTime: LocalDateTime = LocalDateTime.now())
-                              (implicit spark: SparkSession): DataFrame = {
+                               currentRunDateTime: LocalDateTime = LocalDateTime.now()): DataFrame = {
     import spark.implicits._
 
     val df = data(raw_spliceai.id)
@@ -54,4 +54,13 @@ class SpliceAi(variantType: String)(implicit conf: Configuration) extends ETLP {
 
   override def defaultRepartition: DataFrame => DataFrame = RepartitionByRange(columnNames = Seq("chromosome", "start"), n = Some(50))
 
+}
+
+object SpliceAi {
+  @main
+  def run(rc: RuntimeETLContext, @arg(name = "variant_type", short = 'v', doc = "Variant Type") variantType: String): Unit = {
+    SpliceAi(rc, variantType).run()
+  }
+
+  def main(args: Array[String]): Unit = ParserForMethods(this).runOrThrow(args)
 }

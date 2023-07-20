@@ -1,27 +1,29 @@
 package bio.ferlab.datalake.spark3.publictables.normalized.omim
 
 import bio.ferlab.datalake.commons.config.{Coalesce, Configuration, DatasetConf}
-import bio.ferlab.datalake.spark3.etl.ETLP
+import bio.ferlab.datalake.spark3.etl.v3.SimpleETLP
+import bio.ferlab.datalake.spark3.etl.{ETLContext, ETLP, RuntimeETLContext}
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import bio.ferlab.datalake.spark3.publictables.normalized.omim.OmimPhenotype.parse_pheno
+import mainargs.{ParserForMethods, main}
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
 import java.time.LocalDateTime
 
-class OmimGeneSet()(implicit conf: Configuration) extends ETLP {
+case class OmimGeneSet(rc: ETLContext) extends SimpleETLP(rc)  {
 
   override val mainDestination: DatasetConf = conf.getDataset("normalized_omim_gene_set")
   val raw_omim_gene_set: DatasetConf = conf.getDataset("raw_omim_gene_set")
 
   override def extract(lastRunDateTime: LocalDateTime,
-                       currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): Map[String, DataFrame] = {
+                       currentRunDateTime: LocalDateTime): Map[String, DataFrame] = {
     Map(raw_omim_gene_set.id -> raw_omim_gene_set.read)
   }
 
   override def transformSingle(data: Map[String, DataFrame],
                          lastRunDateTime: LocalDateTime,
-                         currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): DataFrame = {
+                         currentRunDateTime: LocalDateTime): DataFrame = {
     val intermediateDf =
       data(raw_omim_gene_set.id)
         .select(
@@ -60,6 +62,15 @@ class OmimGeneSet()(implicit conf: Configuration) extends ETLP {
   }
 
   override val defaultRepartition: DataFrame => DataFrame = Coalesce()
+}
+
+object OmimGeneSet {
+  @main
+  def run(rc: RuntimeETLContext): Unit = {
+    OmimGeneSet(rc).run()
+  }
+
+  def main(args: Array[String]): Unit = ParserForMethods(this).runOrThrow(args)
 }
 
 

@@ -1,15 +1,17 @@
 package bio.ferlab.datalake.spark3.publictables.enriched
 
 import bio.ferlab.datalake.commons.config.{Coalesce, Configuration, DatasetConf}
-import bio.ferlab.datalake.spark3.etl.ETLSingleDestination
+import bio.ferlab.datalake.spark3.etl.v3.{SimpleETLP, SimpleSingleETL}
+import bio.ferlab.datalake.spark3.etl.{ETLContext, ETLSingleDestination, RuntimeETLContext}
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import bio.ferlab.datalake.spark3.implicits.SparkUtils.removeEmptyObjectsIn
+import mainargs.{ParserForMethods, main}
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{Column, DataFrame, SparkSession}
 
 import java.time.LocalDateTime
 
-class Genes()(implicit conf: Configuration) extends ETLSingleDestination {
+case class Genes(rc: ETLContext) extends SimpleSingleETL(rc) {
 
   val mainDestination: DatasetConf = conf.getDataset("enriched_genes")
   val omim_gene_set: DatasetConf = conf.getDataset("normalized_omim_gene_set")
@@ -21,7 +23,7 @@ class Genes()(implicit conf: Configuration) extends ETLSingleDestination {
   val gnomad_constraint: DatasetConf = conf.getDataset("normalized_gnomad_constraint_v2_1_1")
 
   override def extract(lastRunDateTime: LocalDateTime,
-                       currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): Map[String, DataFrame] = {
+                       currentRunDateTime: LocalDateTime): Map[String, DataFrame] = {
     Map(
       omim_gene_set.id -> omim_gene_set.read,
       orphanet_gene_set.id -> orphanet_gene_set.read,
@@ -35,7 +37,7 @@ class Genes()(implicit conf: Configuration) extends ETLSingleDestination {
 
   override def transformSingle(data: Map[String, DataFrame],
                                lastRunDateTime: LocalDateTime,
-                               currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): DataFrame = {
+                               currentRunDateTime: LocalDateTime): DataFrame = {
     import spark.implicits._
 
     val humanGenes = data(human_genes.id)
@@ -126,4 +128,12 @@ class Genes()(implicit conf: Configuration) extends ETLSingleDestination {
   override def defaultRepartition: DataFrame => DataFrame = Coalesce()
 }
 
+object Genes {
+  @main
+  def run(rc: RuntimeETLContext): Unit = {
+    Genes(rc).run()
+  }
+
+  def main(args: Array[String]): Unit = ParserForMethods(this).runOrThrow(args)
+}
 

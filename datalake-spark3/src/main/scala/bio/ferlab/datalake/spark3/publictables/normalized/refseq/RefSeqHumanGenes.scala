@@ -1,25 +1,28 @@
 package bio.ferlab.datalake.spark3.publictables.normalized.refseq
 
-import bio.ferlab.datalake.commons.config.{Coalesce, Configuration, DatasetConf}
-import bio.ferlab.datalake.spark3.etl.ETLP
+import bio.ferlab.datalake.commons.config.{Coalesce, DatasetConf}
+import bio.ferlab.datalake.spark3.etl.v3.SimpleETLP
+import bio.ferlab.datalake.spark3.etl.{ETLContext, RuntimeETLContext}
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
+import mainargs.{ParserForMethods, main}
+import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.expressions.UserDefinedFunction
 import org.apache.spark.sql.functions.{split, udf}
-import org.apache.spark.sql.{DataFrame, SparkSession}
 
 import java.time.LocalDateTime
 
-class RefSeqHumanGenes()(implicit conf: Configuration) extends ETLP {
+case class RefSeqHumanGenes(rc: ETLContext) extends SimpleETLP(rc) {
   private val raw_refseq_human_genes = conf.getDataset("raw_refseq_human_genes")
   override val mainDestination: DatasetConf = conf.getDataset("normalized_human_genes")
+
   override def extract(lastRunDateTime: LocalDateTime = minDateTime,
-                       currentRunDateTime: LocalDateTime = LocalDateTime.now())(implicit spark: SparkSession): Map[String, DataFrame] = {
+                       currentRunDateTime: LocalDateTime = LocalDateTime.now()): Map[String, DataFrame] = {
     Map(raw_refseq_human_genes.id -> raw_refseq_human_genes.read)
   }
 
   override def transformSingle(data: Map[String, DataFrame],
-                         lastRunDateTime: LocalDateTime = minDateTime,
-                         currentRunDateTime: LocalDateTime = LocalDateTime.now())(implicit spark: SparkSession): DataFrame = {
+                               lastRunDateTime: LocalDateTime = minDateTime,
+                               currentRunDateTime: LocalDateTime = LocalDateTime.now()): DataFrame = {
     import spark.implicits._
     data(raw_refseq_human_genes.id)
       .select(
@@ -59,4 +62,13 @@ class RefSeqHumanGenes()(implicit conf: Configuration) extends ETLP {
   }
 
   val splitToMap: UserDefinedFunction = udf(splitToMapFn)
+}
+
+object RefSeqHumanGenes {
+  @main
+  def run(rc: RuntimeETLContext): Unit = {
+    RefSeqHumanGenes(rc).run()
+  }
+
+  def main(args: Array[String]): Unit = ParserForMethods(this).runOrThrow(args)
 }

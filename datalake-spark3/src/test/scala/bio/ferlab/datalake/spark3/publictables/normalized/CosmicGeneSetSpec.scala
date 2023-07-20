@@ -1,6 +1,7 @@
 package bio.ferlab.datalake.spark3.publictables.normalized
 
 import bio.ferlab.datalake.commons.config.DatasetConf
+import bio.ferlab.datalake.spark3.etl.v3.TestETLContext
 import bio.ferlab.datalake.spark3.testmodels.normalized.{NormalizedClinvar, NormalizedCosmic}
 import bio.ferlab.datalake.spark3.testmodels.raw.{RawClinvar, RawCosmic}
 import bio.ferlab.datalake.spark3.testutils.WithTestConfig
@@ -30,7 +31,7 @@ class CosmicGeneSetSpec extends AnyFlatSpec with GivenWhenThen with WithSparkSes
   "transform" should "transform Cosmic input to Cosmic output" in {
     val df = Seq(RawCosmic()).toDF()
 
-    val result = new CosmicGeneSet().transformSingle(Map(source.id -> df))
+    val result = new CosmicGeneSet(TestETLContext()).transformSingle(Map(source.id -> df))
 
     result.as[NormalizedCosmic].collect() should contain theSameElementsAs Seq(NormalizedCosmic())
 

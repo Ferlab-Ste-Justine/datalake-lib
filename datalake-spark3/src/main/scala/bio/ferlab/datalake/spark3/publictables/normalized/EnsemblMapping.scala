@@ -1,15 +1,16 @@
 package bio.ferlab.datalake.spark3.publictables.normalized
 
-import bio.ferlab.datalake.commons.config.{Coalesce, Configuration, DatasetConf}
-import bio.ferlab.datalake.spark3.etl.ETLP
-import org.apache.spark.sql.functions._
-import org.apache.spark.sql.{Column, DataFrame, SparkSession}
+import bio.ferlab.datalake.commons.config.{Coalesce, DatasetConf}
+import bio.ferlab.datalake.spark3.etl.v3.SimpleETLP
+import bio.ferlab.datalake.spark3.etl.{ETLContext, RuntimeETLContext}
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
+import mainargs.{ParserForMethods, main}
+import org.apache.spark.sql.functions._
+import org.apache.spark.sql.{Column, DataFrame}
 
 import java.time.LocalDateTime
 
-class EnsemblMapping()(implicit conf: Configuration)
-  extends ETLP {
+case class EnsemblMapping(rc: ETLContext) extends SimpleETLP(rc)  {
   override val mainDestination: DatasetConf = conf.getDataset("normalized_ensembl_mapping")
 
   val raw_ensembl_canonical: DatasetConf = conf.getDataset("raw_ensembl_canonical")
@@ -19,7 +20,7 @@ class EnsemblMapping()(implicit conf: Configuration)
   val raw_ensembl_ena: DatasetConf = conf.getDataset("raw_ensembl_ena")
 
   override def extract(lastRunDateTime: LocalDateTime = minDateTime,
-                       currentRunDateTime: LocalDateTime = LocalDateTime.now())(implicit spark: SparkSession): Map[String, DataFrame] = {
+                       currentRunDateTime: LocalDateTime = LocalDateTime.now()): Map[String, DataFrame] = {
 
     Map(
       raw_ensembl_canonical.id -> raw_ensembl_canonical.read,
@@ -32,7 +33,7 @@ class EnsemblMapping()(implicit conf: Configuration)
 
   override def transformSingle(data: Map[String, DataFrame],
                                lastRunDateTime: LocalDateTime = minDateTime,
-                               currentRunDateTime: LocalDateTime = LocalDateTime.now())(implicit spark: SparkSession): DataFrame = {
+                               currentRunDateTime: LocalDateTime = LocalDateTime.now()): DataFrame = {
     val canonical = data(raw_ensembl_canonical.id)
       .withColumn("ensembl_gene_id", regexp_extract(col("_c0"), "(ENSG[0-9]+)", 0))
       .withColumn("ensembl_transcript_id", regexp_extract(col("_c1"), "(ENST[0-9]+)", 0))
@@ -102,4 +103,13 @@ class EnsemblMapping()(implicit conf: Configuration)
         .withColumnRenamed("db_name", s"${prefix}_database")
     }
   }
+}
+
+object EnsemblMapping {
+  @main
+  def run(rc: RuntimeETLContext): Unit = {
+    EnsemblMapping(rc).run()
+  }
+
+  def main(args: Array[String]): Unit = ParserForMethods(this).runOrThrow(args)
 }
