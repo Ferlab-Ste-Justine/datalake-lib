@@ -6,6 +6,18 @@ import org.apache.spark.sql.{Column, DataFrame}
 
 object ACMGImplicits {
 
+  val variantColumns = Array("chromosome", "start", "end", "reference", "alternate")
+
+  private def validateRequiredColumns(map: Map[DataFrame, (String, Array[String])], criteriaName: String = "criteria"): Unit = {
+    map.foreach {
+      case (df, (dfName, columns)) => columns.foreach(
+        col => require(
+          df.columns.contains(col),
+          s"Column `$col` is required in DataFrame $dfName for $criteriaName.")
+      )
+    }
+  }
+
   implicit class ACMGOperations(df: DataFrame) {
 
     /**
@@ -56,6 +68,13 @@ object ACMGImplicits {
      *
      */
     def getPM2(omim: DataFrame, frequencies: DataFrame): DataFrame = {
+
+      val map = Map(
+        df -> ("df", Array("symbol") ++ variantColumns),
+        omim -> ("omim", Array("symbols", "phenotype")),
+        frequencies -> ("frequencies", Array("external_frequencies", "genes_symbol") ++ variantColumns)
+      )
+      validateRequiredColumns(map, "PM2")
 
       // Extracting inheritance, identifying recessive genes
       val inheritanceModes = List(
