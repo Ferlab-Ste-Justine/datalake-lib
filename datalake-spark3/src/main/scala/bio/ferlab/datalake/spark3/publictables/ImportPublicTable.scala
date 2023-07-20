@@ -50,7 +50,8 @@ object ImportPublicTable {
   @main
   def omim(rc: RuntimeETLContext): Unit = OmimGeneSet.run(rc)
 
-  def `1000genomes`(rc: RuntimeETLContext): Unit = OneThousandGenomes.run(rc)
+  @main(name = "1000genomes")
+  def one_thousand_genomes(rc: RuntimeETLContext): Unit = OneThousandGenomes.run(rc)
 
   @main
   def orphanet(rc: RuntimeETLContext): Unit = OrphanetGeneSet.run(rc)
@@ -76,7 +77,7 @@ object ImportPublicTable {
   @main
   def rare_variant_enriched(rc: RuntimeETLContext): Unit = RareVariant.run(rc)
 
-  def main(args: Array[String]): Unit = ParserForMethods(this).runOrThrow(args)
+  def main(args: Array[String]): Unit = ParserForMethods(this).runOrThrow(args, allowPositional = true)
 
 }
 
