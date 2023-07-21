@@ -1,16 +1,17 @@
 package bio.ferlab.datalake.spark3.genomics.normalized
 
-import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf}
-import bio.ferlab.datalake.spark3.etl.ETLSingleDestination
+import bio.ferlab.datalake.commons.config.DatasetConf
+import bio.ferlab.datalake.spark3.etl.ETLContext
+import bio.ferlab.datalake.spark3.etl.v3.SimpleETLP
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits._
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns._
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.{Column, DataFrame, SparkSession}
+import org.apache.spark.sql.{Column, DataFrame}
 
 import java.sql.Timestamp
 import java.time.LocalDateTime
 
-abstract class BaseConsequences(annotationsColumn: Column = csq, groupByLocus: Boolean = true)(implicit configuration: Configuration) extends ETLSingleDestination {
+abstract class BaseConsequences(rc: ETLContext, annotationsColumn: Column = csq, groupByLocus: Boolean = true) extends SimpleETLP(rc) {
 
   override val mainDestination: DatasetConf = conf.getDataset("normalized_consequences")
 
@@ -18,7 +19,7 @@ abstract class BaseConsequences(annotationsColumn: Column = csq, groupByLocus: B
 
   override def transformSingle(data: Map[String, DataFrame],
                                lastRunDateTime: LocalDateTime = minDateTime,
-                               currentRunDateTime: LocalDateTime = LocalDateTime.now())(implicit spark: SparkSession): DataFrame = {
+                               currentRunDateTime: LocalDateTime = LocalDateTime.now()): DataFrame = {
     import spark.implicits._
     val groupedByLocus = if (groupByLocus) {
       data(raw_vcf)

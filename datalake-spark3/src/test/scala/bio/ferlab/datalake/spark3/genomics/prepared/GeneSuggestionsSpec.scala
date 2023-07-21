@@ -1,6 +1,7 @@
 package bio.ferlab.datalake.spark3.genomics.prepared
 
 import bio.ferlab.datalake.commons.config.DatasetConf
+import bio.ferlab.datalake.spark3.etl.v3.TestETLContext
 import bio.ferlab.datalake.spark3.testmodels.enriched.EnrichedGenes
 import bio.ferlab.datalake.spark3.testmodels.prepared.PreparedGeneSuggestions
 import bio.ferlab.datalake.spark3.testutils.WithTestConfig
@@ -25,7 +26,7 @@ class GeneSuggestionsSpec extends AnyFlatSpec with WithSparkSession with WithTes
 
   "transformSingle" should "return data in expected format" in {
 
-    val df = new GenesSuggestions().transformSingle(data)
+    val df = new GenesSuggestions(TestETLContext()).transformSingle(data)
 
     val result = df.as[PreparedGeneSuggestions].collect()
     result.length shouldBe 1

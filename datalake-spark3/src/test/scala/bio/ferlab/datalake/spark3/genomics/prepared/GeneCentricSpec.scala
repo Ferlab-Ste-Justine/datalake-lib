@@ -1,10 +1,11 @@
 package bio.ferlab.datalake.spark3.genomics.prepared
 
 import bio.ferlab.datalake.commons.config.DatasetConf
+import bio.ferlab.datalake.spark3.etl.v3.TestETLContext
 import bio.ferlab.datalake.spark3.testmodels.enriched.EnrichedGenes
 import bio.ferlab.datalake.spark3.testmodels.prepared.PreparedGeneCentric
 import bio.ferlab.datalake.spark3.testutils.WithTestConfig
-import bio.ferlab.datalake.testutils.{ClassGenerator, WithSparkSession}
+import bio.ferlab.datalake.testutils.WithSparkSession
 import org.apache.spark.sql.DataFrame
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AnyFlatSpec
@@ -25,7 +26,7 @@ class GeneCentricSpec extends AnyFlatSpec with WithSparkSession with WithTestCon
 
   "transformSingle" should "return data in expected format" in {
 
-    val df = new GeneCentric().transformSingle(data)
+    val df = new GeneCentric(TestETLContext()).transformSingle(data)
 
     val result = df.as[PreparedGeneCentric].collect()
     result.length shouldBe 1

@@ -1,6 +1,7 @@
 package bio.ferlab.datalake.spark3.genomics.enriched
 
 import bio.ferlab.datalake.commons.config.DatasetConf
+import bio.ferlab.datalake.spark3.etl.v3.TestETLContext
 import bio.ferlab.datalake.spark3.genomics.{FrequencySplit, SimpleAggregation}
 import bio.ferlab.datalake.spark3.testmodels.enriched.{EnrichedGenes, EnrichedSpliceAi, EnrichedVariant, MAX_SCORE}
 import bio.ferlab.datalake.spark3.testmodels.normalized.{NormalizedClinvar, NormalizedDbsnp, NormalizedGnomadConstraint, NormalizedGnomadExomes211, NormalizedGnomadGenomes211, NormalizedGnomadGenomes3, NormalizedOneKGenomes, NormalizedSNV, NormalizedSpliceAi, NormalizedTopmed}
@@ -57,7 +58,7 @@ class EnrichedVariantsSpec extends AnyFlatSpec with WithSparkSession with WithTe
   )
 
   "transformSingle" should "return expected result" in {
-    val df = new Variants(snvDatasetId = snvKeyId, frequencies = Seq(FrequencySplit("frequency", extraAggregations = Seq(SimpleAggregation(name = "zygosities", c = col("zygosity"))))))
+    val df = new Variants(TestETLContext(), snvDatasetId = snvKeyId, frequencies = Seq(FrequencySplit("frequency", extraAggregations = Seq(SimpleAggregation(name = "zygosities", c = col("zygosity"))))))
       .transformSingle(data)
     val result = df.as[EnrichedVariant].collect()
     result.length shouldBe 1

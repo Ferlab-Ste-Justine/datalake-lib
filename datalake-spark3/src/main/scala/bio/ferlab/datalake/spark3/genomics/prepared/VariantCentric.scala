@@ -1,12 +1,14 @@
 package bio.ferlab.datalake.spark3.genomics.prepared
 
-import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf}
-import bio.ferlab.datalake.spark3.etl.ETLSingleDestination
+import bio.ferlab.datalake.commons.config.DatasetConf
+import bio.ferlab.datalake.spark3.etl.v3.SimpleSingleETL
+import bio.ferlab.datalake.spark3.etl.{ETLContext, RuntimeETLContext}
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits.DatasetConfOperations
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits._
+import mainargs.{ParserForMethods, main}
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.{ArrayType, StructType}
-import org.apache.spark.sql.{DataFrame, SparkSession, functions}
+import org.apache.spark.sql.{DataFrame, functions}
 
 import java.time.LocalDateTime
 
@@ -83,15 +85,15 @@ import java.time.LocalDateTime
  *      },
  *    }
  * }}}
- * @param configuration the configuration object
+ * @param rc the etl context
  */
-class VariantCentric(implicit configuration: Configuration) extends ETLSingleDestination {
+case class VariantCentric(rc: ETLContext) extends SimpleSingleETL(rc) {
   override val mainDestination: DatasetConf = conf.getDataset("es_index_variant_centric")
   private val enriched_variants: DatasetConf = conf.getDataset("enriched_variants")
   private val enriched_consequences: DatasetConf = conf.getDataset("enriched_consequences")
 
   override def extract(lastRunDateTime: LocalDateTime = minDateTime,
-                       currentRunDateTime: LocalDateTime = LocalDateTime.now())(implicit spark: SparkSession): Map[String, DataFrame] = {
+                       currentRunDateTime: LocalDateTime = LocalDateTime.now()): Map[String, DataFrame] = {
 
     Map(
       enriched_variants.id -> enriched_variants.read,
@@ -101,7 +103,7 @@ class VariantCentric(implicit configuration: Configuration) extends ETLSingleDes
 
   override def transformSingle(data: Map[String, DataFrame],
                                lastRunDateTime: LocalDateTime = minDateTime,
-                               currentRunDateTime: LocalDateTime = LocalDateTime.now())(implicit spark: SparkSession): DataFrame = {
+                               currentRunDateTime: LocalDateTime = LocalDateTime.now()): DataFrame = {
     val NO_GENE = "NO_GENE"
     val csq = data(enriched_consequences.id)
       .withColumn("symbol", coalesce(col("symbol"), lit(NO_GENE))) //Manage consequences without gene
@@ -156,4 +158,13 @@ class VariantCentric(implicit configuration: Configuration) extends ETLSingleDes
 
     joinedVariants
   }
+}
+
+object VariantCentric {
+  @main
+  def run(rc: RuntimeETLContext): Unit = {
+    VariantCentric(rc).run()
+  }
+
+  def main(args: Array[String]): Unit = ParserForMethods(this).runOrThrow(args)
 }
