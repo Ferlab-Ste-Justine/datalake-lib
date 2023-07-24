@@ -24,7 +24,7 @@ import scala.util.Try
  */
 abstract class ETL[T <: Configuration](context: ETLContext[T]) {
 
-  val minDateTime: LocalDateTime = LocalDateTime.MIN
+  val minDateTime: LocalDateTime = LocalDateTime.of(1900, 1, 1, 0, 0, 0)
   val maxDateTime: LocalDateTime = LocalDateTime.of(9999, 12, 31, 23, 59, 55)
 
   def mainDestination: DatasetConf
