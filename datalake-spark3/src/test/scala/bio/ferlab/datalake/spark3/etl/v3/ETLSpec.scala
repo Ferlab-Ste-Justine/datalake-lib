@@ -99,7 +99,7 @@ class ETLSpec extends WithETL {
     defaultJob.getLastRunDateFor(scd2Conf) shouldBe defaultJob.minDateTime
   }
 
-  "lastRunDate" should "return max update_on for scd1" in {
+  it should "return max update_on for scd1" in {
 
     val scd1Conf = destConf.copy(loadtype = Scd1, path = "/airport_scd1", table = Some(TableConf("normalized_db", "airport_scd1")))
     val date1 = Timestamp.valueOf(LocalDateTime.of(1900, 1, 2, 1, 1, 1))
@@ -119,12 +119,12 @@ class ETLSpec extends WithETL {
     defaultJob.getLastRunDateFor(scd1Conf) shouldBe date2.toLocalDateTime
   }
 
-  "lastRunDate" should "return max valid_from as LocalDateTime for scd2" in {
+  it should "return max valid_from as LocalDateTime for scd2" in {
 
     val scd2Conf = destConf.copy(loadtype = Scd2, path = "/airport_scd2", table = Some(TableConf("normalized_db", "airport_scd2")))
     val date1 = Date.valueOf(LocalDate.of(1900, 1, 2))
     val date2 = Date.valueOf(LocalDate.of(1900, 1, 3))
-    val infinity = Date.valueOf(defaultJob.maxDateTime.toLocalDate)
+    val infinity = defaultJob.maxDateTime.toLocalDate
     val df = Seq(
       ("1", date1, infinity),
       ("1", date2, infinity),
