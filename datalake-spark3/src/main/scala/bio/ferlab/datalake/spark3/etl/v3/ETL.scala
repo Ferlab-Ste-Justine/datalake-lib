@@ -11,7 +11,6 @@ import bio.ferlab.datalake.spark3.loader.LoadResolver
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.slf4j.{Logger, LoggerFactory}
-import pureconfig.ConfigReader
 
 import java.sql.{Date, Timestamp}
 import java.time.LocalDateTime
@@ -22,9 +21,9 @@ import scala.util.Try
  * Defines a common workflow for ETL jobs.
  * By definition an ETL can take 1..n sources as input and can produce only 1 output.
  *
- * @param runtimeConf runtime configuration
+ * @param context runtime configuration
  */
-abstract class ETL[T <: Configuration](runtimeConf: ETLContext)(implicit cr: ConfigReader[T]) {
+abstract class ETL[T <: Configuration](context: ETLContext[T]) {
 
   val minDateTime: LocalDateTime = LocalDateTime.of(1900, 1, 1, 0, 0, 0)
   val maxDateTime: LocalDateTime = LocalDateTime.of(9999, 12, 31, 23, 59, 55)
@@ -33,8 +32,8 @@ abstract class ETL[T <: Configuration](runtimeConf: ETLContext)(implicit cr: Con
 
   val log: Logger = LoggerFactory.getLogger(getClass.getCanonicalName)
 
-  implicit val conf: Configuration = runtimeConf.config
-  implicit val spark: SparkSession = runtimeConf.spark
+  implicit val conf: Configuration = context.config
+  implicit val spark: SparkSession = context.spark
 
 
   /**
@@ -101,7 +100,7 @@ abstract class ETL[T <: Configuration](runtimeConf: ETLContext)(implicit cr: Con
   def run(
            lastRunDateTime: Option[LocalDateTime] = None,
            currentRunDateTime: Option[LocalDateTime] = None): Map[String, DataFrame] = {
-    val runSteps = runtimeConf.runSteps
+    val runSteps = context.runSteps
     if (runSteps.isEmpty)
       log.info(s"WARNING ETL started with no runSteps. Nothing will be executed.")
     else

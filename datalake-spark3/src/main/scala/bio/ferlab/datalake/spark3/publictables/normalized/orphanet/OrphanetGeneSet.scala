@@ -1,15 +1,15 @@
 package bio.ferlab.datalake.spark3.publictables.normalized.orphanet
 
 import bio.ferlab.datalake.commons.config.{Coalesce, DatasetConf}
+import bio.ferlab.datalake.spark3.etl.RuntimeETLContext
 import bio.ferlab.datalake.spark3.etl.v3.SimpleETLP
-import bio.ferlab.datalake.spark3.etl.{ETLContext, RuntimeETLContext}
 import mainargs.{ParserForMethods, main}
 import org.apache.spark.sql.DataFrame
 
 import java.time.LocalDateTime
 import scala.xml.{Elem, Node, XML}
 
-case class OrphanetGeneSet(rc: ETLContext) extends SimpleETLP(rc) {
+case class OrphanetGeneSet(rc: RuntimeETLContext) extends SimpleETLP(rc) {
   override val mainDestination: DatasetConf = conf.getDataset("normalized_orphanet_gene_set")
   val orphanet_gene_association: DatasetConf = conf.getDataset("raw_orphanet_gene_association")
   val orphanet_disease_history: DatasetConf = conf.getDataset("raw_orphanet_disease_history")

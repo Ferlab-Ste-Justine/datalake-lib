@@ -2,7 +2,7 @@ package bio.ferlab.datalake.spark3.etl.v3
 
 import bio.ferlab.datalake.commons.config.LoadType._
 import bio.ferlab.datalake.commons.config._
-import bio.ferlab.datalake.spark3.etl.{AirportInput, AirportOutput, ETLContext}
+import bio.ferlab.datalake.spark3.etl.{AirportInput, AirportOutput, RuntimeETLContext}
 import bio.ferlab.datalake.spark3.file.{FileSystemResolver, HadoopFileSystem}
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import org.apache.spark.sql.DataFrame
@@ -17,7 +17,7 @@ class SingleETLSpec extends WithETL {
 
   import spark.implicits._
 
-  case class TestETL(rc:ETLContext) extends SimpleSingleETL(rc) {
+  case class TestETL(rc:RuntimeETLContext) extends SimpleSingleETL(rc) {
 
     var repartitioned = false
 
@@ -69,7 +69,7 @@ class SingleETLSpec extends WithETL {
 
   }
 
-  val defaultJob: TestETL = TestETL(TestETLContext())
+  override val defaultJob: TestETL = TestETL(TestETLContext())
 
 
   "extract" should "return the expected format" in {

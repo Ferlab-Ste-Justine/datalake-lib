@@ -4,15 +4,14 @@ import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf}
 import bio.ferlab.datalake.spark3.etl.ETLContext
 import bio.ferlab.datalake.spark3.transformation.Transformation
 import org.apache.spark.sql.DataFrame
-import pureconfig.ConfigReader
 
 import java.time.LocalDateTime
 
-class TransformationsETL[T <: Configuration](val source: DatasetConf,
+class TransformationsETL[T <: Configuration](context: ETLContext[T],
+                                             val source: DatasetConf,
                                              override val mainDestination: DatasetConf,
-                                             val transformations: List[Transformation],
-                                             rc: ETLContext)(implicit cr: ConfigReader[T])
-  extends SingleETL(rc) {
+                                             val transformations: List[Transformation])
+  extends SingleETL(context) {
 
   override def extract(lastRunDateTime: LocalDateTime,
                        currentRunDateTime: LocalDateTime): Map[String, DataFrame] = {

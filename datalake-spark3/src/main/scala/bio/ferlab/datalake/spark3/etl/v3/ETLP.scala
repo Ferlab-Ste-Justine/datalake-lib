@@ -4,12 +4,11 @@ import bio.ferlab.datalake.commons.config.Configuration
 import bio.ferlab.datalake.spark3.etl.ETLContext
 import bio.ferlab.datalake.spark3.hive.UpdateTableComments
 import org.apache.spark.sql.functions.{col, lit, regexp_extract, trim}
-import pureconfig.ConfigReader
 
 import scala.util.Try
 
 
-abstract class ETLP[T <: Configuration](runtimeConf: ETLContext)(implicit cr: ConfigReader[T]) extends SingleETL(runtimeConf) {
+abstract class ETLP[T <: Configuration](context: ETLContext[T]) extends SingleETL(context) {
 
   override def publish(): Unit = {
 

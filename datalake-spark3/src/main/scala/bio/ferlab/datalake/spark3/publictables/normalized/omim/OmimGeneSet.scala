@@ -1,17 +1,17 @@
 package bio.ferlab.datalake.spark3.publictables.normalized.omim
 
-import bio.ferlab.datalake.commons.config.{Coalesce, Configuration, DatasetConf}
+import bio.ferlab.datalake.commons.config.{Coalesce, DatasetConf}
+import bio.ferlab.datalake.spark3.etl.RuntimeETLContext
 import bio.ferlab.datalake.spark3.etl.v3.SimpleETLP
-import bio.ferlab.datalake.spark3.etl.{ETLContext, ETLP, RuntimeETLContext}
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import bio.ferlab.datalake.spark3.publictables.normalized.omim.OmimPhenotype.parse_pheno
 import mainargs.{ParserForMethods, main}
+import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.{DataFrame, SparkSession}
 
 import java.time.LocalDateTime
 
-case class OmimGeneSet(rc: ETLContext) extends SimpleETLP(rc)  {
+case class OmimGeneSet(rc: RuntimeETLContext) extends SimpleETLP(rc)  {
 
   override val mainDestination: DatasetConf = conf.getDataset("normalized_omim_gene_set")
   val raw_omim_gene_set: DatasetConf = conf.getDataset("raw_omim_gene_set")

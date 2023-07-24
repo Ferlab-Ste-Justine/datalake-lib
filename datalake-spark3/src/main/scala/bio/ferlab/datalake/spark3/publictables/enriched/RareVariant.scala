@@ -1,8 +1,8 @@
 package bio.ferlab.datalake.spark3.publictables.enriched
 
 import bio.ferlab.datalake.commons.config.{DatasetConf, RepartitionByRange}
+import bio.ferlab.datalake.spark3.etl.RuntimeETLContext
 import bio.ferlab.datalake.spark3.etl.v3.SimpleSingleETL
-import bio.ferlab.datalake.spark3.etl.{ETLContext, RuntimeETLContext}
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits.DatasetConfOperations
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits._
 import mainargs.{ParserForMethods, main}
@@ -11,7 +11,7 @@ import org.apache.spark.sql.functions._
 
 import java.time.LocalDateTime
 
-case class RareVariant(rc: ETLContext) extends SimpleSingleETL(rc) {
+case class RareVariant(rc: RuntimeETLContext) extends SimpleSingleETL(rc) {
 
   override val mainDestination: DatasetConf = conf.getDataset("enriched_rare_variant")
   val gnomad: DatasetConf = conf.getDataset("normalized_gnomad_genomes_v3")

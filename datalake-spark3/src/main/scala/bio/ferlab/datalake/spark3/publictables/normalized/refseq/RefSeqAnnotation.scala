@@ -1,15 +1,15 @@
 package bio.ferlab.datalake.spark3.publictables.normalized.refseq
 
 import bio.ferlab.datalake.commons.config.{DatasetConf, FixedRepartition}
+import bio.ferlab.datalake.spark3.etl.RuntimeETLContext
 import bio.ferlab.datalake.spark3.etl.v3.SimpleETLP
-import bio.ferlab.datalake.spark3.etl.{ETLContext, RuntimeETLContext}
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits.DatasetConfOperations
 import mainargs.{ParserForMethods, main}
 import org.apache.spark.sql.DataFrame
 
 import java.time.LocalDateTime
 
-case class RefSeqAnnotation(rc: ETLContext) extends SimpleETLP(rc) {
+case class RefSeqAnnotation(rc: RuntimeETLContext) extends SimpleETLP(rc) {
 
   override val mainDestination: DatasetConf = conf.getDataset("normalized_refseq_annotation")
   val raw_refseq_annotation: DatasetConf = conf.getDataset("raw_refseq_annotation")

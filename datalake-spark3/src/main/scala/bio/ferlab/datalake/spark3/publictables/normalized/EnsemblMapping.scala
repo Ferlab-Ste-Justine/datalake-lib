@@ -1,8 +1,8 @@
 package bio.ferlab.datalake.spark3.publictables.normalized
 
 import bio.ferlab.datalake.commons.config.{Coalesce, DatasetConf}
+import bio.ferlab.datalake.spark3.etl.RuntimeETLContext
 import bio.ferlab.datalake.spark3.etl.v3.SimpleETLP
-import bio.ferlab.datalake.spark3.etl.{ETLContext, RuntimeETLContext}
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import mainargs.{ParserForMethods, main}
 import org.apache.spark.sql.functions._
@@ -10,7 +10,7 @@ import org.apache.spark.sql.{Column, DataFrame}
 
 import java.time.LocalDateTime
 
-case class EnsemblMapping(rc: ETLContext) extends SimpleETLP(rc)  {
+case class EnsemblMapping(rc: RuntimeETLContext) extends SimpleETLP(rc)  {
   override val mainDestination: DatasetConf = conf.getDataset("normalized_ensembl_mapping")
 
   val raw_ensembl_canonical: DatasetConf = conf.getDataset("raw_ensembl_canonical")

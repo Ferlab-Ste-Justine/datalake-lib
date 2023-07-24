@@ -1,8 +1,8 @@
 package bio.ferlab.datalake.spark3.genomics.prepared
 
 import bio.ferlab.datalake.commons.config.DatasetConf
+import bio.ferlab.datalake.spark3.etl.RuntimeETLContext
 import bio.ferlab.datalake.spark3.etl.v3.SimpleSingleETL
-import bio.ferlab.datalake.spark3.etl.{ETLContext, RuntimeETLContext}
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits.DatasetConfOperations
 import bio.ferlab.datalake.spark3.implicits.SparkUtils.{array_remove_empty, getColumnOrElse}
 import mainargs.{ParserForMethods, main}
@@ -11,7 +11,7 @@ import org.apache.spark.sql.functions._
 
 import java.time.LocalDateTime
 
-case class GenesSuggestions(rc: ETLContext) extends SimpleSingleETL(rc)  {
+case class GenesSuggestions(rc: RuntimeETLContext) extends SimpleSingleETL(rc)  {
 
   override val mainDestination: DatasetConf = conf.getDataset("es_index_gene_suggestions")
 

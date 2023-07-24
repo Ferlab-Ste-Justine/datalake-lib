@@ -1,8 +1,8 @@
 package bio.ferlab.datalake.spark3.publictables.normalized
 
 import bio.ferlab.datalake.commons.config.{DatasetConf, RepartitionByColumns}
+import bio.ferlab.datalake.spark3.etl.RuntimeETLContext
 import bio.ferlab.datalake.spark3.etl.v3.SimpleETLP
-import bio.ferlab.datalake.spark3.etl.{ETLContext, RuntimeETLContext}
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns._
 import mainargs.{ParserForMethods, main}
@@ -11,7 +11,7 @@ import org.apache.spark.sql.functions._
 
 import java.time.LocalDateTime
 
-case class DBSNP(rc: ETLContext) extends SimpleETLP(rc)  {
+case class DBSNP(rc: RuntimeETLContext) extends SimpleETLP(rc)  {
 
   override val mainDestination: DatasetConf = conf.getDataset("normalized_dbsnp")
 

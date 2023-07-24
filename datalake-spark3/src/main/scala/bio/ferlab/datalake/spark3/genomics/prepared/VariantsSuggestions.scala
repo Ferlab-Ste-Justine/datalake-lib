@@ -1,8 +1,8 @@
 package bio.ferlab.datalake.spark3.genomics.prepared
 
 import bio.ferlab.datalake.commons.config.DatasetConf
+import bio.ferlab.datalake.spark3.etl.RuntimeETLContext
 import bio.ferlab.datalake.spark3.etl.v3.SimpleSingleETL
-import bio.ferlab.datalake.spark3.etl.{ETLContext, RuntimeETLContext}
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits.DatasetConfOperations
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits._
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns.locus
@@ -13,7 +13,7 @@ import org.apache.spark.sql.functions._
 
 import java.time.LocalDateTime
 
-case class VariantsSuggestions(rc: ETLContext) extends SimpleSingleETL(rc) {
+case class VariantsSuggestions(rc: RuntimeETLContext) extends SimpleSingleETL(rc) {
 
   override val mainDestination: DatasetConf = conf.getDataset("es_index_variant_suggestions")
   private val enriched_variants: DatasetConf = conf.getDataset("enriched_variants")

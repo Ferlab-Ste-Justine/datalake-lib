@@ -1,8 +1,8 @@
 package bio.ferlab.datalake.spark3.publictables.normalized
 
 import bio.ferlab.datalake.commons.config.{DatasetConf, RepartitionByRange}
+import bio.ferlab.datalake.spark3.etl.RuntimeETLContext
 import bio.ferlab.datalake.spark3.etl.v3.SimpleETLP
-import bio.ferlab.datalake.spark3.etl.{ETLContext, RuntimeETLContext}
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits.DatasetConfOperations
 import bio.ferlab.datalake.spark3.transformation.Cast.{castFloat, castLong}
 import mainargs.{ParserForMethods, main}
@@ -11,7 +11,7 @@ import org.apache.spark.sql.functions._
 
 import java.time.LocalDateTime
 
-case class AnnovarScores(rc: ETLContext) extends SimpleETLP(rc) {
+case class AnnovarScores(rc: RuntimeETLContext) extends SimpleETLP(rc) {
 
   override val mainDestination: DatasetConf = conf.getDataset("normalized_dbnsfp_annovar")
   val raw_dbnsfp_annovar: DatasetConf = conf.getDataset("raw_dbnsfp_annovar")

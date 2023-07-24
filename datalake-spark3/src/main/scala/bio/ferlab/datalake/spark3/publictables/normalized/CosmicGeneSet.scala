@@ -1,8 +1,8 @@
 package bio.ferlab.datalake.spark3.publictables.normalized
 
 import bio.ferlab.datalake.commons.config.{Coalesce, DatasetConf}
+import bio.ferlab.datalake.spark3.etl.RuntimeETLContext
 import bio.ferlab.datalake.spark3.etl.v3.SimpleETLP
-import bio.ferlab.datalake.spark3.etl.{ETLContext, RuntimeETLContext}
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import mainargs.{ParserForMethods, main}
 import org.apache.spark.sql.DataFrame
@@ -13,7 +13,7 @@ import org.apache.spark.sql.types._
 import java.time.LocalDateTime
 import scala.collection.mutable
 
-case class CosmicGeneSet(rc: ETLContext) extends SimpleETLP(rc) {
+case class CosmicGeneSet(rc: RuntimeETLContext) extends SimpleETLP(rc) {
 
   private val cosmic_gene_set = conf.getDataset("raw_cosmic_gene_set")
   override val mainDestination: DatasetConf = conf.getDataset("normalized_cosmic_gene_set")

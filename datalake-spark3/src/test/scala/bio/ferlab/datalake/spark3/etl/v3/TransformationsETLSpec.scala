@@ -10,7 +10,7 @@ class TransformationsETLSpec extends WithETL {
 
   import spark.implicits._
 
-  override val defaultJob: SimpleSingleETL = new SimpleTransformationsETL(srcConf, destConf,
+  override val defaultJob = new TransformationsETL(TestETLContext(), srcConf, destConf,
     List(
       DuplicateColumn("id", "hash_id") -> SHA1("", "hash_id"),
       ToLong("id"),
@@ -23,7 +23,7 @@ class TransformationsETLSpec extends WithETL {
         "description" -> "description_EN"
       ))
     ),
-    rc = TestETLContext()
+
   )
 
   "TransformationsETL extract" should "return the expected format" in {

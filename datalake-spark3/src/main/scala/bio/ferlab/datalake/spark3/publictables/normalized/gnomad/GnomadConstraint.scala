@@ -1,8 +1,8 @@
 package bio.ferlab.datalake.spark3.publictables.normalized.gnomad
 
 import bio.ferlab.datalake.commons.config.{DatasetConf, RepartitionByRange}
+import bio.ferlab.datalake.spark3.etl.RuntimeETLContext
 import bio.ferlab.datalake.spark3.etl.v3.SimpleETLP
-import bio.ferlab.datalake.spark3.etl.{ETLContext, RuntimeETLContext}
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits.DatasetConfOperations
 import bio.ferlab.datalake.spark3.transformation.Cast.{castDouble, castFloat, castInt, castLong}
 import mainargs.{ParserForMethods, main}
@@ -10,7 +10,7 @@ import org.apache.spark.sql.DataFrame
 
 import java.time.LocalDateTime
 
-case class GnomadConstraint(rc: ETLContext) extends SimpleETLP(rc) {
+case class GnomadConstraint(rc: RuntimeETLContext) extends SimpleETLP(rc) {
   override val mainDestination: DatasetConf = conf.getDataset("normalized_gnomad_constraint_v2_1_1")
   val raw_gnomad_constraint: DatasetConf = conf.getDataset("raw_gnomad_constraint_v2_1_1")
 

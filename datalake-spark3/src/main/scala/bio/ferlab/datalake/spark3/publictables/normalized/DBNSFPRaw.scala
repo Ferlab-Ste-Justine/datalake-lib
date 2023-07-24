@@ -1,15 +1,15 @@
 package bio.ferlab.datalake.spark3.publictables.normalized
 
 import bio.ferlab.datalake.commons.config.DatasetConf
+import bio.ferlab.datalake.spark3.etl.RuntimeETLContext
 import bio.ferlab.datalake.spark3.etl.v3.SimpleSingleETL
-import bio.ferlab.datalake.spark3.etl.{ETLContext, RuntimeETLContext}
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits.DatasetConfOperations
 import mainargs.{ParserForMethods, main}
 import org.apache.spark.sql.DataFrame
 
 import java.time.LocalDateTime
 
-case class DBNSFPRaw(rc: ETLContext) extends SimpleSingleETL(rc) {
+case class DBNSFPRaw(rc: RuntimeETLContext) extends SimpleSingleETL(rc) {
   override val mainDestination: DatasetConf = conf.getDataset("normalized_dbnsfp")
   val raw_dbnsfp: DatasetConf = conf.getDataset("raw_dbnsfp")
 

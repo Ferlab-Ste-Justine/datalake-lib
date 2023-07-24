@@ -2,7 +2,7 @@ package bio.ferlab.datalake.spark3.etl.v3
 
 import bio.ferlab.datalake.commons.config.Format.{CSV, DELTA}
 import bio.ferlab.datalake.commons.config.LoadType.{OverWrite, Upsert}
-import bio.ferlab.datalake.commons.config.{Configuration, DatalakeConf, DatasetConf, SimpleConfiguration, StorageConf, TableConf}
+import bio.ferlab.datalake.commons.config.{DatalakeConf, DatasetConf, SimpleConfiguration, StorageConf, TableConf}
 import bio.ferlab.datalake.commons.file.FileSystemType.LOCAL
 import bio.ferlab.datalake.testutils.WithSparkSession
 import org.apache.log4j.{Level, Logger}
@@ -19,13 +19,13 @@ trait WithETL extends AnyFlatSpec with GivenWhenThen with Matchers with BeforeAn
   val destConf: DatasetConf = DatasetConf("airport", "normalized", "/airports", DELTA, Upsert, Some(TableConf("normalized_db", "airport")), keys = List("airport_id"))
 
 
-  implicit val conf: Configuration = SimpleConfiguration(DatalakeConf(storages = List(
+  implicit val conf: SimpleConfiguration = SimpleConfiguration(DatalakeConf(storages = List(
     StorageConf("raw", getClass.getClassLoader.getResource("raw/landing").getFile, LOCAL),
     StorageConf("normalized", getClass.getClassLoader.getResource("normalized").getFile, LOCAL)),
     sources = List(srcConf, destConf)
   ))
 
-  val defaultJob: SimpleETL
+  val defaultJob: ETL[SimpleConfiguration]
 
   override def beforeAll(): Unit = {
     spark.sql("CREATE DATABASE IF NOT EXISTS raw_db")

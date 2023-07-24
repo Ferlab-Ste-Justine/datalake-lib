@@ -1,8 +1,8 @@
 package bio.ferlab.datalake.spark3.publictables.normalized
 
 import bio.ferlab.datalake.commons.config.{Coalesce, DatasetConf}
+import bio.ferlab.datalake.spark3.etl.RuntimeETLContext
 import bio.ferlab.datalake.spark3.etl.v3.SimpleETLP
-import bio.ferlab.datalake.spark3.etl.{ETLContext, RuntimeETLContext}
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import mainargs.{ParserForMethods, main}
 import org.apache.spark.sql.DataFrame
@@ -10,7 +10,7 @@ import org.apache.spark.sql.functions._
 
 import java.time.LocalDateTime
 
-case class DDDGeneSet(rc: ETLContext) extends SimpleETLP(rc) {
+case class DDDGeneSet(rc: RuntimeETLContext) extends SimpleETLP(rc) {
   private val ddd_gene_set = conf.getDataset("raw_ddd_gene_set")
   override val mainDestination: DatasetConf = conf.getDataset("normalized_ddd_gene_set")
 

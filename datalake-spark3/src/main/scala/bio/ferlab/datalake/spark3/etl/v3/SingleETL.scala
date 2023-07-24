@@ -3,11 +3,10 @@ package bio.ferlab.datalake.spark3.etl.v3
 import bio.ferlab.datalake.commons.config.Configuration
 import bio.ferlab.datalake.spark3.etl.ETLContext
 import org.apache.spark.sql.DataFrame
-import pureconfig.ConfigReader
 
 import java.time.LocalDateTime
 
-abstract class SingleETL[T <: Configuration](runtimeConf: ETLContext)(implicit cr: ConfigReader[T]) extends ETL(runtimeConf) {
+abstract class SingleETL[T <: Configuration](context: ETLContext[T]) extends ETL(context) {
 
   /**
    * Takes aDataFrame as input and apply a set of transformation to it to produce the ETL output.

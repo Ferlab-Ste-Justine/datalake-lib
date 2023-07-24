@@ -1,8 +1,8 @@
 package bio.ferlab.datalake.spark3.publictables.enriched
 
 import bio.ferlab.datalake.commons.config.{DatasetConf, RepartitionByRange}
+import bio.ferlab.datalake.spark3.etl.RuntimeETLContext
 import bio.ferlab.datalake.spark3.etl.v3.SimpleSingleETL
-import bio.ferlab.datalake.spark3.etl.{ETLContext, RuntimeETLContext}
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits.DatasetConfOperations
 import mainargs.{ParserForMethods, main}
 import org.apache.spark.sql.functions._
@@ -10,7 +10,7 @@ import org.apache.spark.sql.{Column, DataFrame, functions}
 
 import java.time.LocalDateTime
 
-case class SpliceAi(rc: ETLContext) extends SimpleSingleETL(rc) {
+case class SpliceAi(rc: RuntimeETLContext) extends SimpleSingleETL(rc) {
 
   override val mainDestination: DatasetConf = conf.getDataset("enriched_spliceai")
   val spliceai_indel: DatasetConf = conf.getDataset("normalized_spliceai_indel")

@@ -2,7 +2,7 @@ package bio.ferlab.datalake.spark3.etl.v3
 
 import bio.ferlab.datalake.commons.config.LoadType._
 import bio.ferlab.datalake.commons.config._
-import bio.ferlab.datalake.spark3.etl.{AirportInput, AirportOutput, ETLContext}
+import bio.ferlab.datalake.spark3.etl.{AirportInput, AirportOutput, RuntimeETLContext}
 import bio.ferlab.datalake.spark3.file.{FileSystemResolver, HadoopFileSystem}
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import org.apache.spark.sql.DataFrame
@@ -18,7 +18,7 @@ class ETLSpec extends WithETL {
   import spark.implicits._
 
 
-  case class TestETL(rc: ETLContext) extends SimpleETL(rc) {
+  case class TestETL(rc: RuntimeETLContext) extends SimpleETL(rc) {
 
     override val mainDestination: DatasetConf = destConf
 

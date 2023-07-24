@@ -1,8 +1,8 @@
 package bio.ferlab.datalake.spark3.publictables.normalized
 
 import bio.ferlab.datalake.commons.config.{DatasetConf, RepartitionByColumns}
+import bio.ferlab.datalake.spark3.etl.RuntimeETLContext
 import bio.ferlab.datalake.spark3.etl.v3.SimpleETLP
-import bio.ferlab.datalake.spark3.etl.{ETLContext, RuntimeETLContext}
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns._
 import mainargs.{ParserForMethods, main}
@@ -10,7 +10,7 @@ import org.apache.spark.sql.DataFrame
 
 import java.time.LocalDateTime
 
-case class OneThousandGenomes(rc: ETLContext) extends SimpleETLP(rc) {
+case class OneThousandGenomes(rc: RuntimeETLContext) extends SimpleETLP(rc) {
   private val raw_1000_genomes = conf.getDataset("raw_1000_genomes")
   override val mainDestination: DatasetConf = conf.getDataset("normalized_1000_genomes")
 

@@ -1,17 +1,17 @@
 package bio.ferlab.datalake.spark3.publictables.enriched
 
-import bio.ferlab.datalake.commons.config.{Coalesce, Configuration, DatasetConf}
-import bio.ferlab.datalake.spark3.etl.v3.{SimpleETLP, SimpleSingleETL}
-import bio.ferlab.datalake.spark3.etl.{ETLContext, ETLSingleDestination, RuntimeETLContext}
+import bio.ferlab.datalake.commons.config.{Coalesce, DatasetConf}
+import bio.ferlab.datalake.spark3.etl.RuntimeETLContext
+import bio.ferlab.datalake.spark3.etl.v3.SimpleSingleETL
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import bio.ferlab.datalake.spark3.implicits.SparkUtils.removeEmptyObjectsIn
 import mainargs.{ParserForMethods, main}
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.{Column, DataFrame, SparkSession}
+import org.apache.spark.sql.{Column, DataFrame}
 
 import java.time.LocalDateTime
 
-case class Genes(rc: ETLContext) extends SimpleSingleETL(rc) {
+case class Genes(rc: RuntimeETLContext) extends SimpleSingleETL(rc) {
 
   val mainDestination: DatasetConf = conf.getDataset("enriched_genes")
   val omim_gene_set: DatasetConf = conf.getDataset("normalized_omim_gene_set")

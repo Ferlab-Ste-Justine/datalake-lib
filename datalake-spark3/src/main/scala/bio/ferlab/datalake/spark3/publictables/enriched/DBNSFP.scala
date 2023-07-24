@@ -1,18 +1,18 @@
 package bio.ferlab.datalake.spark3.publictables.enriched
 
-import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf, RepartitionByColumns}
-import bio.ferlab.datalake.spark3.etl.v3.{SimpleETLP, SimpleSingleETL}
-import bio.ferlab.datalake.spark3.etl.{ETLContext, ETLSingleDestination, RuntimeETLContext}
+import bio.ferlab.datalake.commons.config.{DatasetConf, RepartitionByColumns}
+import bio.ferlab.datalake.spark3.etl.RuntimeETLContext
+import bio.ferlab.datalake.spark3.etl.v3.SimpleSingleETL
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits.DatasetConfOperations
 import bio.ferlab.datalake.spark3.transformation.Cast.{castDouble, castLong}
 import mainargs.{ParserForMethods, main}
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.types.{DoubleType, IntegerType, LongType}
-import org.apache.spark.sql.{Column, DataFrame, SparkSession}
+import org.apache.spark.sql.types.{DoubleType, IntegerType}
+import org.apache.spark.sql.{Column, DataFrame}
 
 import java.time.LocalDateTime
 
-case class DBNSFP(rc: ETLContext) extends SimpleSingleETL(rc) {
+case class DBNSFP(rc: RuntimeETLContext) extends SimpleSingleETL(rc) {
 override val mainDestination: DatasetConf = conf.getDataset("enriched_dbnsfp")
   val normalized_dbnsfp: DatasetConf = conf.getDataset("normalized_dbnsfp")
 

@@ -1,8 +1,8 @@
 package bio.ferlab.datalake.spark3.publictables.normalized
 
 import bio.ferlab.datalake.commons.config.{DatasetConf, RepartitionByColumns}
+import bio.ferlab.datalake.spark3.etl.RuntimeETLContext
 import bio.ferlab.datalake.spark3.etl.v3.SimpleETLP
-import bio.ferlab.datalake.spark3.etl.{ETLContext, RuntimeETLContext}
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns._
 import mainargs.{ParserForMethods, main}
@@ -11,7 +11,7 @@ import org.apache.spark.sql.functions._
 
 import java.time.LocalDateTime
 
-case class TopMed(rc: ETLContext) extends SimpleETLP(rc) {
+case class TopMed(rc: RuntimeETLContext) extends SimpleETLP(rc) {
 
   private val raw_topmed = conf.getDataset("raw_topmed_bravo")
   override val mainDestination: DatasetConf = conf.getDataset("normalized_topmed_bravo")
