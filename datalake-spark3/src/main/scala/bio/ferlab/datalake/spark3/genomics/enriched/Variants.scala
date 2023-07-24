@@ -1,14 +1,13 @@
 package bio.ferlab.datalake.spark3.genomics.enriched
 
-import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf}
-import bio.ferlab.datalake.spark3.etl.ETLSingleDestination
+import bio.ferlab.datalake.commons.config.{DatasetConf, RuntimeETLContext}
+import bio.ferlab.datalake.spark3.etl.v3.SimpleSingleETL
 import bio.ferlab.datalake.spark3.genomics.Frequencies._
 import bio.ferlab.datalake.spark3.genomics.FrequencySplit
 import bio.ferlab.datalake.spark3.genomics.enriched.Variants._
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits._
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns.{locus, locusColumnNames}
-import bio.ferlab.datalake.spark3.implicits.SparkUtils
 import bio.ferlab.datalake.spark3.implicits.SparkUtils.firstAs
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{Column, DataFrame, SparkSession}
@@ -23,9 +22,9 @@ import java.time.LocalDateTime
  * @param affectedStatus column used to calculate frequencies for affected / unaffected participants
  * @param snvDatasetId   the id of the dataset containing the SNV variants
  * @param frequencies    the frequencies to calculate. See [[FrequencyOperations.freq]]
- * @param configuration  the configuration object
+ * @param rc             the etl context
  */
-class Variants(participantId: Column = col("participant_id"), affectedStatus: Column = col("affected_status"), filterSnv: Option[Column] = Some(col("has_alt")), snvDatasetId: String, frequencies: Seq[FrequencySplit])(implicit configuration: Configuration) extends ETLSingleDestination {
+case class Variants(rc: RuntimeETLContext, participantId: Column = col("participant_id"), affectedStatus: Column = col("affected_status"), filterSnv: Option[Column] = Some(col("has_alt")), snvDatasetId: String, frequencies: Seq[FrequencySplit]) extends SimpleSingleETL(rc) {
 
   override val mainDestination: DatasetConf = conf.getDataset("enriched_variants")
   protected val thousand_genomes: DatasetConf = conf.getDataset("normalized_1000_genomes")
@@ -39,7 +38,7 @@ class Variants(participantId: Column = col("participant_id"), affectedStatus: Co
   protected val spliceai: DatasetConf = conf.getDataset("enriched_spliceai")
 
   override def extract(lastRunDateTime: LocalDateTime = minDateTime,
-                       currentRunDateTime: LocalDateTime = LocalDateTime.now())(implicit spark: SparkSession): Map[String, DataFrame] = {
+                       currentRunDateTime: LocalDateTime = LocalDateTime.now()): Map[String, DataFrame] = {
     Map(
       thousand_genomes.id -> thousand_genomes.read,
       topmed_bravo.id -> topmed_bravo.read,
@@ -56,7 +55,7 @@ class Variants(participantId: Column = col("participant_id"), affectedStatus: Co
 
   override def transformSingle(data: Map[String, DataFrame],
                                lastRunDateTime: LocalDateTime = minDateTime,
-                               currentRunDateTime: LocalDateTime = LocalDateTime.now())(implicit spark: SparkSession): DataFrame = {
+                               currentRunDateTime: LocalDateTime = LocalDateTime.now()): DataFrame = {
     val snv = filterSnv.map(f => data(snvDatasetId).where(f)).getOrElse(data(snvDatasetId))
     val variants = snv.selectLocus(col("hgvsg"), col("genes_symbol"), col("name"), col("end"), col("variant_class"))
       .groupByLocus()

@@ -4,7 +4,7 @@ import bio.ferlab.datalake.commons.config.DatasetConf
 import bio.ferlab.datalake.spark3.testmodels.enriched.{EnrichedSpliceAi, MAX_SCORE}
 import bio.ferlab.datalake.spark3.testmodels.normalized.NormalizedSpliceAi
 import bio.ferlab.datalake.spark3.testutils.WithTestConfig
-import bio.ferlab.datalake.testutils.{ClassGenerator, WithSparkSession}
+import bio.ferlab.datalake.testutils.{ClassGenerator, TestETLContext, WithSparkSession}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -12,7 +12,7 @@ class SpliceAiSpec extends AnyFlatSpec with WithSparkSession with WithTestConfig
 
   import spark.implicits._
 
-  val job = new SpliceAi()
+  val job = new SpliceAi(TestETLContext())
 
   val spliceai_indel: DatasetConf = job.spliceai_indel
   val spliceai_snv: DatasetConf = job.spliceai_snv

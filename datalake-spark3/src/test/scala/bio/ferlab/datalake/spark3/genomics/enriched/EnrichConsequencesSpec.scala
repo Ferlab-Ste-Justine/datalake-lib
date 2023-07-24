@@ -6,7 +6,7 @@ import bio.ferlab.datalake.spark3.loader.LoadResolver
 import bio.ferlab.datalake.spark3.testmodels.enriched.{EnrichedConsequences, EnrichedDbnsfp, EnrichedGenes}
 import bio.ferlab.datalake.spark3.testmodels.normalized.{NormalizedConsequences, NormalizedEnsemblMapping}
 import bio.ferlab.datalake.spark3.testutils.WithTestConfig
-import bio.ferlab.datalake.testutils.WithSparkSession
+import bio.ferlab.datalake.testutils.{TestETLContext, WithSparkSession}
 import org.apache.commons.io.FileUtils
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AnyFlatSpec
@@ -29,7 +29,7 @@ class EnrichConsequencesSpec extends AnyFlatSpec with WithSparkSession with With
     enriched_genes.id -> Seq(EnrichedGenes()).toDF,
   )
 
-  val etl = new Consequences()
+  val etl = new Consequences(TestETLContext(RunStep.default_load))
 
   override def beforeAll(): Unit = {
     FileUtils.deleteDirectory(new File("spark-warehouse"))

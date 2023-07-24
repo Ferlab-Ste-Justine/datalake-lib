@@ -1,33 +1,32 @@
 package bio.ferlab.datalake.spark3.publictables.normalized.gnomad
 
-import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf, RepartitionByRange}
-import bio.ferlab.datalake.spark3.etl.ETLP
+import bio.ferlab.datalake.commons.config.{DatasetConf, RepartitionByRange, RuntimeETLContext}
+import bio.ferlab.datalake.spark3.etl.v3.SimpleETLP
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits.DatasetConfOperations
 import bio.ferlab.datalake.spark3.transformation.Cast.{castDouble, castFloat, castInt, castLong}
-import org.apache.spark.sql.{DataFrame, SparkSession}
+import mainargs.{ParserForMethods, main}
+import org.apache.spark.sql.DataFrame
 
 import java.time.LocalDateTime
 
-class GnomadConstraint(implicit conf: Configuration) extends ETLP {
+case class GnomadConstraint(rc: RuntimeETLContext) extends SimpleETLP(rc) {
   override val mainDestination: DatasetConf = conf.getDataset("normalized_gnomad_constraint_v2_1_1")
   val raw_gnomad_constraint: DatasetConf = conf.getDataset("raw_gnomad_constraint_v2_1_1")
 
   override def extract(lastRunDateTime: LocalDateTime = minDateTime,
-                       currentRunDateTime: LocalDateTime = LocalDateTime.now())
-                      (implicit spark: SparkSession): Map[String, DataFrame] = {
+                       currentRunDateTime: LocalDateTime = LocalDateTime.now()): Map[String, DataFrame] = {
     Map(raw_gnomad_constraint.id -> raw_gnomad_constraint.read)
   }
 
-    override def transformSingle(data: Map[String, DataFrame],
-                                 lastRunDateTime: LocalDateTime = minDateTime,
-                                 currentRunDateTime: LocalDateTime = LocalDateTime.now())
-                                (implicit spark: SparkSession): DataFrame = {
+  override def transformSingle(data: Map[String, DataFrame],
+                               lastRunDateTime: LocalDateTime = minDateTime,
+                               currentRunDateTime: LocalDateTime = LocalDateTime.now()): DataFrame = {
     import spark.implicits._
 
     data(raw_gnomad_constraint.id)
       .select(
         $"chromosome",
-        castLong("start_position") as "start" ,
+        castLong("start_position") as "start",
         castLong("end_position") as "end",
         $"gene" as "symbol",
         $"transcript",
@@ -109,3 +108,13 @@ class GnomadConstraint(implicit conf: Configuration) extends ETLP {
   override def defaultRepartition: DataFrame => DataFrame = RepartitionByRange(columnNames = Seq("chromosome", "start"), n = Some(1))
 
 }
+
+object GnomadConstraint {
+  @main
+  def run(rc: RuntimeETLContext): Unit = {
+    GnomadConstraint(rc).run()
+  }
+
+  def main(args: Array[String]): Unit = ParserForMethods(this).runOrThrow(args)
+}
+

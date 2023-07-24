@@ -1,28 +1,29 @@
 package bio.ferlab.datalake.spark3.publictables.normalized.gnomad
 
-import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf, RepartitionByRange}
-import bio.ferlab.datalake.spark3.etl.ETLP
+import bio.ferlab.datalake.commons.config.{DatasetConf, RepartitionByRange, RuntimeETLContext}
+import bio.ferlab.datalake.spark3.etl.v3.SimpleETLP
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns._
+import mainargs.{ParserForMethods, main}
 import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.types.ArrayType
-import org.apache.spark.sql.{Column, DataFrame, SparkSession}
+import org.apache.spark.sql.{Column, DataFrame}
 
 import java.time.LocalDateTime
 
-class GnomadV3()(implicit conf: Configuration) extends ETLP {
+case class GnomadV3(rc: RuntimeETLContext) extends SimpleETLP(rc) {
 
   override val mainDestination: DatasetConf = conf.getDataset("normalized_gnomad_genomes_v3")
   val gnomad_vcf: DatasetConf = conf.getDataset("raw_gnomad_genomes_v3")
 
   override def extract(lastRunDateTime: LocalDateTime = minDateTime,
-                       currentRunDateTime: LocalDateTime = LocalDateTime.now())(implicit spark: SparkSession): Map[String, DataFrame] = {
+                       currentRunDateTime: LocalDateTime = LocalDateTime.now()): Map[String, DataFrame] = {
     Map(gnomad_vcf.id -> gnomad_vcf.read)
   }
 
   override def transformSingle(data: Map[String, DataFrame],
                                lastRunDateTime: LocalDateTime = minDateTime,
-                               currentRunDateTime: LocalDateTime = LocalDateTime.now())(implicit spark: SparkSession): DataFrame = {
+                               currentRunDateTime: LocalDateTime = LocalDateTime.now()): DataFrame = {
     import spark.implicits._
 
     val df = data(gnomad_vcf.id)
@@ -76,4 +77,13 @@ class GnomadV3()(implicit conf: Configuration) extends ETLP {
     spark.emptyDataFrame
   }
    */
+}
+
+object GnomadV3 {
+  @main
+  def run(rc: RuntimeETLContext): Unit = {
+    GnomadV3(rc).run()
+  }
+
+  def main(args: Array[String]): Unit = ParserForMethods(this).runOrThrow(args)
 }

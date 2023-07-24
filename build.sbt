@@ -4,7 +4,7 @@
  * information regarding copyright ownership.
  */
 
-lazy val scala212 = "2.12.14"
+lazy val scala212 = "2.12.18"
 lazy val supportedScalaVersions = List(scala212)
 
 scalacOptions ++= Seq("-deprecation", "-Ypartial-unification")
@@ -29,6 +29,7 @@ lazy val `datalake-commons` = (project in file("datalake-commons"))
     libraryDependencies += "org.scalatest" %% "scalatest" % scalatestVersion,
     libraryDependencies += "io.projectglow" %% "glow-spark3" % glowVersion % Provided exclude("org.apache.hadoop", "hadoop-client"),
     libraryDependencies += "com.outr" %% "hasher" % "1.2.2",
+    libraryDependencies += "com.lihaoyi"%% "mainargs" % "0.5.0",
     libraryDependencies += "org.apache.spark" %% "spark-core" % spark3Version % Provided,
     libraryDependencies += "org.apache.spark" %% "spark-sql" % spark3Version % Provided,
     dependencyOverrides ++= Seq(
@@ -36,22 +37,23 @@ lazy val `datalake-commons` = (project in file("datalake-commons"))
       "org.antlr" % "antlr4" % "4.8",
       "org.antlr" % "antlr4-tool" % "4.8",
       "org.antlr" % "antlr4-runtime" % "4.8"
-    )
-  )
+)
+)
 
 lazy val `datalake-test-utils` = (project in file("datalake-test-utils"))
-  .settings(
+.settings(
     scalaVersion := scala212,
     libraryDependencies ++= Seq(
       "org.apache.spark" %% "spark-core" % spark3Version % Provided,
       "org.apache.spark" %% "spark-sql" % spark3Version % Provided,
       "io.delta" %% "delta-core" % deltaVersion % Provided,
       "org.scalatest" %% "scalatest" % scalatestVersion % Test
-    )
-  )
+)
+)
+.dependsOn(`datalake-commons`)
 
 lazy val `datalake-spark3` = (project in file("datalake-spark3"))
-  .settings(
+.settings(
     scalaVersion := scala212,
     libraryDependencies ++= Seq(
       "org.apache.spark" %% "spark-core" % spark3Version % Provided,

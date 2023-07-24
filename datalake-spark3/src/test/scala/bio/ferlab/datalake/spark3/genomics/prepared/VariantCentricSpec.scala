@@ -4,7 +4,7 @@ import bio.ferlab.datalake.commons.config.DatasetConf
 import bio.ferlab.datalake.spark3.testmodels.enriched.{EnrichedConsequences, EnrichedVariant}
 import bio.ferlab.datalake.spark3.testmodels.prepared.PreparedVariantCentric
 import bio.ferlab.datalake.spark3.testutils.WithTestConfig
-import bio.ferlab.datalake.testutils.WithSparkSession
+import bio.ferlab.datalake.testutils.{TestETLContext, WithSparkSession}
 import org.apache.spark.sql.DataFrame
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AnyFlatSpec
@@ -35,7 +35,7 @@ class VariantCentricSpec extends AnyFlatSpec with WithSparkSession with WithTest
 
   "transformSingle" should "return data in expected format" in {
 
-    val df = new VariantCentric().transformSingle(data)
+    val df = new VariantCentric(TestETLContext()).transformSingle(data)
 
     val result = df.as[PreparedVariantCentric].collect()
 

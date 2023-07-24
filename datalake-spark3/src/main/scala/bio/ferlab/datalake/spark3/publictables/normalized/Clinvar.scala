@@ -1,10 +1,11 @@
 package bio.ferlab.datalake.spark3.publictables.normalized
 
-import bio.ferlab.datalake.commons.config.{Coalesce, Configuration, DatasetConf}
-import bio.ferlab.datalake.spark3.etl.ETLP
+import bio.ferlab.datalake.commons.config.{Coalesce, DatasetConf, RuntimeETLContext}
+import bio.ferlab.datalake.spark3.etl.v3.SimpleETLP
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns._
 import bio.ferlab.datalake.spark3.implicits.SparkUtils._
+import mainargs.{ParserForMethods, main}
 import org.apache.spark.sql._
 import org.apache.spark.sql.expressions.UserDefinedFunction
 import org.apache.spark.sql.functions._
@@ -12,20 +13,20 @@ import org.apache.spark.sql.functions._
 import java.time.LocalDateTime
 import scala.collection.mutable
 
-class Clinvar()(implicit conf: Configuration) extends ETLP {
+case class Clinvar(rc: RuntimeETLContext) extends SimpleETLP(rc) {
 
   override val mainDestination: DatasetConf = conf.getDataset("normalized_clinvar")
 
   val clinvar_vcf: DatasetConf = conf.getDataset("raw_clinvar")
 
   override def extract(lastRunDateTime: LocalDateTime,
-                       currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): Map[String, DataFrame] = {
+                       currentRunDateTime: LocalDateTime): Map[String, DataFrame] = {
     Map(clinvar_vcf.id -> clinvar_vcf.read)
   }
 
   override def transformSingle(data: Map[String, DataFrame],
                          lastRunDateTime: LocalDateTime,
-                         currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): DataFrame = {
+                         currentRunDateTime: LocalDateTime): DataFrame = {
 
     val df = data(clinvar_vcf.id)
     spark.udf.register("inheritance", inheritance_udf)
@@ -134,5 +135,14 @@ class Clinvar()(implicit conf: Configuration) extends ETLP {
         )
     }
   }
+}
+
+object Clinvar {
+  @main
+  def run(rc: RuntimeETLContext): Unit = {
+    Clinvar(rc).run()
+  }
+
+  def main(args: Array[String]): Unit = ParserForMethods(this).runOrThrow(args)
 }
 

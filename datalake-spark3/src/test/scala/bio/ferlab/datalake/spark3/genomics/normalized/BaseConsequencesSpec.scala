@@ -4,8 +4,8 @@ import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns.{annotation
 import bio.ferlab.datalake.spark3.testmodels.normalized.NormalizedConsequences
 import bio.ferlab.datalake.spark3.testmodels.raw.{InfoCSQ, RawVcf, RawVcfWithInfoAnn}
 import bio.ferlab.datalake.spark3.testutils.WithTestConfig
-import bio.ferlab.datalake.testutils.WithSparkSession
-import org.apache.spark.sql.{Column, DataFrame, SparkSession}
+import bio.ferlab.datalake.testutils.{TestETLContext, WithSparkSession}
+import org.apache.spark.sql.{Column, DataFrame}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -16,8 +16,8 @@ class BaseConsequencesSpec extends AnyFlatSpec with WithSparkSession with WithTe
 
   import spark.implicits._
 
-  class ConsequenceEtl(annotationsColumn: Column = csq, groupByLocus: Boolean = true) extends BaseConsequences(annotationsColumn, groupByLocus) {
-    override def extract(lastRunDateTime: LocalDateTime, currentRunDateTime: LocalDateTime)(implicit spark: SparkSession): Map[String, DataFrame] = ???
+  class ConsequenceEtl(annotationsColumn: Column = csq, groupByLocus: Boolean = true) extends BaseConsequences(TestETLContext(), annotationsColumn, groupByLocus) {
+    override def extract(lastRunDateTime: LocalDateTime, currentRunDateTime: LocalDateTime): Map[String, DataFrame] = ???
   }
 
   "consequences job" should "transform data in expected format" in {

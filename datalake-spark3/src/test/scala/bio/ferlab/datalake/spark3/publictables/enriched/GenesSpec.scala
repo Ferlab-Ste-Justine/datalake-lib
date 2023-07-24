@@ -5,7 +5,7 @@ import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import bio.ferlab.datalake.spark3.testmodels.enriched.{EnrichedGenes, OMIM, ORPHANET}
 import bio.ferlab.datalake.spark3.testmodels.normalized._
 import bio.ferlab.datalake.spark3.testutils.WithTestConfig
-import bio.ferlab.datalake.testutils.WithSparkSession
+import bio.ferlab.datalake.testutils.{TestETLContext, WithSparkSession}
 import org.apache.spark.sql.functions
 import org.apache.spark.sql.functions.col
 import org.scalatest.flatspec.AnyFlatSpec
@@ -49,7 +49,7 @@ class GenesSpec extends AnyFlatSpec with GivenWhenThen with WithSparkSession wit
     ).toDF()
   )
 
-  val job = new Genes()
+  val job = new Genes(TestETLContext())
 
   it should "transform data into genes table" in {
 

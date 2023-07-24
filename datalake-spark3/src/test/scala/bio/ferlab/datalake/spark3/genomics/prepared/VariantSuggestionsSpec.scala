@@ -4,7 +4,7 @@ import bio.ferlab.datalake.commons.config.DatasetConf
 import bio.ferlab.datalake.spark3.testmodels.enriched.{EnrichedConsequences, EnrichedVariant}
 import bio.ferlab.datalake.spark3.testmodels.prepared.{PreparedVariantSugggestions, SUGGEST}
 import bio.ferlab.datalake.spark3.testutils.WithTestConfig
-import bio.ferlab.datalake.testutils.WithSparkSession
+import bio.ferlab.datalake.testutils.{TestETLContext, WithSparkSession}
 import org.apache.spark.sql.DataFrame
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AnyFlatSpec
@@ -35,7 +35,7 @@ class VariantSuggestionsSpec extends AnyFlatSpec with WithSparkSession with With
 
   "transformSingle" should "return data in expected format" in {
 
-    val df = new VariantsSuggestions().transformSingle(data)
+    val df = new VariantsSuggestions(TestETLContext()).transformSingle(data)
     val result = df.as[PreparedVariantSugggestions].collect()
     result.length shouldBe 2
     result.find(_.`chromosome` == "1") shouldBe Some(PreparedVariantSugggestions())
