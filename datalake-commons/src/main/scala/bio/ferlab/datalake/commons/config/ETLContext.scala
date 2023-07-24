@@ -1,6 +1,5 @@
-package bio.ferlab.datalake.spark3.etl
+package bio.ferlab.datalake.commons.config
 
-import bio.ferlab.datalake.commons.config.{Configuration, ConfigurationLoader, RunStep, SimpleConfiguration}
 import mainargs.{ParserForClass, arg}
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.SparkConf
@@ -48,6 +47,6 @@ case class RuntimeETLContext(
 }
 
 object RuntimeETLContext {
-  implicit def configParser[T <: Configuration]: ParserForClass[RuntimeETLContext] = ParserForClass[RuntimeETLContext]
+  implicit def configParser: ParserForClass[RuntimeETLContext] = ParserForClass[RuntimeETLContext]
 }
 

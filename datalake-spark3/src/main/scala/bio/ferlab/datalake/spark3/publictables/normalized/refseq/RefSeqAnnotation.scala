@@ -1,7 +1,6 @@
 package bio.ferlab.datalake.spark3.publictables.normalized.refseq
 
-import bio.ferlab.datalake.commons.config.{DatasetConf, FixedRepartition}
-import bio.ferlab.datalake.spark3.etl.RuntimeETLContext
+import bio.ferlab.datalake.commons.config.{DatasetConf, FixedRepartition, RuntimeETLContext}
 import bio.ferlab.datalake.spark3.etl.v3.SimpleETLP
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits.DatasetConfOperations
 import mainargs.{ParserForMethods, main}

@@ -2,6 +2,7 @@ package bio.ferlab.datalake.spark3.etl.v3
 
 import bio.ferlab.datalake.spark3.etl.{AirportInput, AirportOutput}
 import bio.ferlab.datalake.spark3.transformation._
+import bio.ferlab.datalake.testutils.TestETLContext
 import org.apache.spark.sql.functions.col
 
 import java.time.LocalDateTime

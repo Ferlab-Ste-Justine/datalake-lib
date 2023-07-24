@@ -1,7 +1,6 @@
 package bio.ferlab.datalake.spark3.genomics.normalized
 
-import bio.ferlab.datalake.commons.config.DatasetConf
-import bio.ferlab.datalake.spark3.etl.RuntimeETLContext
+import bio.ferlab.datalake.commons.config.{DatasetConf, RuntimeETLContext}
 import bio.ferlab.datalake.spark3.etl.v3.SimpleETLP
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits._
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns._

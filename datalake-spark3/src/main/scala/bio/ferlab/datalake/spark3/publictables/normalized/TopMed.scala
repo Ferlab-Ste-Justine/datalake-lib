@@ -1,7 +1,6 @@
 package bio.ferlab.datalake.spark3.publictables.normalized
 
-import bio.ferlab.datalake.commons.config.{DatasetConf, RepartitionByColumns}
-import bio.ferlab.datalake.spark3.etl.RuntimeETLContext
+import bio.ferlab.datalake.commons.config.{DatasetConf, RepartitionByColumns, RuntimeETLContext}
 import bio.ferlab.datalake.spark3.etl.v3.SimpleETLP
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns._

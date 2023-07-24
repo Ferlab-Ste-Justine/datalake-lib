@@ -29,6 +29,7 @@ lazy val `datalake-commons` = (project in file("datalake-commons"))
     libraryDependencies += "org.scalatest" %% "scalatest" % scalatestVersion,
     libraryDependencies += "io.projectglow" %% "glow-spark3" % glowVersion % Provided exclude("org.apache.hadoop", "hadoop-client"),
     libraryDependencies += "com.outr" %% "hasher" % "1.2.2",
+    libraryDependencies += "com.lihaoyi"%% "mainargs" % "0.5.0",
     libraryDependencies += "org.apache.spark" %% "spark-core" % spark3Version % Provided,
     libraryDependencies += "org.apache.spark" %% "spark-sql" % spark3Version % Provided,
     dependencyOverrides ++= Seq(
@@ -36,22 +37,23 @@ lazy val `datalake-commons` = (project in file("datalake-commons"))
       "org.antlr" % "antlr4" % "4.8",
       "org.antlr" % "antlr4-tool" % "4.8",
       "org.antlr" % "antlr4-runtime" % "4.8"
-    )
-  )
+)
+)
 
 lazy val `datalake-test-utils` = (project in file("datalake-test-utils"))
-  .settings(
+.settings(
     scalaVersion := scala212,
     libraryDependencies ++= Seq(
       "org.apache.spark" %% "spark-core" % spark3Version % Provided,
       "org.apache.spark" %% "spark-sql" % spark3Version % Provided,
       "io.delta" %% "delta-core" % deltaVersion % Provided,
       "org.scalatest" %% "scalatest" % scalatestVersion % Test
-    )
-  )
+)
+)
+.dependsOn(`datalake-commons`)
 
 lazy val `datalake-spark3` = (project in file("datalake-spark3"))
-  .settings(
+.settings(
     scalaVersion := scala212,
     libraryDependencies ++= Seq(
       "org.apache.spark" %% "spark-core" % spark3Version % Provided,
@@ -64,7 +66,6 @@ lazy val `datalake-spark3` = (project in file("datalake-spark3"))
       "com.microsoft.sqlserver" % "mssql-jdbc" % "8.4.1.jre8" % Provided,
       "com.microsoft.aad" % "adal4j" % "0.0.2" % Provided,
       "com.microsoft.azure" % "spark-mssql-connector_2.12" % "1.1.0" % Provided,
-      "com.lihaoyi"%% "mainargs" % "0.5.0",
       //Use by ElasticsearchClient
       "com.softwaremill.sttp.client3" %% "core" % "3.8.15",
       "com.softwaremill.sttp.client3" %% "json4s" % "3.8.15" exclude("org.json4s", "json4s-core_2.12"), //Exclusion because json4s is used in spark

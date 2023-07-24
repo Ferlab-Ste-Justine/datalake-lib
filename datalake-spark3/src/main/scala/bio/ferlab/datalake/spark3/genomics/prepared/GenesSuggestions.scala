@@ -1,7 +1,6 @@
 package bio.ferlab.datalake.spark3.genomics.prepared
 
-import bio.ferlab.datalake.commons.config.DatasetConf
-import bio.ferlab.datalake.spark3.etl.RuntimeETLContext
+import bio.ferlab.datalake.commons.config.{DatasetConf, RuntimeETLContext}
 import bio.ferlab.datalake.spark3.etl.v3.SimpleSingleETL
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits.DatasetConfOperations
 import bio.ferlab.datalake.spark3.implicits.SparkUtils.{array_remove_empty, getColumnOrElse}

@@ -1,7 +1,6 @@
 package bio.ferlab.datalake.spark3.etl.v3
 
-import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf}
-import bio.ferlab.datalake.spark3.etl.ETLContext
+import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf, ETLContext}
 import bio.ferlab.datalake.spark3.transformation.Transformation
 import org.apache.spark.sql.DataFrame
 

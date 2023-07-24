@@ -1,7 +1,6 @@
 package bio.ferlab.datalake.spark3.publictables.enriched
 
-import bio.ferlab.datalake.commons.config.{DatasetConf, RepartitionByColumns}
-import bio.ferlab.datalake.spark3.etl.RuntimeETLContext
+import bio.ferlab.datalake.commons.config.{DatasetConf, RepartitionByColumns, RuntimeETLContext}
 import bio.ferlab.datalake.spark3.etl.v3.SimpleSingleETL
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits.DatasetConfOperations
 import bio.ferlab.datalake.spark3.transformation.Cast.{castDouble, castLong}

@@ -1,7 +1,6 @@
-package bio.ferlab.datalake.spark3.etl.v3
+package bio.ferlab.datalake.testutils
 
-import bio.ferlab.datalake.commons.config.{RunStep, SimpleConfiguration}
-import bio.ferlab.datalake.spark3.etl.RuntimeETLContext
+import bio.ferlab.datalake.commons.config.{RunStep, RuntimeETLContext, SimpleConfiguration}
 import org.apache.spark.sql.SparkSession
 
 class TestETLContext(steps: Seq[RunStep] = Nil)(implicit configuration: SimpleConfiguration, sparkSession: SparkSession) extends RuntimeETLContext("path", steps = "", appName = Some("Spark Test")) {

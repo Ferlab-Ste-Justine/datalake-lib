@@ -1,6 +1,6 @@
 package bio.ferlab.datalake.spark3.publictables
 
-import bio.ferlab.datalake.spark3.etl.RuntimeETLContext
+import bio.ferlab.datalake.commons.config.RuntimeETLContext
 import bio.ferlab.datalake.spark3.publictables.enriched.{DBNSFP, Genes, RareVariant}
 import bio.ferlab.datalake.spark3.publictables.normalized._
 import bio.ferlab.datalake.spark3.publictables.normalized.gnomad._
