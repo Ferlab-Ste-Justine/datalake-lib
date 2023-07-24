@@ -8,7 +8,7 @@ import java.time.LocalDateTime
 abstract class SingleETL[T <: Configuration](context: ETLContext[T]) extends ETL(context) {
 
   /**
-   * Takes aDataFrame as input and apply a set of transformation to it to produce the ETL output.
+   * Takes a DataFrame as input and applies a set of transformations to it to produce the ETL output.
    * It is recommended to not read any additional data but to use the extract() method instead to inject input data.
    *
    * @param data input data

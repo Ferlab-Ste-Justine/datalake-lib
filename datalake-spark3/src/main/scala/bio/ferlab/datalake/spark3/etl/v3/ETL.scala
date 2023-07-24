@@ -18,14 +18,14 @@ import scala.util.Try
 
 /**
  * Defines a common workflow for ETL jobs.
- * By definition an ETL can take 1..n sources as input and can produce only 1 output.
+ * By definition an ETL can take 1..N sources as input and can produce 1..N output.
  *
  * @param context runtime configuration
  */
 abstract class ETL[T <: Configuration](context: ETLContext[T]) {
 
-  val minDateTime: LocalDateTime = LocalDateTime.of(1900, 1, 1, 0, 0, 0)
-  val maxDateTime: LocalDateTime = LocalDateTime.of(9999, 12, 31, 23, 59, 55)
+  val minDateTime: LocalDateTime = LocalDateTime.MAX
+  val maxDateTime: LocalDateTime = LocalDateTime.MIN
 
   def mainDestination: DatasetConf
 
@@ -36,7 +36,7 @@ abstract class ETL[T <: Configuration](context: ETLContext[T]) {
 
 
   /**
-   * Reads data from a file system and produce a Map[DatasetConf, DataFrame].
+   * Reads data from a file system and produces a Map[DatasetConf, DataFrame].
    * This method should avoid transformation and joins but can implement filters in order to make the ETL more efficient.
    *
    * @return all the data needed to pass to the transform method and produce the desired output.
@@ -45,7 +45,7 @@ abstract class ETL[T <: Configuration](context: ETLContext[T]) {
               currentRunDateTime: LocalDateTime = LocalDateTime.now()): Map[String, DataFrame]
 
   /**
-   * Takes a Map[DatasetConf, DataFrame] as input and apply a set of transformation to it to produce the ETL output.
+   * Takes a Map[DatasetConf, DataFrame] as input and applies a set of transformations to it to produce the ETL output.
    * It is recommended to not read any additional data but to use the extract() method instead to inject input data.
    *
    * @param data input data
