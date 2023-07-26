@@ -1,6 +1,7 @@
 package bio.ferlab.datalake.spark3.file
 
 import bio.ferlab.datalake.testutils.WithSparkSession
+import org.apache.hadoop.fs.FileAlreadyExistsException
 import org.scalatest.GivenWhenThen
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -62,6 +63,136 @@ class HadoopFileSystemSpec extends AnyFlatSpec with GivenWhenThen with Matchers 
         "dir2" -> true,
         "file2" -> false,
       )
+    }
+  }
+
+  "copy" should "copy a file to the specified location" in {
+    withOutputFolder("root") { root =>
+      HadoopFileSystem.list(root, recursive = true).length shouldBe 0
+
+      val rootPath = Paths.get(root)
+      Files.createFile(rootPath.resolve("myFile").toAbsolutePath)
+      HadoopFileSystem.list(root, recursive = true).length shouldBe 1
+
+      HadoopFileSystem.copy(
+        rootPath.resolve("myFile").toAbsolutePath.toString,
+        rootPath.resolve("myNewFile").toAbsolutePath.toString,
+        overwrite = false)
+
+      val files = HadoopFileSystem.list(root, recursive = true)
+      HadoopFileSystem.list(root, recursive = true).length shouldBe 2
+      files.count(_.name === "myFile") shouldBe 1 // old file still exists
+      files.count(_.name === "myNewFile") shouldBe 1 // new file has been created
+    }
+  }
+
+  it should "not overwrite destination if overwrite is false" in {
+    withOutputFolder("root") { root =>
+      HadoopFileSystem.list(root, recursive = true).length shouldBe 0
+
+      val rootPath = Paths.get(root)
+      val content = "hello world"
+
+      Files.writeString(rootPath.resolve("myFile").toAbsolutePath, content)
+      Files.createFile(rootPath.resolve("myExistingFile").toAbsolutePath)
+      HadoopFileSystem.list(root, recursive = true).length shouldBe 2
+      Files.readString(rootPath.resolve("myExistingFile").toAbsolutePath) shouldBe empty
+
+      an[FileAlreadyExistsException] shouldBe thrownBy {
+        HadoopFileSystem.copy(
+          rootPath.resolve("myFile").toAbsolutePath.toString,
+          rootPath.resolve("myExistingFile").toAbsolutePath.toString,
+          overwrite = false)
+      }
+      Files.readString(rootPath.resolve("myExistingFile").toAbsolutePath) shouldBe empty
+    }
+  }
+
+  it should "overwrite destination if overwrite is true" in {
+    withOutputFolder("root") { root =>
+      HadoopFileSystem.list(root, recursive = true).length shouldBe 0
+
+      val rootPath = Paths.get(root)
+      val content = "hello world"
+      val existingContent = "abcd"
+
+      Files.writeString(rootPath.resolve("myFile").toAbsolutePath, content)
+      Files.writeString(rootPath.resolve("myExistingFile").toAbsolutePath, existingContent)
+      HadoopFileSystem.list(root, recursive = true).length shouldBe 2
+      Files.readString(rootPath.resolve("myExistingFile").toAbsolutePath) shouldBe existingContent
+
+      noException shouldBe thrownBy {
+        HadoopFileSystem.copy(
+          rootPath.resolve("myFile").toAbsolutePath.toString,
+          rootPath.resolve("myExistingFile").toAbsolutePath.toString,
+          overwrite = true)
+      }
+      Files.readString(rootPath.resolve("myExistingFile").toAbsolutePath) shouldBe content
+    }
+  }
+
+  "move" should "move a file to the specified location" in {
+    withOutputFolder("root") { root =>
+      HadoopFileSystem.list(root, recursive = true).length shouldBe 0
+
+      val rootPath = Paths.get(root)
+      Files.createFile(rootPath.resolve("myFile").toAbsolutePath)
+      HadoopFileSystem.list(root, recursive = true).length shouldBe 1
+
+      HadoopFileSystem.move(
+        rootPath.resolve("myFile").toAbsolutePath.toString,
+        rootPath.resolve("myNewFile").toAbsolutePath.toString,
+        overwrite = false)
+
+      val files = HadoopFileSystem.list(root, recursive = true)
+      HadoopFileSystem.list(root, recursive = true).length shouldBe 1
+      files.count(_.name === "myFile") shouldBe 0 // old file has been removed
+      files.count(_.name === "myNewFile") shouldBe 1 // new file has been created
+    }
+  }
+
+  it should "not overwrite destination if overwrite is false" in {
+    withOutputFolder("root") { root =>
+      HadoopFileSystem.list(root, recursive = true).length shouldBe 0
+
+      val rootPath = Paths.get(root)
+      val content = "hello world"
+
+      Files.writeString(rootPath.resolve("myFile").toAbsolutePath, content)
+      Files.createFile(rootPath.resolve("myExistingFile").toAbsolutePath)
+      HadoopFileSystem.list(root, recursive = true).length shouldBe 2
+      Files.readString(rootPath.resolve("myExistingFile").toAbsolutePath) shouldBe empty
+
+      an[FileAlreadyExistsException] shouldBe thrownBy {
+        HadoopFileSystem.move(
+          rootPath.resolve("myFile").toAbsolutePath.toString,
+          rootPath.resolve("myExistingFile").toAbsolutePath.toString,
+          overwrite = false)
+      }
+      Files.readString(rootPath.resolve("myExistingFile").toAbsolutePath) shouldBe empty
+    }
+  }
+
+  it should "overwrite destination if overwrite is true" in {
+    withOutputFolder("root") { root =>
+      HadoopFileSystem.list(root, recursive = true).length shouldBe 0
+
+      val rootPath = Paths.get(root)
+      val content = "hello world"
+      val existingContent = "abcd"
+
+      Files.writeString(rootPath.resolve("myFile").toAbsolutePath, content)
+      Files.writeString(rootPath.resolve("myExistingFile").toAbsolutePath, existingContent)
+      HadoopFileSystem.list(root, recursive = true).length shouldBe 2
+      Files.readString(rootPath.resolve("myExistingFile").toAbsolutePath) shouldBe existingContent
+
+      noException shouldBe thrownBy {
+        HadoopFileSystem.move(
+          rootPath.resolve("myFile").toAbsolutePath.toString,
+          rootPath.resolve("myExistingFile").toAbsolutePath.toString,
+          overwrite = true)
+      }
+      Files.readString(rootPath.resolve("myExistingFile").toAbsolutePath) shouldBe content
     }
   }
 }
