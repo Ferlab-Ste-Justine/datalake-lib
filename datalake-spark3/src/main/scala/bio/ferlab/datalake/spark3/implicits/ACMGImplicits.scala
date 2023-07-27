@@ -6,11 +6,26 @@ import org.apache.spark.sql.{Column, DataFrame}
 
 object ACMGImplicits {
 
+  val variantColumns = Array("chromosome", "start", "end", "reference", "alternate")
+
+  private def validateRequiredColumns(map: Map[DataFrame, (String, Array[String])], criteriaName: String = "criteria"): Unit = {
+    map.foreach {
+      case (df, (dfName, columns)) => columns.foreach(
+        col => require(
+          df.columns.contains(col),
+          s"Column `$col` is required in DataFrame $dfName for $criteriaName.")
+      )
+    }
+  }
+
   /**
    * inColArray
    * Anonymous helper function generating boolean columns for array-containing columns.
    *
-   * @return a Column of boolean
+   * Designed to be used in a withColumn statement. Checks whether an entry in the column contains
+   * at least one value from values argument.
+   *
+   * @return A Column of boolean
    */
   val inColArray = (colName: String, values: List[String]) => values.map(m => array_contains(col(colName), m)).reduce(_ || _)
 
@@ -56,6 +71,13 @@ object ACMGImplicits {
 
     def getBS2(orphanet: DataFrame, frequencies: DataFrame): DataFrame = {
 
+      val map = Map(
+        df -> ("df", Array("symbol") ++ variantColumns),
+        orphanet -> ("orphanet", Array("gene_symbol", "average_age_of_onset", "type_of_inheritance")),
+        frequencies -> ("frequencies", Array("external_frequencies", "genes_symbol") ++ variantColumns)
+      )
+      validateRequiredColumns(map, "PM2")
+
       val threshold = 4
 
       val onsets = List(
@@ -70,9 +92,8 @@ object ACMGImplicits {
         "Y-linked",
         "Mitochondrial inheritance")
 
-      val orphanetDF = orphanet.select("gene_symbol", "name", "average_age_of_onset", "type_of_inheritance")
+      val orphanetDF = orphanet.select("gene_symbol", "average_age_of_onset", "type_of_inheritance")
         .withColumn("is_adult_onset", inColArray("average_age_of_onset", onsets))
-        .na.fill(true, Seq("is_adult_onset"))
         .filter(col("is_adult_onset") === false)
         .withColumn("is_dominant", inColArray("type_of_inheritance", is_dominant_inheritance))
         .select(
@@ -90,15 +111,15 @@ object ACMGImplicits {
           explode(col("genes_symbol")).as("symbol"),
           col("external_frequencies.gnomad_genomes_3_1_1.ac").as("gnomad_ac"),
           col("external_frequencies.gnomad_genomes_3_1_1.hom").as("gnomad_hom"))
-        .join(orphanetDF, Seq("symbol"), "leftouter")
 
       df
+        .join(orphanetDF, Seq("symbol"), "leftouter")
+        .na.fill(false, Seq("is_dominant"))
         .join(freqDF, Seq("chromosome", "start", "end", "reference", "alternate", "symbol"), "leftouter")
         .withColumn("BS2", struct(
           col("gnomad_ac"),
           col("gnomad_hom"),
           col("is_dominant"),
-          col("gnomad_hom"),
           (
             col("gnomad_hom").isNotNull &&
               (
