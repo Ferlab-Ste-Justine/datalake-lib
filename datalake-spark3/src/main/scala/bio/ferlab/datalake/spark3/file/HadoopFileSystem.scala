@@ -2,6 +2,7 @@ package bio.ferlab.datalake.spark3.file
 
 import bio.ferlab.datalake.commons.file
 import bio.ferlab.datalake.commons.file.File
+import org.apache.commons.io.IOUtils
 import org.apache.hadoop
 import org.apache.hadoop.fs._
 import org.apache.spark.sql.SparkSession
@@ -42,12 +43,22 @@ object HadoopFileSystem extends file.FileSystem {
 
   override def copy(source: String, destination: String, overwrite: Boolean): Unit = {
     val fs = getFileSystem(source)
-    fs.copyFromLocalFile(false, overwrite, source, destination)
+
+    if (fs.exists(destination) && !overwrite) {
+      throw new FileAlreadyExistsException("destination " + destination + " already exists")
+    } else {
+      val inputStream = fs.open(source)
+      val outputStream = fs.create(destination)
+      IOUtils.copy(inputStream, outputStream)
+
+      inputStream.close()
+      outputStream.close()
+    }
   }
 
   override def move(source: String, destination: String, overwrite: Boolean): Unit = {
-    val fs = getFileSystem(source)
-    fs.copyFromLocalFile(true, overwrite, source, destination)
+    copy(source, destination, overwrite)
+    remove(source)
   }
 
   override def remove(path: String): Unit = {
