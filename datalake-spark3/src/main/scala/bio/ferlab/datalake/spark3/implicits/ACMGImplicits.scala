@@ -132,6 +132,42 @@ object ACMGImplicits {
 
     }
 
+    def getPP2(clinvar: DataFrame): DataFrame = {
+
+      val pathogenicClinSig = List("Pathogenic", "Likely_pathogenic")
+      val benignClinSig = List("Benign", "Likely_benign")
+
+      val clinvarDF = clinvar
+        .filter(array_contains(col("mc"), "missense_variant") === true)
+        .withColumn("is_pathogenic", inColArray("clin_sig", pathogenicClinSig))
+        .withColumn("is_benign", inColArray("clin_sig", benignClinSig))
+        .filter((col("is_pathogenic") !== col("is_benign")) === true)
+        .withColumn("symbol", explode(split(col("geneinfo"), "\\|")))
+        .groupBy("symbol").agg(
+          sum(col("is_pathogenic").cast("int")).alias("n_pathogenic"),
+          sum(col("is_benign").cast("int")).alias("n_benign")
+        )
+        .withColumn("is_missense_pathogenic", col("n_pathogenic") >= 3 && col("n_pathogenic") > col("n_benign") * 2)
+        .withColumn("symbol", split(col("symbol"), ":").getItem(0))
+
+
+      df.join(clinvarDF, Seq("symbol"), "leftouter")
+        .na.fill(0, Seq("n_benign", "n_pathogenic"))
+        .na.fill(false, Seq("is_missense_pathogenic"))
+        .filter(array_contains(col("consequences"), "downstream_gene_variant") === false)
+        .filter(col("symbol") !== "AARS1")
+        .withColumn("PP2", struct(
+          col("n_benign"),
+          col("n_pathogenic"),
+          col("is_missense_pathogenic"),
+          (
+            col("is_missense_pathogenic").isNotNull &&
+              col("is_missense_pathogenic") === true &&
+              array_contains(col("consequences"), "missense_variant")
+            ).as("score")
+        )).drop("n_pathogenic", "n_benign", "is_missense_pathogenic")
+    }
+
   }
 
 }
