@@ -162,4 +162,70 @@ class ACMGImplicitsSpec extends AnyFlatSpec with WithSparkSession with Matchers 
     val result = queryDF.getBS2(f.orphanetDF, freqDF)
     result.collect() should contain theSameElementsAs resultData
   }
+
+  def pp2Fixture = {
+    new {
+      val clinvarSchema = new StructType()
+        .add("geneinfo", StringType, true)
+        .add("clin_sig", new ArrayType(StringType, true), true)
+        .add("mc", new ArrayType(StringType, true), true)
+
+      val clinvarData = Seq(
+        Row("gene1", Array("Pathogenic"), Array("missense_variant")),
+        Row("gene1", Array("Pathogenic"), Array("missense_variant")),
+        Row("gene1", Array("Pathogenic"), Array("missense_variant")),
+        Row("gene1", Array("Benign"), Array("missense_variant")),
+        Row("gene1", Array("Pathogenic"), Array("upstream_gene_variant")),
+        Row("gene2", Array("Benign"), Array("missense_variant")),
+      )
+
+      val clinvarDF = spark.createDataFrame(spark.sparkContext.parallelize(clinvarData), clinvarSchema)
+
+      val querySchema = variantSchema
+        .add("symbol", StringType, true)
+        .add("consequences", new ArrayType(StringType, true), true)
+
+      val queryData = Seq(
+        Row("1", 1, 2, "A", "C", "gene1", Array("missense_variant")),
+        Row("1", 1, 2, "A", "T", "gene1", Array("upstream_gene_variant")),
+        Row("1", 1, 2, "A", "T", "gene2", Array("missense_variant"))
+      )
+
+      val queryDF = spark.createDataFrame(spark.sparkContext.parallelize(queryData), querySchema)
+
+      val resultSchema = variantSchema
+        .add("symbol", StringType, true)
+        .add("consequences", new ArrayType(StringType, true), true)
+        .add("pp2", new StructType()
+          .add("n_benign", IntegerType, false)
+          .add("n_pathogenic", IntegerType, false)
+          .add("is_missense_pathogenic", BooleanType, false)
+          .add("score", BooleanType, true), false
+        )
+
+      val resultData = Seq(
+        Row("1", 1, 2, "A", "C", "gene1", Array("missense_variant"), Row(1, 3, true, true)),
+        Row("1", 1, 2, "A", "T", "gene1", Array("upstream_gene_variant"), Row(1, 3, true, false)),
+        Row("1", 1, 2, "A", "T", "gene2", Array("missense_variant"), Row(1, 0, false, false)),
+      )
+
+      val resultDF = spark.createDataFrame(spark.sparkContext.parallelize(resultData), resultSchema)
+
+    }
+  }
+
+  "get_PP2" should "throw IllegalArgumentException if `mc` column is absent from the clinvar DataFrame" in {
+    val f = pp2Fixture
+
+    an[IllegalArgumentException] should be thrownBy f.queryDF.getPP2(f.clinvarDF.drop("mc"))
+  }
+
+  it should "correctly classify PP2 variants" in {
+    val f = pp2Fixture
+
+    val result = f.queryDF.getPP2(f.clinvarDF)
+    result.collect() should contain theSameElementsAs f.resultDF.collect()
+  }
+
+
 }
