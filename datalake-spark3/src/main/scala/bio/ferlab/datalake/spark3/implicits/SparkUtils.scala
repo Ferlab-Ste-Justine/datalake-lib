@@ -101,4 +101,21 @@ object SparkUtils {
     findField(dfSchema, nameParts).isDefined
   }
 
+  implicit class SparkOperations(df: DataFrame) {
+    /**
+     * Converts a DataFrame to RDD, caches it then converts it back to DataFrame.
+     *
+     * It is a workaround to solve slow query planning, for example in iterative algorithms. It truncates the lineage
+     * of the DataFrame by preventing the SQL optimizer (Catalyst) to look past the RDD. Checkpointing has a similar
+     * result but it saves the data to files inside the checkpoint directory without deleting them after the job.
+     * @param spark Instance of SparkSession
+     * @return The same DataFrame
+     * @see [[https://medium.com/@hareesha1906/apache-spark-large-query-plans-54f3f3c9c7d3]]
+     */
+    def cacheRDD()(implicit spark: SparkSession): DataFrame = {
+      val rdd = df.rdd
+      rdd.cache()
+      spark.createDataFrame(rdd, df.schema)
+    }
+  }
 }
