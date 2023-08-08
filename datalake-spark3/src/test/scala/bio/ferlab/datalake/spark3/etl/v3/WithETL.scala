@@ -4,13 +4,11 @@ import bio.ferlab.datalake.commons.config.Format.{CSV, DELTA}
 import bio.ferlab.datalake.commons.config.LoadType.{OverWrite, Upsert}
 import bio.ferlab.datalake.commons.config.{DatalakeConf, DatasetConf, SimpleConfiguration, StorageConf, TableConf}
 import bio.ferlab.datalake.commons.file.FileSystemType.LOCAL
-import bio.ferlab.datalake.testutils.WithSparkSession
+import bio.ferlab.datalake.testutils.{CreateDatabasesBeforeAll, SparkSpec}
 import org.apache.log4j.{Level, Logger}
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
-import org.scalatest.{BeforeAndAfterAll, GivenWhenThen}
+import org.scalatest.GivenWhenThen
 
-trait WithETL extends AnyFlatSpec with GivenWhenThen with Matchers with BeforeAndAfterAll with WithSparkSession {
+trait WithETL extends SparkSpec with GivenWhenThen with CreateDatabasesBeforeAll {
 
   Logger.getLogger("org").setLevel(Level.OFF)
   Logger.getLogger("akka").setLevel(Level.OFF)
@@ -26,10 +24,10 @@ trait WithETL extends AnyFlatSpec with GivenWhenThen with Matchers with BeforeAn
   ))
 
   val defaultJob: ETL[SimpleConfiguration]
+  override val dbToCreate: List[String] = List("raw_db", "normalized_db")
 
   override def beforeAll(): Unit = {
-    spark.sql("CREATE DATABASE IF NOT EXISTS raw_db")
-    spark.sql("CREATE DATABASE IF NOT EXISTS normalized_db")
+    super.beforeAll()
     defaultJob.reset()
   }
 }

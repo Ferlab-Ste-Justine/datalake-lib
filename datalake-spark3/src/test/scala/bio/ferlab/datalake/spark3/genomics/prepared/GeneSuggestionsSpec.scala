@@ -4,14 +4,11 @@ import bio.ferlab.datalake.commons.config.DatasetConf
 import bio.ferlab.datalake.spark3.testmodels.enriched.EnrichedGenes
 import bio.ferlab.datalake.spark3.testmodels.prepared.PreparedGeneSuggestions
 import bio.ferlab.datalake.spark3.testutils.WithTestConfig
-import bio.ferlab.datalake.testutils.{ClassGenerator, TestETLContext, WithSparkSession}
+import bio.ferlab.datalake.testutils.{SparkSpec, TestETLContext}
 import org.apache.spark.sql.DataFrame
-import org.scalatest.BeforeAndAfterAll
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
 
 
-class GeneSuggestionsSpec extends AnyFlatSpec with WithSparkSession with WithTestConfig with Matchers with BeforeAndAfterAll {
+class GeneSuggestionsSpec extends SparkSpec with WithTestConfig {
 
   import spark.implicits._
 

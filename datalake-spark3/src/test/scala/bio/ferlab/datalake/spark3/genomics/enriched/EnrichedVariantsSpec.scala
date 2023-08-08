@@ -3,16 +3,13 @@ package bio.ferlab.datalake.spark3.genomics.enriched
 import bio.ferlab.datalake.commons.config.DatasetConf
 import bio.ferlab.datalake.spark3.genomics.{FrequencySplit, SimpleAggregation}
 import bio.ferlab.datalake.spark3.testmodels.enriched.{EnrichedGenes, EnrichedSpliceAi, EnrichedVariant, MAX_SCORE}
-import bio.ferlab.datalake.spark3.testmodels.normalized.{NormalizedClinvar, NormalizedDbsnp, NormalizedGnomadConstraint, NormalizedGnomadExomes211, NormalizedGnomadGenomes211, NormalizedGnomadGenomes3, NormalizedOneKGenomes, NormalizedSNV, NormalizedSpliceAi, NormalizedTopmed}
+import bio.ferlab.datalake.spark3.testmodels.normalized._
 import bio.ferlab.datalake.spark3.testutils.WithTestConfig
-import bio.ferlab.datalake.testutils.{TestETLContext, WithSparkSession}
+import bio.ferlab.datalake.testutils.{SparkSpec, TestETLContext}
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.functions.col
-import org.scalatest.BeforeAndAfterAll
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
 
-class EnrichedVariantsSpec extends AnyFlatSpec with WithSparkSession with WithTestConfig with Matchers with BeforeAndAfterAll {
+class EnrichedVariantsSpec extends SparkSpec with WithTestConfig {
 
   import spark.implicits._
 

@@ -1,15 +1,25 @@
-package bio.ferlab.datalake.spark3.file
+package bio.ferlab.datalake.commons.file
 
-import bio.ferlab.datalake.testutils.WithSparkSession
+import bio.ferlab.datalake.commons.config.testutils.WithOutputFolder
 import org.apache.hadoop.fs.FileAlreadyExistsException
-import org.scalatest.GivenWhenThen
+import org.apache.log4j.{Level, Logger}
+import org.apache.spark.sql.SparkSession
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 import java.nio.file.{Files, Paths}
 
 
-class HadoopFileSystemSpec extends AnyFlatSpec with GivenWhenThen with Matchers with WithSparkSession {
+class HadoopFileSystemSpec extends AnyFlatSpec with Matchers with WithOutputFolder {
+
+  implicit lazy val spark: SparkSession = SparkSession.builder()
+    .master("local")
+    .getOrCreate()
+
+  spark.sparkContext.setLogLevel("ERROR")
+
+  Logger.getLogger("org").setLevel(Level.OFF)
+  Logger.getLogger("akka").setLevel(Level.OFF)
 
   import spark.implicits._
 

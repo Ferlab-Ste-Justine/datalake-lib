@@ -1,5 +1,6 @@
 package bio.ferlab.datalake.spark3.loader
 
+import bio.ferlab.datalake.testutils.{CreateDatabasesBeforeAll, SparkSpec}
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.scalatest.BeforeAndAfterAll
@@ -11,23 +12,18 @@ import java.sql.Timestamp
 import java.time.LocalDateTime
 import scala.util.Try
 
-class GenericLoaderSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
-
-  implicit lazy val spark: SparkSession = SparkSession.builder()
-    .master("local")
-    .getOrCreate()
-
-  Logger.getLogger("org").setLevel(Level.OFF)
-  Logger.getLogger("akka").setLevel(Level.OFF)
+class GenericLoaderSpec extends SparkSpec with CreateDatabasesBeforeAll {
 
   val output: String = getClass.getClassLoader.getResource("normalized/").getFile + "test_generic"
 
   val tableName = "test_generic"
   val databaseName = "default"
 
+  override val dbToCreate: List[String] = List(databaseName)
+
   override def beforeAll(): Unit = {
+    super.beforeAll()
     Try {
-      spark.sql(s"CREATE DATABASE IF NOT EXISTS ${databaseName}")
       spark.sql(s"DROP TABLE IF EXISTS ${tableName}").na
       new File(output).delete()
     }

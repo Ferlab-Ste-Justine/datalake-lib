@@ -3,31 +3,15 @@ package bio.ferlab.datalake.spark3.etl
 import bio.ferlab.datalake.commons.config.Format.{CSV, DELTA}
 import bio.ferlab.datalake.commons.config.LoadType.OverWrite
 import bio.ferlab.datalake.commons.config.{Configuration, DatalakeConf, DatasetConf, SimpleConfiguration, StorageConf, TableConf}
+import bio.ferlab.datalake.commons.file.FileSystemResolver
 import bio.ferlab.datalake.commons.file.FileSystemType.LOCAL
-import bio.ferlab.datalake.spark3.file.FileSystemResolver
 import bio.ferlab.datalake.spark3.transformation._
-import org.apache.log4j.{Level, Logger}
-import org.apache.spark.sql.SparkSession
+import bio.ferlab.datalake.testutils.{CleanUpBeforeAll, SparkSpec}
 import org.apache.spark.sql.functions.col
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
-import org.scalatest.{BeforeAndAfterAll, GivenWhenThen}
 
 import java.time.LocalDateTime
-import scala.util.Try
 
-class RawToNormalizedETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers with BeforeAndAfterAll {
-
-  implicit lazy val spark: SparkSession = SparkSession.builder()
-    .config("spark.ui.enabled", value = false)
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
-    .master("local")
-    .getOrCreate()
-
-  Logger.getLogger("org").setLevel(Level.OFF)
-  Logger.getLogger("akka").setLevel(Level.OFF)
-
+class RawToNormalizedETLSpec extends SparkSpec with CleanUpBeforeAll {
 
   implicit val conf: Configuration = SimpleConfiguration(DatalakeConf(storages = List(
     StorageConf("raw", getClass.getClassLoader.getResource("raw/landing").getFile, LOCAL),
@@ -52,9 +36,7 @@ class RawToNormalizedETLSpec extends AnyFlatSpec with GivenWhenThen with Matcher
     )
   )
 
-  override def beforeAll(): Unit = {
-    Try(job.reset())
-  }
+  override val dsToClean: List[DatasetConf] = List(destConf)
 
   "RawToNormalizedETL extract" should "return the expected format" in {
     import spark.implicits._
@@ -88,5 +70,4 @@ class RawToNormalizedETLSpec extends AnyFlatSpec with GivenWhenThen with Matcher
     val table = spark.table(s"${destConf.table.get.fullName}")
     table.as[AirportOutput].collect().head shouldBe AirportOutput()
   }
-
 }

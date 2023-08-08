@@ -3,8 +3,8 @@ package bio.ferlab.datalake.spark3.etl.v3
 import bio.ferlab.datalake.commons.config.LoadType.{Insert, OverWritePartition, Scd1, Scd2}
 import bio.ferlab.datalake.commons.config.WriteOptions.{UPDATED_ON_COLUMN_NAME, VALID_FROM_COLUMN_NAME}
 import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf, ETLContext, IdentityRepartition, RunStep}
+import bio.ferlab.datalake.commons.file.FileSystemResolver
 import bio.ferlab.datalake.spark3.datastore.SqlBinderResolver
-import bio.ferlab.datalake.spark3.file.FileSystemResolver
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import bio.ferlab.datalake.spark3.loader.LoadResolver
 import org.apache.spark.sql.functions._

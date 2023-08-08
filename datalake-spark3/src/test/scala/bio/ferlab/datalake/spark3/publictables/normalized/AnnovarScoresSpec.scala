@@ -1,11 +1,8 @@
 package bio.ferlab.datalake.spark3.publictables.normalized
 
-import bio.ferlab.datalake.testutils.WithSparkSession
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
-import org.scalatest.{BeforeAndAfterAll, GivenWhenThen}
+import bio.ferlab.datalake.testutils.SparkSpec
 
-class AnnovarScoresSpec extends AnyFlatSpec with GivenWhenThen with WithSparkSession with Matchers with BeforeAndAfterAll {
+class AnnovarScoresSpec extends SparkSpec {
 //TODO need to regenerate input dataframe
   /*
 

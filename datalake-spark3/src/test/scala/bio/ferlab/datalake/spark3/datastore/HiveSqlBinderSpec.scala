@@ -1,33 +1,24 @@
 package bio.ferlab.datalake.spark3.datastore
 
 import bio.ferlab.datalake.commons.file.FileSystemType.LOCAL
-import org.apache.log4j.{Level, Logger}
-import org.apache.spark.sql.{AnalysisException, SparkSession}
-import org.scalatest.BeforeAndAfterAll
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
+import bio.ferlab.datalake.testutils.{CreateDatabasesBeforeAll, SparkSpec}
+import org.apache.spark.sql.AnalysisException
 
 import java.io.File
 import scala.util.Try
 
-class HiveSqlBinderSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
+class HiveSqlBinderSpec extends SparkSpec with CreateDatabasesBeforeAll {
 
-  implicit lazy val spark: SparkSession = SparkSession.builder()
-    .master("local")
-    .getOrCreate()
-
-  Logger.getLogger("org").setLevel(Level.OFF)
-  Logger.getLogger("akka").setLevel(Level.OFF)
   val tableName = "test_hive_binder"
   val databaseName = "default"
   val output: String = getClass.getClassLoader.getResource("normalized/").getFile + "testtable"
 
-
   import spark.implicits._
+
+  override val dbToCreate: List[String] = List(databaseName)
 
   override def beforeAll(): Unit = {
     Try {
-      spark.sql(s"CREATE DATABASE IF NOT EXISTS ${databaseName}")
       spark.sql(s"DROP TABLE IF EXISTS `$databaseName`.`$tableName`")
       new File(output).delete()
     }

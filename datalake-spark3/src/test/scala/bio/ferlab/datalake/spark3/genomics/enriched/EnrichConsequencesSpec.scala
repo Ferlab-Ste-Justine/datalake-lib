@@ -6,15 +6,13 @@ import bio.ferlab.datalake.spark3.loader.LoadResolver
 import bio.ferlab.datalake.spark3.testmodels.enriched.{EnrichedConsequences, EnrichedDbnsfp, EnrichedGenes}
 import bio.ferlab.datalake.spark3.testmodels.normalized.{NormalizedConsequences, NormalizedEnsemblMapping}
 import bio.ferlab.datalake.spark3.testutils.WithTestConfig
-import bio.ferlab.datalake.testutils.{TestETLContext, WithSparkSession}
+import bio.ferlab.datalake.testutils.{CleanUpBeforeAll, CreateDatabasesBeforeAll, SparkSpec, TestETLContext}
 import org.apache.commons.io.FileUtils
 import org.scalatest.BeforeAndAfterAll
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
 
 import java.io.File
 
-class EnrichConsequencesSpec extends AnyFlatSpec with WithSparkSession with WithTestConfig with Matchers with BeforeAndAfterAll {
+class EnrichConsequencesSpec extends SparkSpec with WithTestConfig with BeforeAndAfterAll with CreateDatabasesBeforeAll with CleanUpBeforeAll {
 
   val normalized_consequences: DatasetConf = conf.getDataset("normalized_consequences")
   val dbnsfp_original: DatasetConf = conf.getDataset("enriched_dbnsfp")
@@ -31,10 +29,11 @@ class EnrichConsequencesSpec extends AnyFlatSpec with WithSparkSession with With
 
   val etl = new Consequences(TestETLContext(RunStep.default_load))
 
+  override val dbToCreate: List[String] = List("variant")
+  override val dsToClean: List[DatasetConf] = List(enriched_consequences)
+
   override def beforeAll(): Unit = {
     FileUtils.deleteDirectory(new File("spark-warehouse"))
-    FileUtils.deleteDirectory(new File(enriched_consequences.location))
-    spark.sql("CREATE DATABASE IF NOT EXISTS variant")
 
     data.foreach { case (id, df) =>
       val ds = conf.getDataset(id)
@@ -66,8 +65,6 @@ class EnrichConsequencesSpec extends AnyFlatSpec with WithSparkSession with With
       `conservations` = null
     )
   }
-
-
 }
 
 

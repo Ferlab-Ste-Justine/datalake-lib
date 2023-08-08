@@ -1,6 +1,4 @@
-package bio.ferlab.datalake.spark3.file
-
-import bio.ferlab.datalake.commons.file.{FileSystem, FileSystemType}
+package bio.ferlab.datalake.commons.file
 
 object FileSystemResolver {
 

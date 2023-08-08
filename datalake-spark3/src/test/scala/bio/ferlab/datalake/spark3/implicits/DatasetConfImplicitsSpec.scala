@@ -5,16 +5,13 @@ import bio.ferlab.datalake.commons.config.LoadType.{OverWrite, OverWritePartitio
 import bio.ferlab.datalake.commons.config.{Configuration, DatalakeConf, DatasetConf, LoadType, SimpleConfiguration, StorageConf, TableConf, WriteOptions}
 import bio.ferlab.datalake.commons.file.FileSystemType.LOCAL
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
-import bio.ferlab.datalake.testutils.WithSparkSession
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
-import org.scalatest.{BeforeAndAfterAll, GivenWhenThen}
+import bio.ferlab.datalake.testutils.SparkSpec
 
 import java.nio.file.Files
 import java.sql.Date
 import java.time.LocalDate
 
-class DatasetConfImplicitsSpec extends AnyFlatSpec with WithSparkSession with GivenWhenThen with Matchers with BeforeAndAfterAll {
+class DatasetConfImplicitsSpec extends SparkSpec {
 
   val tableName = "my_table"
   val databaseName = "default"

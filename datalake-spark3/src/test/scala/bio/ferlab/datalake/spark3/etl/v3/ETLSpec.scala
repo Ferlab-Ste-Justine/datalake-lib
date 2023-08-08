@@ -2,8 +2,8 @@ package bio.ferlab.datalake.spark3.etl.v3
 
 import bio.ferlab.datalake.commons.config.LoadType._
 import bio.ferlab.datalake.commons.config._
+import bio.ferlab.datalake.commons.file.{FileSystemResolver, HadoopFileSystem}
 import bio.ferlab.datalake.spark3.etl.{AirportInput, AirportOutput}
-import bio.ferlab.datalake.spark3.file.{FileSystemResolver, HadoopFileSystem}
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import bio.ferlab.datalake.testutils.TestETLContext
 import org.apache.spark.sql.DataFrame

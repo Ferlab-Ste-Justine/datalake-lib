@@ -1,23 +1,9 @@
 package bio.ferlab.datalake.spark3.hive
 
 import bio.ferlab.datalake.spark3.hive.VcfHeaderParser.Header
-import org.apache.log4j.{Level, Logger}
-import org.apache.spark.sql.SparkSession
-import org.scalatest.GivenWhenThen
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
+import bio.ferlab.datalake.testutils.SparkSpec
 
-class VcfHeaderParserSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
-
-  implicit lazy val spark: SparkSession = SparkSession.builder()
-    .config("spark.ui.enabled", value = false)
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
-    .master("local")
-    .getOrCreate()
-
-  Logger.getLogger("org").setLevel(Level.OFF)
-  Logger.getLogger("akka").setLevel(Level.OFF)
+class VcfHeaderParserSpec extends SparkSpec {
 
   import spark.implicits._
 
