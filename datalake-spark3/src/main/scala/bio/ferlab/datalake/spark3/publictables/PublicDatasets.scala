@@ -11,7 +11,7 @@ case class PublicDatasets(alias: String, tableDatabase: Option[String], viewData
   val sources: List[DatasetConf] = List(
           //raw
           DatasetConf("raw_clinvar"                  , alias, "/raw/landing/clinvar/clinvar.vcf.gz"                                , VCF  , OverWrite , readoptions = Map("flattenInfoFields" -> "true", "split_multiallelics" -> "true")),
-          DatasetConf("raw_clinvar_vep"              , alias, "/raw/landing/clinvar/clinvar.vep.vcf.gz"                            , VCF  , OverWrite , readoptions = Map("flattenInfoFields" -> "true", "split_multiallelics" -> "true")),
+          DatasetConf("raw_clinvar_vep"              , alias, "/raw/landing/clinvar_vep/clinvar.vep.vcf.gz"                            , VCF  , OverWrite , readoptions = Map("flattenInfoFields" -> "true", "split_multiallelics" -> "true")),
           DatasetConf("raw_dbsnp"                    , alias, "/raw/landing/dbsnp/GCF_000001405.40.gz"                             , VCF  , OverWrite , readoptions = Map("flattenInfoFields" -> "true", "split_multiallelics" -> "true")),
           DatasetConf("raw_gnomad_genomes_v3"        , alias, "/release/3.1/vcf/genomes/gnomad.genomes.v3.1.sites.chr[^M]*.vcf.bgz", VCF  , OverWrite , readoptions = Map("flattenInfoFields" -> "true", "split_multiallelics" -> "true")).copy(storageid = gnomadStorageId),
           DatasetConf("raw_gnomad_constraint_v2_1_1" , alias, "/raw/landing/gnomad_v2_1_1/gnomad.v2.1.1.lof_metrics.by_gene.txt.gz", CSV  , OverWrite , readoptions = Map("header" -> "true", "sep" -> "\t")),
