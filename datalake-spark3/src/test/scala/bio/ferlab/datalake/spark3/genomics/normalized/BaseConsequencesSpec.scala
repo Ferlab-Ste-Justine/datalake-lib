@@ -4,15 +4,12 @@ import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns.{annotation
 import bio.ferlab.datalake.spark3.testmodels.normalized.NormalizedConsequences
 import bio.ferlab.datalake.spark3.testmodels.raw.{InfoCSQ, RawVcf, RawVcfWithInfoAnn}
 import bio.ferlab.datalake.spark3.testutils.WithTestConfig
-import bio.ferlab.datalake.testutils.{TestETLContext, WithSparkSession}
+import bio.ferlab.datalake.testutils.{SparkSpec, TestETLContext}
 import org.apache.spark.sql.{Column, DataFrame}
-import org.scalatest.BeforeAndAfterAll
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
 
 import java.time.LocalDateTime
 
-class BaseConsequencesSpec extends AnyFlatSpec with WithSparkSession with WithTestConfig with Matchers with BeforeAndAfterAll {
+class BaseConsequencesSpec extends SparkSpec with WithTestConfig {
 
   import spark.implicits._
 

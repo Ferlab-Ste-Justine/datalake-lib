@@ -1,6 +1,6 @@
 package bio.ferlab.datalake.spark3.elasticsearch
 
-import bio.ferlab.datalake.testutils.WithSparkSession
+import bio.ferlab.datalake.testutils.SparkSpec
 import com.dimafeng.testcontainers.ElasticsearchContainer
 import com.dimafeng.testcontainers.scalatest.TestContainerForEach
 import org.scalatest.flatspec.AnyFlatSpec
@@ -10,7 +10,7 @@ import org.testcontainers.utility.DockerImageName
 import sttp.client3.{SimpleHttpClient, UriContext, basicRequest}
 import sttp.model.StatusCode.NotFound
 
-class ElasticSearchClientSpec extends AnyFlatSpec with GivenWhenThen with Matchers with BeforeAndAfterAll with WithSparkSession with TestContainerForEach {
+class ElasticSearchClientSpec extends SparkSpec with TestContainerForEach with BeforeAndAfterAll {
   override val containerDef: ElasticsearchContainer.Def = ElasticsearchContainer.Def(DockerImageName
     .parse("elasticsearch:7.17.10")
     .asCompatibleSubstituteFor("docker.elastic.co/elasticsearch/elasticsearch")

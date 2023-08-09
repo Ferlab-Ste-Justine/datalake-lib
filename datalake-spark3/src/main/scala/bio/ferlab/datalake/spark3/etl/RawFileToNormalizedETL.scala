@@ -1,7 +1,7 @@
 package bio.ferlab.datalake.spark3.etl
 
 import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf}
-import bio.ferlab.datalake.spark3.file.FileSystemResolver
+import bio.ferlab.datalake.commons.file.FileSystemResolver
 import bio.ferlab.datalake.spark3.transformation.Transformation
 import org.apache.spark.sql.functions.input_file_name
 import org.apache.spark.sql.{DataFrame, SparkSession}

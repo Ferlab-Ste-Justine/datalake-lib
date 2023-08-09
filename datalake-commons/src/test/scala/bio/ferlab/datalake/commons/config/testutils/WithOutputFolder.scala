@@ -1,27 +1,10 @@
-package bio.ferlab.datalake.testutils
+package bio.ferlab.datalake.commons.config.testutils
 
 import org.apache.commons.io.FileUtils
-import org.apache.log4j.{Level, Logger}
-import org.apache.spark.sql.SparkSession
 
-import java.io.File
 import java.nio.file.{Files, Path}
 
-trait WithSparkSession {
-
-  private val tmp = new File("tmp").getAbsolutePath
-  implicit lazy val spark: SparkSession = SparkSession.builder()
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
-    .enableHiveSupport()
-    .master("local")
-    .getOrCreate()
-
-  spark.sparkContext.setLogLevel("ERROR")
-
-  Logger.getLogger("org").setLevel(Level.OFF)
-  Logger.getLogger("akka").setLevel(Level.OFF)
-
+trait WithOutputFolder {
 
   /**
    * - Creates a temporary folder
@@ -42,4 +25,3 @@ trait WithSparkSession {
     }
   }
 }
-

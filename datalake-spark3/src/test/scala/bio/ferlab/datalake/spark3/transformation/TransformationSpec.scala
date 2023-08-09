@@ -8,24 +8,14 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import bio.ferlab.datalake.spark3.transformation
 import bio.ferlab.datalake.spark3.transformation.NormalizeColumnName.replace_special_char_by_ansii_code
+import bio.ferlab.datalake.testutils.SparkSpec
 import org.apache.log4j.{Level, Logger}
 
 import java.sql
 import java.time.LocalDate
 import scala.Seq
 
-class TransformationSpec extends AnyFlatSpec with GivenWhenThen with Matchers {
-
-  implicit lazy val spark: SparkSession = SparkSession.builder()
-    .config("spark.ui.enabled", value = false)
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
-    .master("local")
-    .getOrCreate()
-
-  Logger.getLogger("org").setLevel(Level.OFF)
-  Logger.getLogger("akka").setLevel(Level.OFF)
-
+class TransformationSpec extends SparkSpec {
 
   val input: String = getClass.getClassLoader.getResource("filename/").getFile + "file1.json"
 

@@ -4,36 +4,22 @@ import bio.ferlab.datalake.commons.config.Format.{CSV, DELTA}
 import bio.ferlab.datalake.commons.config.LoadType._
 import bio.ferlab.datalake.commons.config._
 import bio.ferlab.datalake.commons.file.FileSystemType.LOCAL
+import bio.ferlab.datalake.commons.file.{FileSystemResolver, HadoopFileSystem}
 import bio.ferlab.datalake.spark3.etl.{AirportInput, AirportOutput}
-import bio.ferlab.datalake.spark3.file.{FileSystemResolver, HadoopFileSystem}
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
-import org.apache.log4j.{Level, Logger}
+import bio.ferlab.datalake.testutils.{CleanUpBeforeAll, CreateDatabasesBeforeAll, SparkSpec}
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.LongType
 import org.apache.spark.sql.{DataFrame, SparkSession}
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
-import org.scalatest.{BeforeAndAfterAll, GivenWhenThen}
 
 import java.sql.{Date, Timestamp}
 import java.time.{LocalDate, LocalDateTime}
 import scala.util.Try
 
-class ETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers with BeforeAndAfterAll {
-
-  implicit lazy val spark: SparkSession = SparkSession.builder()
-    .config("spark.ui.enabled", value = false)
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
-    .master("local")
-    .getOrCreate()
-
-  Logger.getLogger("org").setLevel(Level.OFF)
-  Logger.getLogger("akka").setLevel(Level.OFF)
+class ETLSpec extends SparkSpec with CreateDatabasesBeforeAll {
 
   val srcConf: DatasetConf =  DatasetConf("raw_airports", "raw"       , "/airports.csv", CSV  , OverWrite, Some(TableConf("raw_db" , "raw_airports")), readoptions = Map("header" -> "true", "delimiter" -> "|"))
   val destConf: DatasetConf = DatasetConf("airport"     , "normalized", "/airports"    , DELTA, Upsert, Some(TableConf("normalized_db", "airport")), keys = List("airport_id"))
-
 
   implicit val conf: Configuration = SimpleConfiguration(DatalakeConf(storages = List(
     StorageConf("raw", getClass.getClassLoader.getResource("raw/landing").getFile, LOCAL),
@@ -41,6 +27,7 @@ class ETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers with BeforeAn
     sources = List(srcConf, destConf)
   ))
 
+  override val dbToCreate: List[String] = List("raw_db", "normalized_db")
 
   case class TestETL() extends ETL() {
 
@@ -88,8 +75,7 @@ class ETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers with BeforeAn
   val job: ETL = TestETL()
 
   override def beforeAll(): Unit = {
-    spark.sql("CREATE DATABASE IF NOT EXISTS raw_db")
-    spark.sql("CREATE DATABASE IF NOT EXISTS normalized_db")
+    super.beforeAll()
     job.reset()
   }
 
@@ -212,5 +198,4 @@ class ETLSpec extends AnyFlatSpec with GivenWhenThen with Matchers with BeforeAn
     finalDf(destConf.id).count() shouldBe 3
     finalDf(destConf.id).where("airport_id=999").count() shouldBe 1
   }
-
 }

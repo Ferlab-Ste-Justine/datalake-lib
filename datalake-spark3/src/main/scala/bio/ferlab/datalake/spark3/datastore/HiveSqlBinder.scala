@@ -1,6 +1,5 @@
 package bio.ferlab.datalake.spark3.datastore
-import bio.ferlab.datalake.commons.file.FileSystemType
-import bio.ferlab.datalake.spark3.file.FileSystemResolver
+import bio.ferlab.datalake.commons.file.{FileSystemResolver, FileSystemType}
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.slf4j.{Logger, LoggerFactory}
 

@@ -1,14 +1,11 @@
 package bio.ferlab.datalake.spark3.publictables.enriched
 
 import bio.ferlab.datalake.commons.config.DatasetConf
-import bio.ferlab.datalake.spark3.testmodels.enriched.{EnrichedRareVariantInput, EnrichedRareVariantOutput, EnrichedSpliceAi, MAX_SCORE}
-import bio.ferlab.datalake.spark3.testmodels.normalized.NormalizedSpliceAi
+import bio.ferlab.datalake.spark3.testmodels.enriched.{EnrichedRareVariantInput, EnrichedRareVariantOutput}
 import bio.ferlab.datalake.spark3.testutils.WithTestConfig
-import bio.ferlab.datalake.testutils.{TestETLContext, WithSparkSession}
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
+import bio.ferlab.datalake.testutils.{SparkSpec, TestETLContext}
 
-class RareVariantSpec extends AnyFlatSpec with WithSparkSession with WithTestConfig with Matchers {
+class RareVariantSpec extends SparkSpec with WithTestConfig {
 
   import spark.implicits._
 

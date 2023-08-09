@@ -1,7 +1,6 @@
-package bio.ferlab.datalake.spark3.file
+package bio.ferlab.datalake.commons.file
 
 import bio.ferlab.datalake.commons.file
-import bio.ferlab.datalake.commons.file.File
 import org.apache.commons.io.IOUtils
 import org.apache.hadoop
 import org.apache.hadoop.fs._

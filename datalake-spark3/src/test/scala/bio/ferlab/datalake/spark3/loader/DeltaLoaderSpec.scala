@@ -3,13 +3,12 @@ package bio.ferlab.datalake.spark3.loader
 import bio.ferlab.datalake.commons.config.Format.DELTA
 import bio.ferlab.datalake.commons.config.LoadType.Scd2
 import bio.ferlab.datalake.commons.config.{DatasetConf, WriteOptions}
-import bio.ferlab.datalake.spark3.file.HadoopFileSystem
+import bio.ferlab.datalake.commons.file.HadoopFileSystem
+import bio.ferlab.datalake.testutils.SparkSpec
 import io.delta.tables.DeltaTable
 import org.apache.log4j.{Level, Logger}
-import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.apache.spark.sql.DataFrame
 import org.scalatest.BeforeAndAfterAll
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
 
 import java.sql.{Date, Timestamp}
 import java.time.{LocalDate, LocalDateTime}
@@ -23,18 +22,7 @@ case class Scd2Table(id: String,
                      valid_to: Date,
                      is_current: Boolean)
 
-class DeltaLoaderSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
-
-  implicit lazy val spark: SparkSession = SparkSession.builder()
-    .config("spark.ui.enabled", value = false)
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
-    .master("local")
-    .getOrCreate()
-
-  Logger.getLogger("org").setLevel(Level.OFF)
-  Logger.getLogger("akka").setLevel(Level.OFF)
-  spark.sparkContext.setLogLevel("ERROR")
+class DeltaLoaderSpec extends SparkSpec with BeforeAndAfterAll {
 
   val testtableoverwite: String = getClass.getClassLoader.getResource("normalized/").getFile + "testtableoverwite"
   val output: String = getClass.getClassLoader.getResource("normalized/").getFile + "testtable"

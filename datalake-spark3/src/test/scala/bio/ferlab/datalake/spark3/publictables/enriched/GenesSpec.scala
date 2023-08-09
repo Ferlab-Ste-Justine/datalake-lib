@@ -5,25 +5,13 @@ import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import bio.ferlab.datalake.spark3.testmodels.enriched.{EnrichedGenes, OMIM, ORPHANET}
 import bio.ferlab.datalake.spark3.testmodels.normalized._
 import bio.ferlab.datalake.spark3.testutils.WithTestConfig
-import bio.ferlab.datalake.testutils.{TestETLContext, WithSparkSession}
+import bio.ferlab.datalake.testutils.{CleanUpBeforeAll, CreateDatabasesBeforeAll, SparkSpec, TestETLContext}
 import org.apache.spark.sql.functions
 import org.apache.spark.sql.functions.col
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
-import org.scalatest.{BeforeAndAfterAll, GivenWhenThen}
 
-import java.io.File
-import scala.util.Try
-
-class GenesSpec extends AnyFlatSpec with GivenWhenThen with WithSparkSession with WithTestConfig with Matchers with BeforeAndAfterAll {
+class GenesSpec extends SparkSpec with WithTestConfig with CreateDatabasesBeforeAll with CleanUpBeforeAll {
 
   import spark.implicits._
-  override def beforeAll(): Unit = {
-    Try {
-      spark.sql(s"CREATE DATABASE IF NOT EXISTS ${destination.table.map(_.database).getOrElse("variant")}")
-      new File(destination.location).delete()
-    }
-  }
 
   val destination: DatasetConf = conf.getDataset("enriched_genes")
   val omim_gene_set: DatasetConf = conf.getDataset("normalized_omim_gene_set")
@@ -50,6 +38,9 @@ class GenesSpec extends AnyFlatSpec with GivenWhenThen with WithSparkSession wit
   )
 
   val job = new Genes(TestETLContext())
+
+  override val dbToCreate: List[String] = List(destination.table.map(_.database).getOrElse("variant"))
+  override val dsToClean: List[DatasetConf] = List(destination)
 
   it should "transform data into genes table" in {
 
@@ -86,6 +77,5 @@ class GenesSpec extends AnyFlatSpec with GivenWhenThen with WithSparkSession wit
     resultDF.where("symbol='OR4F5'").as[EnrichedGenes].collect().head shouldBe
       EnrichedGenes(`orphanet` = expectedOrphanet, `omim` = expectedOmim)
   }
-
 }
 

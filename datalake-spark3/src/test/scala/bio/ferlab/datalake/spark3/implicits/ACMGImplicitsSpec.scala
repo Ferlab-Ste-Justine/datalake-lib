@@ -1,14 +1,12 @@
 package bio.ferlab.datalake.spark3.implicits
 
 import bio.ferlab.datalake.spark3.implicits.ACMGImplicits._
-import bio.ferlab.datalake.testutils.WithSparkSession
+import bio.ferlab.datalake.testutils.SparkSpec
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types._
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
 
 
-class ACMGImplicitsSpec extends AnyFlatSpec with WithSparkSession with Matchers {
+class ACMGImplicitsSpec extends SparkSpec {
 
   spark.sparkContext.setLogLevel("ERROR")
 
