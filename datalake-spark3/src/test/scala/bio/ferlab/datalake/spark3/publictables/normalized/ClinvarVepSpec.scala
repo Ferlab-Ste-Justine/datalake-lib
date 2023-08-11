@@ -1,32 +1,28 @@
 package bio.ferlab.datalake.spark3.publictables.normalized
 
-import bio.ferlab.datalake.commons.config.Format.{DELTA, VCF}
-import bio.ferlab.datalake.commons.config.LoadType.OverWrite
-import bio.ferlab.datalake.commons.config.{DatalakeConf, DatasetConf, SimpleConfiguration, StorageConf, TableConf}
-import bio.ferlab.datalake.commons.file.FileSystemType.LOCAL
+import bio.ferlab.datalake.commons.config.DatasetConf
+import bio.ferlab.datalake.spark3.testmodels.normalized.NormalizedClinvarVep
+import bio.ferlab.datalake.spark3.testmodels.raw.RawClinvarVep
+import bio.ferlab.datalake.spark3.testutils.WithTestConfig
 import bio.ferlab.datalake.testutils.{TestETLContext, WithSparkSession}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.{BeforeAndAfterAll, GivenWhenThen}
 
-class ClinvarVepSpec extends AnyFlatSpec with GivenWhenThen with WithSparkSession with Matchers with BeforeAndAfterAll {
 
-  val srcConf: DatasetConf = DatasetConf("raw_clinvar_vep", "raw", "/clinvar.vep.vcf", VCF, OverWrite, Some(TableConf("raw_db", "raw_airports")), readoptions = Map("flattenInfoFields" -> "true", "split_multiallelics" -> "true"))
-  val destConf: DatasetConf = DatasetConf("normalized_clinvar_vep", "normalized", "/clinvar_vep", DELTA, OverWrite, Some(TableConf("raw_db", "raw_airports")), readoptions = Map("flattenInfoFields" -> "true", "split_multiallelics" -> "true"))
-  implicit val conf: SimpleConfiguration = SimpleConfiguration(DatalakeConf(storages = List(
-    StorageConf("raw", getClass.getClassLoader.getResource("input_vcf").getFile, LOCAL),
-    StorageConf("normalized", getClass.getClassLoader.getResource("normalized/").getFile, LOCAL)),
-    sources = List(srcConf, destConf)
-  ))
+class ClinvarVepSpec extends AnyFlatSpec with GivenWhenThen with WithSparkSession with WithTestConfig with Matchers with BeforeAndAfterAll {
 
-  "ClinvarVepSpec" should "run" in {
+  import spark.implicits._
 
-    val data = ClinvarVep(TestETLContext()).extract()
-    val df = ClinvarVep(TestETLContext()).transformSingle(data)
+  val source: DatasetConf = conf.getDataset("raw_clinvar_vep")
 
-    df.toJSON.collect.foreach(println)
+  "ClinvarVepSpec" should "transform ClinvarVep input to ClinvarVep output" in {
 
-    1 shouldBe 0
+    val df = Seq(RawClinvarVep()).toDF()
+    val result = new ClinvarVep(TestETLContext()).transformSingle(Map(source.id -> df))
+
+    result.as[NormalizedClinvarVep].collect() should contain theSameElementsAs Seq(NormalizedClinvarVep())
+
   }
 
 }
