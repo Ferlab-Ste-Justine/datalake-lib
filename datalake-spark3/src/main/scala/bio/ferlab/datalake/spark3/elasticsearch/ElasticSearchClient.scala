@@ -63,7 +63,7 @@ class ElasticSearchClient(url: String, username: Option[String] = None, password
     // find template in resources first then with spark if failed
     val fileContent = loadResource(templatePath).getOrElse(spark.read.option("wholetext", "true").textFile(templatePath).collect().mkString)
 
-    val request = basicRequest
+    val request = esRequest
       .put(templateUri(templateName))
       .contentType(MediaType.ApplicationJson)
       .body(fileContent)
@@ -90,7 +90,7 @@ class ElasticSearchClient(url: String, username: Option[String] = None, password
         remove.map(name => RemoveAction(Map("index" -> name, "alias" -> alias)))
     )
 
-    val request = basicRequest
+    val request = esRequest
       .post(aliasesUri)
       .contentType(MediaType.ApplicationJson)
       .body(action)
@@ -111,7 +111,7 @@ class ElasticSearchClient(url: String, username: Option[String] = None, password
   def getAliasIndices(aliasName: String): Set[String] = {
 
     val aliasUrl = uri"$url/_alias/$aliasName"
-    val request = basicRequest
+    val request = esRequest
       .get(aliasUrl)
       .response(asJson[Map[String, Any]])
     val response = client.send(request)
