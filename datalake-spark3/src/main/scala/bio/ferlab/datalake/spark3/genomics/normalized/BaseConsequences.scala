@@ -10,7 +10,7 @@ import org.apache.spark.sql.{Column, DataFrame}
 import java.sql.Timestamp
 import java.time.LocalDateTime
 
-abstract class BaseConsequences(rc: RuntimeETLContext, annotationsColumn: Column = csq, groupByLocus: Boolean = true) extends SimpleETLP(rc) {
+abstract class BaseConsequences(rc: RuntimeETLContext, annotationsColumn: Column = csq, groupByColumns: Seq[Column] = locus) extends SimpleETLP(rc) {
 
   override val mainDestination: DatasetConf = conf.getDataset("normalized_consequences")
 
@@ -20,7 +20,17 @@ abstract class BaseConsequences(rc: RuntimeETLContext, annotationsColumn: Column
                                lastRunDateTime: LocalDateTime = minDateTime,
                                currentRunDateTime: LocalDateTime = LocalDateTime.now()): DataFrame = {
     import spark.implicits._
-    val groupedByLocus = if (groupByLocus) {
+    val aggDf = if (groupByColumns.isEmpty) {
+      data(raw_vcf).select(
+        chromosome,
+        start,
+        end,
+        reference,
+        alternate,
+        name,
+        annotationsColumn
+      )
+    } else {
       data(raw_vcf)
         .select(
           chromosome,
@@ -31,24 +41,14 @@ abstract class BaseConsequences(rc: RuntimeETLContext, annotationsColumn: Column
           name,
           annotationsColumn
         )
-        .groupBy(locus: _*)
+        .groupBy(groupByColumns: _*)
         .agg(
           first("annotations") as "annotations",
           first("name") as "name",
           first("end") as "end"
         )
-    } else {
-      data(raw_vcf).select(
-        chromosome,
-        start,
-        end,
-        reference,
-        alternate,
-        name,
-        annotationsColumn
-      )
     }
-    val explodedAnnotations = groupedByLocus.withColumn("annotation", explode($"annotations"))
+    val explodedAnnotations = aggDf.withColumn("annotation", explode($"annotations"))
       .drop("annotations")
     explodedAnnotations.select($"*",
       consequences,

@@ -1,6 +1,6 @@
 package bio.ferlab.datalake.spark3.genomics.normalized
 
-import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns.{annotations, csq}
+import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns.{annotations, csq, locus}
 import bio.ferlab.datalake.spark3.testmodels.normalized.NormalizedConsequences
 import bio.ferlab.datalake.spark3.testmodels.raw.{InfoCSQ, RawVcf, RawVcfWithInfoAnn}
 import bio.ferlab.datalake.spark3.testutils.WithTestConfig
@@ -13,12 +13,12 @@ class BaseConsequencesSpec extends SparkSpec with WithTestConfig {
 
   import spark.implicits._
 
-  class ConsequenceEtl(annotationsColumn: Column = csq, groupByLocus: Boolean = true) extends BaseConsequences(TestETLContext(), annotationsColumn, groupByLocus) {
+  class ConsequenceEtl(annotationsColumn: Column = csq, groupByColumns: Seq[Column] = locus) extends BaseConsequences(TestETLContext(), annotationsColumn, groupByColumns) {
     override def extract(lastRunDateTime: LocalDateTime, currentRunDateTime: LocalDateTime): Map[String, DataFrame] = ???
   }
 
   "consequences job" should "transform data in expected format" in {
-    val jobWithInfoCsq = new ConsequenceEtl(groupByLocus = false)
+    val jobWithInfoCsq = new ConsequenceEtl(groupByColumns = Nil)
     val data = Map(
       jobWithInfoCsq.raw_vcf -> Seq(RawVcf()).toDF()
     )
@@ -35,7 +35,7 @@ class BaseConsequencesSpec extends SparkSpec with WithTestConfig {
   }
 
   it should "transform data with column INFO_ANN in vcf in expected format" in {
-    val jobWithInfoAnn = new ConsequenceEtl(groupByLocus = false, annotationsColumn = annotations)
+    val jobWithInfoAnn = new ConsequenceEtl(groupByColumns = Nil, annotationsColumn = annotations)
     val data = Map(
       jobWithInfoAnn.raw_vcf -> Seq(RawVcfWithInfoAnn()).toDF()
     )
@@ -52,7 +52,7 @@ class BaseConsequencesSpec extends SparkSpec with WithTestConfig {
   }
 
   "consequences job" should "remove duplicates" in {
-    val jobWithInfoCsq = new ConsequenceEtl(groupByLocus = false)
+    val jobWithInfoCsq = new ConsequenceEtl(groupByColumns = Nil)
     val data_with_duplicates = Map(
       jobWithInfoCsq.raw_vcf -> Seq(
         RawVcf(`INFO_CSQ` = List(InfoCSQ(`Feature` = "bar"), InfoCSQ(`Feature` = "bar"))), // duplicate with itself
@@ -89,7 +89,7 @@ class BaseConsequencesSpec extends SparkSpec with WithTestConfig {
   }
 
   it should "remove duplicated locus with groupByColumn" in {
-    val jobWithInfoCsq = new ConsequenceEtl(groupByLocus = true)
+    val jobWithInfoCsq = new ConsequenceEtl(groupByColumns = locus)
     val data_with_duplicates = Map(
       jobWithInfoCsq.raw_vcf -> Seq(
         RawVcf(`INFO_CSQ` = List(InfoCSQ(`Feature` = "bar"), InfoCSQ(`Feature` = "bar"))), // duplicate with itself
