@@ -1,9 +1,9 @@
 package bio.ferlab.datalake.spark3.publictables.normalized
 
 import bio.ferlab.datalake.commons.config.DatasetConf
-import bio.ferlab.datalake.spark3.testmodels.normalized.NormalizedCosmic
-import bio.ferlab.datalake.spark3.testmodels.raw.RawCosmic
 import bio.ferlab.datalake.spark3.testutils.WithTestConfig
+import bio.ferlab.datalake.testutils.models.normalized.NormalizedCosmicGeneSet
+import bio.ferlab.datalake.testutils.models.raw.RawCosmicGeneSet
 import bio.ferlab.datalake.testutils.{CleanUpBeforeAll, CreateDatabasesBeforeAll, SparkSpec, TestETLContext}
 
 class CosmicGeneSetSpec extends SparkSpec with WithTestConfig with CreateDatabasesBeforeAll with CleanUpBeforeAll {
@@ -17,12 +17,11 @@ class CosmicGeneSetSpec extends SparkSpec with WithTestConfig with CreateDatabas
   override val dsToClean: List[DatasetConf] = List(destination)
 
   "transform" should "transform Cosmic input to Cosmic output" in {
-    val df = Seq(RawCosmic()).toDF()
+    val df = Seq(RawCosmicGeneSet()).toDF()
 
-    val result = new CosmicGeneSet(TestETLContext()).transformSingle(Map(source.id -> df))
+    val result = CosmicGeneSet(TestETLContext()).transformSingle(Map(source.id -> df))
 
-    result.as[NormalizedCosmic].collect() should contain theSameElementsAs Seq(NormalizedCosmic())
-
+    result.as[NormalizedCosmicGeneSet].collect() should contain theSameElementsAs Seq(NormalizedCosmicGeneSet())
   }
 }
 
