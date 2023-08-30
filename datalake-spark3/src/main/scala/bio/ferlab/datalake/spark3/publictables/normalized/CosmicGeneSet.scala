@@ -42,7 +42,7 @@ case class CosmicGeneSet(rc: RuntimeETLContext) extends SimpleETLP(rc) {
     val df = data(cosmic_gene_set.id)
       .select(
         regexp_extract($"Genome Location", "(.+):(\\d+)-(\\d+)", 1) as "chromosome",
-        regexp_extract($"Genome Location", "(.+):(\\d+)-(\\d+)", 2) as "start",
+        regexp_extract($"Genome Location", "(.+):(\\d+)-(\\d+)", 2).cast(LongType) as "start",
         $"Gene Symbol" as "symbol",
         $"Name" as "name",
         $"COSMIC ID" as "cosmic_gene_id",
