@@ -2,9 +2,10 @@ package bio.ferlab.datalake.spark3.publictables.enriched
 
 import bio.ferlab.datalake.commons.config.DatasetConf
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
-import bio.ferlab.datalake.spark3.testmodels.enriched.{EnrichedGenes, OMIM, ORPHANET}
+import bio.ferlab.datalake.spark3.testmodels.enriched.{EnrichedGenes, OMIM, ORPHANET, COSMIC}
 import bio.ferlab.datalake.spark3.testmodels.normalized._
 import bio.ferlab.datalake.spark3.testutils.WithTestConfig
+import bio.ferlab.datalake.testutils.models.normalized.NormalizedCosmicGeneSet
 import bio.ferlab.datalake.testutils.{CleanUpBeforeAll, CreateDatabasesBeforeAll, SparkSpec, TestETLContext}
 import org.apache.spark.sql.functions
 import org.apache.spark.sql.functions.col
@@ -48,9 +49,10 @@ class GenesSpec extends SparkSpec with WithTestConfig with CreateDatabasesBefore
 
     val expectedOrphanet = List(ORPHANET(17601, "Multiple epiphyseal dysplasia, Al-Gazali type", List("Autosomal recessive")))
     val expectedOmim = List(OMIM("Shprintzen-Goldberg syndrome", "182212", List("Autosomal dominant"), List("AD")))
+    val expectedCosmic = List(COSMIC(List("medullary thyroid", "papillary thyroid", "pheochromocytoma")))
 
     resultDF(destination.id).where("symbol='OR4F5'").as[EnrichedGenes].collect().head shouldBe
-      EnrichedGenes(`orphanet` = expectedOrphanet, `omim` = expectedOmim)
+      EnrichedGenes(`orphanet` = expectedOrphanet, `omim` = expectedOmim, `cosmic` = expectedCosmic)
 
     resultDF(destination.id)
       .where("symbol='OR4F4'")
@@ -71,11 +73,10 @@ class GenesSpec extends SparkSpec with WithTestConfig with CreateDatabasesBefore
 
     val expectedOrphanet = List(ORPHANET(17601, "Multiple epiphyseal dysplasia, Al-Gazali type", List("Autosomal recessive")))
     val expectedOmim = List(OMIM("Shprintzen-Goldberg syndrome", "182212", List("Autosomal dominant"), List("AD")))
-
-    resultDF.show(false)
+    val expectedCosmic = List(COSMIC(List("medullary thyroid", "papillary thyroid", "pheochromocytoma")))
 
     resultDF.where("symbol='OR4F5'").as[EnrichedGenes].collect().head shouldBe
-      EnrichedGenes(`orphanet` = expectedOrphanet, `omim` = expectedOmim)
+      EnrichedGenes(`orphanet` = expectedOrphanet, `omim` = expectedOmim, `cosmic` = expectedCosmic)
   }
 }
 
