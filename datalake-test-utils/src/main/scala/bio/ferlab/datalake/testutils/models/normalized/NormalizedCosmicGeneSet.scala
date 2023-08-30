@@ -8,7 +8,7 @@ package bio.ferlab.datalake.testutils.models.normalized
 
 
 case class NormalizedCosmicGeneSet(`chromosome`: String = "10",
-                                   `start`: String = "43077027",
+                                   `start`: Long = 43077027,
                                    `symbol`: String = "RET",
                                    `name`: String = "ret proto-oncogene",
                                    `cosmic_gene_id`: String = "COSG206185",
