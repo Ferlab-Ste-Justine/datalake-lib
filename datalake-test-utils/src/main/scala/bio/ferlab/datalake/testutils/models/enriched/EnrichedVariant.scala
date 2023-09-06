@@ -27,6 +27,7 @@ case class EnrichedVariant(chromosome: String = "1",
                            rsnumber: String = "rs200676709",
                            dna_change: String = "T>C",
                            genes: List[GENES] = List(GENES()),
+                           cmc: CMC = CMC(),
                            variant_external_reference: List[String] = List("DBSNP", "Clinvar"),
                            gene_external_reference: List[String] = List("HPO", "Orphanet", "OMIM"),
                           )
@@ -82,5 +83,14 @@ object EnrichedVariant {
 
   case class SPLICEAI(ds: Double = 0.01,
                       `type`: Seq[String] = Seq("AG"))
+
+  case class CMC(mutation_url: String = "https://cancer.sanger.ac.uk/cosmic/mutation/overview?id=29491889&genome=37",
+                 shared_aa: Int = 9,
+                 cosmic_id: String = "COSV59205318",
+                 sample_mutated: Int = 699,
+                 sample_tested: Int = 86821,
+                 tier: String = "2",
+                 sample_ratio: Double = 0.008051047557618549
+                )
 
 }

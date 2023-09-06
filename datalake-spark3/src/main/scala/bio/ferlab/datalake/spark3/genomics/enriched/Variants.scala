@@ -9,6 +9,7 @@ import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits._
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns.{locus, locusColumnNames}
 import bio.ferlab.datalake.spark3.implicits.SparkUtils.firstAs
+import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{Column, DataFrame, SparkSession}
 
@@ -36,6 +37,7 @@ case class Variants(rc: RuntimeETLContext, participantId: Column = col("particip
   protected val clinvar: DatasetConf = conf.getDataset("normalized_clinvar")
   protected val genes: DatasetConf = conf.getDataset("enriched_genes")
   protected val spliceai: DatasetConf = conf.getDataset("enriched_spliceai")
+  protected val cosmic: DatasetConf = conf.getDataset("normalized_cosmic_mutation_set")
 
   override def extract(lastRunDateTime: LocalDateTime = minDateTime,
                        currentRunDateTime: LocalDateTime = LocalDateTime.now()): Map[String, DataFrame] = {
@@ -49,6 +51,7 @@ case class Variants(rc: RuntimeETLContext, participantId: Column = col("particip
       clinvar.id -> clinvar.read,
       genes.id -> genes.read,
       spliceai.id -> spliceai.read,
+      cosmic.id -> cosmic.read,
       snvDatasetId -> conf.getDataset(snvDatasetId).read
     )
   }
@@ -70,6 +73,7 @@ case class Variants(rc: RuntimeETLContext, participantId: Column = col("particip
       .withClinvar(data(clinvar.id))
       .withGenes(data(genes.id))
       .withSpliceAi(data(spliceai.id))
+      .withCosmic(data(cosmic.id))
       .withGeneExternalReference
       .withVariantExternalReference
       .withColumn("locus", concat_ws("-", locus: _*))
@@ -205,6 +209,28 @@ object Variants {
           collect_list("gene") as "genes" // re-create genes list for each locus, now containing spliceai struct
         )
         .select("variant.*", "genes")
+    }
+
+    def withCosmic(cosmic: DataFrame)(implicit spark: SparkSession): DataFrame = {
+      import spark.implicits._
+
+      val w = Window.partitionBy(locus: _*).orderBy($"sample_mutated".desc)
+
+      val cmc = cosmic.selectLocus(
+        $"mutation_url",
+        $"shared_aa",
+        $"genomic_mutation_id" as "cosmic_id",
+        $"cosmic_sample_mutated" as "sample_mutated",
+        $"cosmic_sample_tested" as "sample_tested",
+        $"mutation_significance_tier" as "tier",
+        $"cosmic_sample_mutated".divide($"cosmic_sample_tested") as "sample_ratio"
+      )
+        // Deduplicate
+        .withColumn("rn", row_number().over(w))
+        .filter($"rn" === 1)
+        .drop("rn")
+
+      df.joinAndMerge(cmc, "cmc", "left")
     }
   }
 }
