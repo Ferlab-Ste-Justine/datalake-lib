@@ -1,4 +1,4 @@
-package bio.ferlab.datalake.spark3.publictables.normalized
+package bio.ferlab.datalake.spark3.publictables.normalized.cosmic
 
 import bio.ferlab.datalake.commons.config.{Coalesce, DatasetConf, RuntimeETLContext}
 import bio.ferlab.datalake.spark3.etl.v3.SimpleETLP
