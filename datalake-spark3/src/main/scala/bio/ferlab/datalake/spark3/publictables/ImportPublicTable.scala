@@ -3,6 +3,7 @@ package bio.ferlab.datalake.spark3.publictables
 import bio.ferlab.datalake.commons.config.RuntimeETLContext
 import bio.ferlab.datalake.spark3.publictables.enriched.{DBNSFP, Genes, RareVariant}
 import bio.ferlab.datalake.spark3.publictables.normalized._
+import bio.ferlab.datalake.spark3.publictables.normalized.cosmic.{CosmicGeneSet, CosmicMutationSet}
 import bio.ferlab.datalake.spark3.publictables.normalized.gnomad._
 import bio.ferlab.datalake.spark3.publictables.normalized.omim.OmimGeneSet
 import bio.ferlab.datalake.spark3.publictables.normalized.orphanet.OrphanetGeneSet
@@ -19,6 +20,9 @@ object ImportPublicTable {
 
   @main
   def cosmic_gene_set(rc: RuntimeETLContext): Unit = CosmicGeneSet.run(rc)
+
+  @main
+  def cosmic_mutation_set(rc: RuntimeETLContext): Unit = CosmicMutationSet.run(rc)
 
   @main
   def dbnsfp_raw(rc: RuntimeETLContext): Unit = DBNSFPRaw.run(rc)
