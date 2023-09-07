@@ -28,8 +28,8 @@ case class EnrichedVariant(chromosome: String = "1",
                            dna_change: String = "T>C",
                            genes: List[GENES] = List(GENES()),
                            cmc: CMC = CMC(),
-                           variant_external_reference: List[String] = List("DBSNP", "Clinvar"),
-                           gene_external_reference: List[String] = List("HPO", "Orphanet", "OMIM"),
+                           variant_external_reference: List[String] = List("DBSNP", "Clinvar", "Cosmic"),
+                           gene_external_reference: List[String] = List("HPO", "Orphanet", "OMIM", "DDD", "Cosmic", "gnomAD", "SpliceAI"),
                           )
 
 object EnrichedVariant {

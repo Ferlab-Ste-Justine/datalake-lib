@@ -92,7 +92,11 @@ object Variants {
 
       val conditionValueMap: List[(Column, String)] = List(
         exists($"genes", gene => gene("orphanet").isNotNull and size(gene("orphanet")) > 0) -> "Orphanet",
-        exists($"genes", gene => gene("omim").isNotNull and size(gene("omim")) > 0) -> "OMIM"
+        exists($"genes", gene => gene("omim").isNotNull and size(gene("omim")) > 0) -> "OMIM",
+        exists($"genes", gene => gene("ddd").isNotNull and size(gene("ddd")) > 0) -> "DDD",
+        exists($"genes", gene => gene("cosmic").isNotNull and size(gene("cosmic")) > 0) -> "Cosmic",
+        exists($"genes", gene => gene("gnomad").isNotNull) -> "gnomAD",
+        exists($"genes", gene => gene("spliceai").isNotNull) -> "SpliceAI",
       )
       conditionValueMap.foldLeft {
         df.withColumn(outputColumn, when(exists($"genes", gene => gene("hpo").isNotNull and size(gene("hpo")) > 0), array(lit("HPO"))).otherwise(array()))
@@ -107,14 +111,20 @@ object Variants {
       val outputColumn = "variant_external_reference"
 
       val conditionValueMap: List[(Column, String)] = List(
-        $"clinvar".isNotNull -> "Clinvar"
+        $"clinvar".isNotNull -> "Clinvar",
+        $"cmc".isNotNull -> "Cosmic",
       )
-      conditionValueMap.foldLeft {
+      val dfWithVariantExternalReference = conditionValueMap.foldLeft {
         df.withColumn(outputColumn, when($"rsnumber".isNotNull, array(lit("DBSNP"))).otherwise(array()))
       } { case (d, (condition, value)) => d
         .withColumn(outputColumn,
           when(condition, array_union(col(outputColumn), array(lit(value)))).otherwise(col(outputColumn)))
       }
+      // Only for CLIN at the moment
+      if (dfWithVariantExternalReference.columns.contains("pubmed")) {
+        dfWithVariantExternalReference.withColumn(outputColumn,
+          when($"pubmed".isNotNull, array_union(col(outputColumn), array(lit("PubMed")))).otherwise(col(outputColumn)))
+      } else dfWithVariantExternalReference
     }
 
 
