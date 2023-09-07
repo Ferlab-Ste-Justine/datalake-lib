@@ -7,15 +7,12 @@ import bio.ferlab.datalake.testutils.models.normalized.NormalizedCosmicGeneSet
 import bio.ferlab.datalake.testutils.models.raw.RawCosmicGeneSet
 import bio.ferlab.datalake.testutils.{CleanUpBeforeAll, CreateDatabasesBeforeAll, SparkSpec, TestETLContext}
 
-class CosmicGeneSetSpec extends SparkSpec with WithTestConfig with CreateDatabasesBeforeAll with CleanUpBeforeAll {
+class CosmicGeneSetSpec extends SparkSpec with WithTestConfig {
 
   import spark.implicits._
 
   val source: DatasetConf = conf.getDataset("raw_cosmic_gene_set")
   val destination: DatasetConf = conf.getDataset("normalized_cosmic_gene_set")
-
-  override val dbToCreate: List[String] = List(destination.table.map(_.database).getOrElse("variant"))
-  override val dsToClean: List[DatasetConf] = List(destination)
 
   "transform" should "transform Cosmic input to Cosmic output" in {
     val df = Seq(RawCosmicGeneSet()).toDF()
