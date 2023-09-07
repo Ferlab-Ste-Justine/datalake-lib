@@ -1,10 +1,13 @@
 package bio.ferlab.datalake.spark3.genomics.enriched
 
 import bio.ferlab.datalake.commons.config.DatasetConf
+import bio.ferlab.datalake.spark3.genomics.enriched.Variants.DataFrameOps
 import bio.ferlab.datalake.spark3.genomics.{FrequencySplit, SimpleAggregation}
+import bio.ferlab.datalake.spark3.testmodels.enriched.EnrichedVariant.CMC
 import bio.ferlab.datalake.spark3.testmodels.enriched.{EnrichedGenes, EnrichedSpliceAi, EnrichedVariant, MAX_SCORE}
 import bio.ferlab.datalake.spark3.testmodels.normalized._
 import bio.ferlab.datalake.spark3.testutils.WithTestConfig
+import bio.ferlab.datalake.testutils.models.normalized.NormalizedCosmicMutationSet
 import bio.ferlab.datalake.testutils.{SparkSpec, TestETLContext}
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.functions.col
@@ -24,6 +27,7 @@ class EnrichedVariantsSpec extends SparkSpec with WithTestConfig {
   val clinvar: DatasetConf = conf.getDataset("normalized_clinvar")
   val genes: DatasetConf = conf.getDataset("enriched_genes")
   val spliceai: DatasetConf = conf.getDataset("enriched_spliceai")
+  val cosmic: DatasetConf = conf.getDataset("normalized_cosmic_mutation_set")
 
   val occurrencesDf: DataFrame = Seq(
     NormalizedSNV(`participant_id` = "PA0001"),
@@ -39,6 +43,7 @@ class EnrichedVariantsSpec extends SparkSpec with WithTestConfig {
   val clinvarDf: DataFrame = Seq(NormalizedClinvar(chromosome = "1", start = 69897, reference = "T", alternate = "C")).toDF
   val genesDf: DataFrame = Seq(EnrichedGenes()).toDF()
   val spliceaiDf: DataFrame = Seq(EnrichedSpliceAi(chromosome = "1", start = 69897, reference = "T", alternate = "C", symbol = "OR4F5", ds_ag = 0.01, `max_score` = MAX_SCORE(ds = 0.01, `type` = Seq("AG")))).toDF()
+  val cosmicDf: DataFrame = Seq(NormalizedCosmicMutationSet(chromosome = "1", start = 69897, reference = "T", alternate = "C")).toDF()
 
   private val data = Map(
     snvKeyId -> occurrencesDf,
@@ -51,13 +56,36 @@ class EnrichedVariantsSpec extends SparkSpec with WithTestConfig {
     clinvar.id -> clinvarDf,
     genes.id -> genesDf,
     spliceai.id -> spliceaiDf,
+    cosmic.id -> cosmicDf
   )
 
   "transformSingle" should "return expected result" in {
     val df = new Variants(TestETLContext(), snvDatasetId = snvKeyId, frequencies = Seq(FrequencySplit("frequency", extraAggregations = Seq(SimpleAggregation(name = "zygosities", c = col("zygosity"))))))
       .transformSingle(data)
+
     val result = df.as[EnrichedVariant].collect()
     result.length shouldBe 1
     result.head shouldBe EnrichedVariant()
+  }
+
+  "withCosmic" should "enrich variants with Cosmic data" in {
+    val variants = Seq(
+      EnrichedVariant(chromosome = "1", start = 1, reference = "A", alternate = "T"), // Unique cosmic info
+      EnrichedVariant(chromosome = "2", start = 1, reference = "A", alternate = "T"), // Duplicate cosmic info
+      EnrichedVariant(chromosome = "3", start = 1, reference = "A", alternate = "T"), // No cosmic info
+    ).toDF().drop("cmc")
+
+    val cosmic = Seq(
+      NormalizedCosmicMutationSet(`chromosome` = "1", `start` = 1, `reference` = "A", `alternate` = "T"),
+      NormalizedCosmicMutationSet(`chromosome` = "2", `start` = 1, `reference` = "A", `alternate` = "T", `cosmic_sample_mutated` = 1),
+      NormalizedCosmicMutationSet(`chromosome` = "2", `start` = 1, `reference` = "A", `alternate` = "T", `cosmic_sample_mutated` = 2), // Should take highest
+    ).toDF()
+
+    val result = variants.withCosmic(cosmic)
+    result.as[EnrichedVariant].collect() should contain theSameElementsAs Seq(
+      EnrichedVariant(chromosome = "1", start = 1, reference = "A", alternate = "T", cmc = CMC()),
+      EnrichedVariant(chromosome = "2", start = 1, reference = "A", alternate = "T", cmc = CMC(sample_mutated = 2, sample_ratio = 2.3035901452413586E-5)),
+      EnrichedVariant(chromosome = "3", start = 1, reference = "A", alternate = "T", cmc = null),
+    )
   }
 }

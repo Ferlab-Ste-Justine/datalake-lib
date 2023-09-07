@@ -1,6 +1,7 @@
 package bio.ferlab.datalake.spark3.testmodels.prepared
 
 import PreparedVariantCentric._
+import bio.ferlab.datalake.spark3.testmodels.enriched.EnrichedVariant.CMC
 import bio.ferlab.datalake.spark3.testmodels.enriched.{CONSERVATIONS, PREDICTIONS}
 import bio.ferlab.datalake.spark3.testmodels.prepared.PreparedVariantCentric.GENES.noGene
 
@@ -25,6 +26,7 @@ case class PreparedVariantCentric(`chromosome`: String = "1",
                                     GENES(`symbol` = "gene2", `consequences` = Seq(CONSEQUENCES(`ensembl_transcript_id` = "transcript3"), CONSEQUENCES(`ensembl_transcript_id` = "transcript4", `impact_score` = 10))),
                                     noGene(Seq(CONSEQUENCES(`ensembl_transcript_id` = "transcript2")))
                                   ),
+                                  `cmc`: CMC = CMC(),
                                   `variant_external_reference`: Seq[String] = Seq("DBSNP", "Clinvar"),
                                   `gene_external_reference`: Seq[String] = Seq("HPO", "Orphanet", "OMIM"))
 
