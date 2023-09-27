@@ -10,6 +10,9 @@ import java.time.temporal.{ChronoUnit, Temporal}
 
 object DeltaUtils {
 
+  /**
+   * @deprecated Use [[DeltaUtils#compact(datasetConf: DatasetConf, partitionFilter: Option[String])]] instead.
+   */
   def compact(datasetConf: DatasetConf, repartition: DataFrame => DataFrame)(implicit spark: SparkSession, conf: Configuration): Unit = {
     val df = spark.read
       .format(datasetConf.format.sparkFormat)
@@ -21,6 +24,32 @@ object DeltaUtils {
       .format(datasetConf.format.sparkFormat)
       .mode("overwrite")
       .save(datasetConf.location)
+  }
+
+  /**
+   * Compact the data by coalescing small files into larger ones.
+   *
+   * @param datasetConf     Dataset to compact
+   * @param partitionFilter Optional partition predicate to only compact a subset of data
+   * @param spark           Spark session
+   * @param conf            Configuration
+   * @example
+   * Compact the whole dataset.
+   * {{{
+   *   compact(ds)
+   * }}}
+   * @example
+   * Compact a specific partition. Useful for compaction jobs running everyday on the same dataset.
+   * {{{
+   *   compact(ds, Some("date='2020-01-01'"))
+   * }}}
+   */
+  def compact(datasetConf: DatasetConf, partitionFilter: Option[String] = None)(implicit spark: SparkSession, conf: Configuration): Unit = {
+    val deltaTable = DeltaTable.forPath(datasetConf.location)
+    partitionFilter match {
+      case Some(pf) => deltaTable.optimize().where(pf).executeCompaction()
+      case None => deltaTable.optimize().executeCompaction()
+    }
   }
 
   /**
