@@ -507,7 +507,7 @@ object GenomicImplicits {
 
       // Else, if multiple consequences are max_impact_score, join with OMIM
       val joinWithOmim = maxImpactCsq
-        .joinByLocus(broadcast(picked1MaxImpactCsq), "left_anti") // remove already picked variants
+        .joinByLocus(picked1MaxImpactCsq, "left_anti") // remove already picked variants
         .join(genes.select(geneSymbolColumnName, omimGeneIdColumnName), Seq(geneSymbolColumnName), "left")
 
       // Check if at least one csq in OMIM genes
@@ -518,7 +518,7 @@ object GenomicImplicits {
       // If no OMIM csq and no protein coding csq, pick random csq for each variant
       val proteinCodingCsq = noOmimCsq.where(col(biotypeColumnName) === "protein_coding")
       val pickedNoProteinCodingCsq = noOmimCsq
-        .joinByLocus(broadcast(proteinCodingCsq), "left_anti")
+        .joinByLocus(proteinCodingCsq, "left_anti")
         .pickRandomCsqPerLocus()
 
       // If in OMIM csq or protein coding csq, check if at least one csq is mane select
@@ -534,7 +534,7 @@ object GenomicImplicits {
       val pickedCanonicalCsq = noManeSelectCsq
         .where(col(canonicalColumnName))
         .pickRandomCsqPerLocus()
-      val noCanonicalCsq = noManeSelectCsq.joinByLocus(broadcast(pickedCanonicalCsq), "left_anti")
+      val noCanonicalCsq = noManeSelectCsq.joinByLocus(pickedCanonicalCsq, "left_anti")
 
       // If no canonical csq, check if at least one csq is mane plus
       // If at least one csq is mane plus, pick random csq for each variant
@@ -543,7 +543,7 @@ object GenomicImplicits {
         .where(col(manePlusColumnName))
         .pickRandomCsqPerLocus()
       val pickedNoManePlusCsq = noCanonicalCsq
-        .joinByLocus(broadcast(pickedManePlusCsq), "left_anti")
+        .joinByLocus(pickedManePlusCsq, "left_anti")
         .pickRandomCsqPerLocus()
 
       // Union all picked consequences and set flag to true
