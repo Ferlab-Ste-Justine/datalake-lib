@@ -10,7 +10,7 @@ import bio.ferlab.datalake.spark3.testutils.WithTestConfig
 import bio.ferlab.datalake.testutils.models.normalized.NormalizedCosmicMutationSet
 import bio.ferlab.datalake.testutils.{SparkSpec, TestETLContext}
 import org.apache.spark.sql.DataFrame
-import org.apache.spark.sql.functions.col
+import org.apache.spark.sql.functions.{col, collect_set, max}
 
 class EnrichedVariantsSpec extends SparkSpec with WithTestConfig {
 
@@ -30,9 +30,9 @@ class EnrichedVariantsSpec extends SparkSpec with WithTestConfig {
   val cosmic: DatasetConf = conf.getDataset("normalized_cosmic_mutation_set")
 
   val occurrencesDf: DataFrame = Seq(
-    NormalizedSNV(`participant_id` = "PA0001"),
-    NormalizedSNV(`participant_id` = "PA0002"),
-    NormalizedSNV(`participant_id` = "PA0003", `zygosity` = "WT", `calls` = List(0, 0), has_alt = false)
+    NormalizedSNV(`participant_id` = "PA0001", study_id = "S1"),
+    NormalizedSNV(`participant_id` = "PA0002", study_id = "S2"),
+    NormalizedSNV(`participant_id` = "PA0003", study_id = "S3", `zygosity` = "WT", `calls` = List(0, 0), has_alt = false) // Will be filtered out
   ).toDF
   val genomesDf: DataFrame = Seq(NormalizedOneKGenomes()).toDF
   val topmed_bravoDf: DataFrame = Seq(NormalizedTopmed()).toDF
@@ -44,6 +44,8 @@ class EnrichedVariantsSpec extends SparkSpec with WithTestConfig {
   val genesDf: DataFrame = Seq(EnrichedGenes()).toDF()
   val spliceaiDf: DataFrame = Seq(EnrichedSpliceAi(chromosome = "1", start = 69897, reference = "T", alternate = "C", symbol = "OR4F5", ds_ag = 0.01, `max_score` = MAX_SCORE(ds = 0.01, `type` = Seq("AG")))).toDF()
   val cosmicDf: DataFrame = Seq(NormalizedCosmicMutationSet(chromosome = "1", start = 69897, reference = "T", alternate = "C")).toDF()
+
+  val etl = Variants(TestETLContext(), snvDatasetId = snvKeyId, frequencies = Seq(FrequencySplit("frequency", extraAggregations = Seq(SimpleAggregation(name = "zygosities", c = col("zygosity"))))))
 
   private val data = Map(
     snvKeyId -> occurrencesDf,
@@ -60,8 +62,7 @@ class EnrichedVariantsSpec extends SparkSpec with WithTestConfig {
   )
 
   "transformSingle" should "return expected result" in {
-    val df = new Variants(TestETLContext(), snvDatasetId = snvKeyId, frequencies = Seq(FrequencySplit("frequency", extraAggregations = Seq(SimpleAggregation(name = "zygosities", c = col("zygosity"))))))
-      .transformSingle(data)
+    val df = etl.transformSingle(data)
 
     val result = df.as[EnrichedVariant].collect()
     result.length shouldBe 1
@@ -87,5 +88,17 @@ class EnrichedVariantsSpec extends SparkSpec with WithTestConfig {
       EnrichedVariant(chromosome = "2", start = 1, reference = "A", alternate = "T", cmc = CMC(sample_mutated = 2, sample_ratio = 2.3035901452413586E-5)),
       EnrichedVariant(chromosome = "3", start = 1, reference = "A", alternate = "T", cmc = null),
     )
+  }
+
+  "extraAggregations" should "be computed and added to the root of the data" in {
+
+    val job = etl.copy(extraAggregations = Seq(
+      collect_set("participant_id") as "participant_ids",
+      max("study_id") as "latest_study"
+    ))
+
+    val df = job.transformSingle(data)
+    val result = df.select("participant_ids", "latest_study").as[(Set[String], String)].collect()
+    result.head shouldBe(Set("PA0001", "PA0002"), "S2")
   }
 }
