@@ -1,4 +1,4 @@
-package bio.ferlab.datalake.spark3.testmodels.normalized
+package bio.ferlab.datalake.testutils.models.normalized
 
 case class NormalizedDddGeneCensus(`symbol`: String = "HMX1",
                                    `omim_gene_id`: String = "142992",

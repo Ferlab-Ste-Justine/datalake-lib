@@ -2,8 +2,8 @@ package bio.ferlab.datalake.spark3.publictables.enriched
 
 import bio.ferlab.datalake.commons.config.DatasetConf
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
-import bio.ferlab.datalake.spark3.testmodels.enriched.{EnrichedGenes, OMIM, ORPHANET, COSMIC}
-import bio.ferlab.datalake.spark3.testmodels.normalized._
+import bio.ferlab.datalake.testutils.models.enriched.{EnrichedGenes, OMIM, ORPHANET, COSMIC}
+import bio.ferlab.datalake.testutils.models.normalized._
 import bio.ferlab.datalake.spark3.testutils.WithTestConfig
 import bio.ferlab.datalake.testutils.models.normalized.NormalizedCosmicGeneSet
 import bio.ferlab.datalake.testutils.{CleanUpBeforeAll, CreateDatabasesBeforeAll, SparkSpec, TestETLContext}

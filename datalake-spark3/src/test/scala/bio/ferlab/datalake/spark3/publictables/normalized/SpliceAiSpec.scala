@@ -1,8 +1,8 @@
 package bio.ferlab.datalake.spark3.publictables.normalized
 
 import bio.ferlab.datalake.commons.config.DatasetConf
-import bio.ferlab.datalake.spark3.testmodels.normalized.NormalizedSpliceAi
-import bio.ferlab.datalake.spark3.testmodels.raw.RawSpliceAi
+import bio.ferlab.datalake.testutils.models.normalized.NormalizedSpliceAi
+import bio.ferlab.datalake.testutils.models.raw.RawSpliceAi
 import bio.ferlab.datalake.spark3.testutils.WithTestConfig
 import bio.ferlab.datalake.testutils.{SparkSpec, TestETLContext}
 
@@ -20,7 +20,7 @@ class SpliceAiSpec extends SparkSpec with WithTestConfig {
 
     //    ClassGenerator
     //      .writeCLassFile(
-    //        "bio.ferlab.datalake.spark3.testmodels.normalized",
+    //        "bio.ferlab.datalake.testutils.models.normalized",
     //        "NormalizedSpliceAi",
     //        resultDF,
     //        "datalake-spark3/src/test/scala/")

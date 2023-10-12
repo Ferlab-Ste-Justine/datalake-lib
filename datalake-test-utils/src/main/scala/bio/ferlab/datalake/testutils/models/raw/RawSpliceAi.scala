@@ -1,4 +1,4 @@
-package bio.ferlab.datalake.spark3.testmodels.raw
+package bio.ferlab.datalake.testutils.models.raw
 
 case class RawSpliceAi(`contigName`: String = "1",
                        `start`: Long = 210862941,

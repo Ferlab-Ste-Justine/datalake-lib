@@ -1,4 +1,4 @@
-package bio.ferlab.datalake.spark3.testmodels.enriched
+package bio.ferlab.datalake.testutils.models.enriched
 
 case class EnrichedDbnsfp(`chromosome`: String = "1",
                           `start`: String = "69897",

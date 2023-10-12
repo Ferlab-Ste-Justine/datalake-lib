@@ -1,4 +1,4 @@
-package bio.ferlab.datalake.spark3.testmodels.normalized
+package bio.ferlab.datalake.testutils.models.normalized
 
 case class NormalizedHpoGeneSet(`entrez_gene_id`: Int = 777,
                                 `symbol`: String = "CACNA1E",

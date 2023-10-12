@@ -3,7 +3,7 @@ package bio.ferlab.datalake.spark3.implicits
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.ParentalOrigin._
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits._
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns._
-import bio.ferlab.datalake.spark3.testmodels.enriched.EnrichedGenes
+import bio.ferlab.datalake.testutils.models.enriched.EnrichedGenes
 import bio.ferlab.datalake.testutils.SparkSpec
 import bio.ferlab.datalake.testutils.models.genomicimplicits._
 import org.apache.spark.sql.functions._

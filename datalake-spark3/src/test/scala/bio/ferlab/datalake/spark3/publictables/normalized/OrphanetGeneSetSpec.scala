@@ -1,8 +1,8 @@
 package bio.ferlab.datalake.spark3.publictables.normalized
 
 import bio.ferlab.datalake.commons.config.DatasetConf
-import bio.ferlab.datalake.spark3.testmodels.normalized.NormalizedOrphanetGeneSet
-import bio.ferlab.datalake.spark3.testmodels.raw.{RawOrphanetProduct6, RawOrphanetProduct9}
+import bio.ferlab.datalake.testutils.models.normalized.NormalizedOrphanetGeneSet
+import bio.ferlab.datalake.testutils.models.raw.{RawOrphanetProduct6, RawOrphanetProduct9}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.{BeforeAndAfterAll, GivenWhenThen}

@@ -1,4 +1,4 @@
-package bio.ferlab.datalake.spark3.testmodels.normalized
+package bio.ferlab.datalake.testutils.models.normalized
 
 case class NormalizedClinvar(chromosome: String = "2",
                              start: Long = 69359261,

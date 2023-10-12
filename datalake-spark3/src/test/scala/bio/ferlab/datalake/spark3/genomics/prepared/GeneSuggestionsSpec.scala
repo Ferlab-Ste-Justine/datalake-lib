@@ -1,8 +1,8 @@
 package bio.ferlab.datalake.spark3.genomics.prepared
 
 import bio.ferlab.datalake.commons.config.DatasetConf
-import bio.ferlab.datalake.spark3.testmodels.enriched.EnrichedGenes
-import bio.ferlab.datalake.spark3.testmodels.prepared.PreparedGeneSuggestions
+import bio.ferlab.datalake.testutils.models.enriched.EnrichedGenes
+import bio.ferlab.datalake.testutils.models.prepared.PreparedGeneSuggestions
 import bio.ferlab.datalake.spark3.testutils.WithTestConfig
 import bio.ferlab.datalake.testutils.{SparkSpec, TestETLContext}
 import org.apache.spark.sql.DataFrame

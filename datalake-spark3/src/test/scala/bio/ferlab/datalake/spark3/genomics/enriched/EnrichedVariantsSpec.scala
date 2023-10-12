@@ -3,9 +3,9 @@ package bio.ferlab.datalake.spark3.genomics.enriched
 import bio.ferlab.datalake.commons.config.DatasetConf
 import bio.ferlab.datalake.spark3.genomics.enriched.Variants.DataFrameOps
 import bio.ferlab.datalake.spark3.genomics.{FrequencySplit, SimpleAggregation}
-import bio.ferlab.datalake.spark3.testmodels.enriched.EnrichedVariant.CMC
-import bio.ferlab.datalake.spark3.testmodels.enriched.{EnrichedGenes, EnrichedSpliceAi, EnrichedVariant, MAX_SCORE}
-import bio.ferlab.datalake.spark3.testmodels.normalized._
+import bio.ferlab.datalake.testutils.models.enriched.EnrichedVariant.CMC
+import bio.ferlab.datalake.testutils.models.enriched.{EnrichedGenes, EnrichedSpliceAi, EnrichedVariant, MAX_SCORE}
+import bio.ferlab.datalake.testutils.models.normalized._
 import bio.ferlab.datalake.spark3.testutils.WithTestConfig
 import bio.ferlab.datalake.testutils.models.normalized.NormalizedCosmicMutationSet
 import bio.ferlab.datalake.testutils.{SparkSpec, TestETLContext}
@@ -91,7 +91,6 @@ class EnrichedVariantsSpec extends SparkSpec with WithTestConfig {
   }
 
   "extraAggregations" should "be computed and added to the root of the data" in {
-
     val job = etl.copy(extraAggregations = Seq(
       collect_set("participant_id") as "participant_ids",
       max("study_id") as "latest_study"

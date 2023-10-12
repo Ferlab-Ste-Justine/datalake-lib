@@ -3,8 +3,8 @@ package bio.ferlab.datalake.spark3.genomics.enriched
 import bio.ferlab.datalake.commons.config._
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import bio.ferlab.datalake.spark3.loader.LoadResolver
-import bio.ferlab.datalake.spark3.testmodels.enriched.{EnrichedConsequences, EnrichedDbnsfp, EnrichedGenes}
-import bio.ferlab.datalake.spark3.testmodels.normalized.{NormalizedConsequences, NormalizedEnsemblMapping}
+import bio.ferlab.datalake.testutils.models.enriched.{EnrichedConsequences, EnrichedDbnsfp, EnrichedGenes}
+import bio.ferlab.datalake.testutils.models.normalized.{NormalizedConsequences, NormalizedEnsemblMapping}
 import bio.ferlab.datalake.spark3.testutils.WithTestConfig
 import bio.ferlab.datalake.testutils.{CleanUpBeforeAll, CreateDatabasesBeforeAll, SparkSpec, TestETLContext}
 import org.apache.commons.io.FileUtils

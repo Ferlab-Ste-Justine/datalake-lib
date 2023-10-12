@@ -1,4 +1,4 @@
-package bio.ferlab.datalake.spark3.testmodels.raw
+package bio.ferlab.datalake.testutils.models.raw
 
 case class RawAnnovarScores(`#Chr`: String = "1",
                             `Start`: String = "69091",

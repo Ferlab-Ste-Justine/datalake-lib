@@ -1,4 +1,4 @@
-package bio.ferlab.datalake.spark3.testmodels.normalized
+package bio.ferlab.datalake.testutils.models.normalized
 
 case class NormalizedHumanGenes(`tax_id`: Int = 9606,
                                 `entrez_gene_id`: Int = 777,
