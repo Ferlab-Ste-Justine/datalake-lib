@@ -1,9 +1,9 @@
-package bio.ferlab.datalake.spark3.testmodels.prepared
+package bio.ferlab.datalake.testutils.models.prepared
 
 import PreparedVariantCentric._
-import bio.ferlab.datalake.spark3.testmodels.enriched.EnrichedVariant.CMC
-import bio.ferlab.datalake.spark3.testmodels.enriched.{CONSERVATIONS, PREDICTIONS}
-import bio.ferlab.datalake.spark3.testmodels.prepared.PreparedVariantCentric.GENES.noGene
+import bio.ferlab.datalake.testutils.models.enriched.EnrichedVariant.CMC
+import bio.ferlab.datalake.testutils.models.enriched.{CONSERVATIONS, PREDICTIONS}
+import bio.ferlab.datalake.testutils.models.prepared.PreparedVariantCentric.GENES.noGene
 
 case class PreparedVariantCentric(`chromosome`: String = "1",
                                   `start`: Long = 69897,

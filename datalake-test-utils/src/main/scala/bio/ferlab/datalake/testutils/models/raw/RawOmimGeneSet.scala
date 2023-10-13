@@ -1,4 +1,4 @@
-package bio.ferlab.datalake.spark3.testmodels.raw
+package bio.ferlab.datalake.testutils.models.raw
 
 case class RawOmimGeneSet(_c0: String = "chr1",
                           _c1: Int = 2228318,

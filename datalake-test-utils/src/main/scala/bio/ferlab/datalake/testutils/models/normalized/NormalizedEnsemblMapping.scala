@@ -1,4 +1,4 @@
-package bio.ferlab.datalake.spark3.testmodels.normalized
+package bio.ferlab.datalake.testutils.models.normalized
 
 case class NormalizedEnsemblMapping(
                                  `ensembl_gene_id`: String = "ENSG00000284662",

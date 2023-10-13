@@ -1,8 +1,8 @@
 package bio.ferlab.datalake.spark3.genomics
 
 import bio.ferlab.datalake.spark3.genomics.Frequencies._
-import bio.ferlab.datalake.spark3.testmodels.frequency._
-import bio.ferlab.datalake.spark3.testmodels.normalized.NormalizedSNV
+import bio.ferlab.datalake.testutils.models.frequency._
+import bio.ferlab.datalake.testutils.models.normalized.NormalizedSNV
 import bio.ferlab.datalake.spark3.testutils.WithTestConfig
 import bio.ferlab.datalake.testutils.SparkSpec
 import org.apache.spark.sql.functions.col

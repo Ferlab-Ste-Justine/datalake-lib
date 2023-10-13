@@ -1,4 +1,4 @@
-package bio.ferlab.datalake.spark3.testmodels.normalized
+package bio.ferlab.datalake.testutils.models.normalized
 
 case class NormalizedOrphanetGeneSet(orpha_code: Long = 166024,
                                      disorder_id: Long = 17601,

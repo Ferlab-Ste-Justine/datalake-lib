@@ -1,4 +1,4 @@
-package bio.ferlab.datalake.spark3.testmodels.raw
+package bio.ferlab.datalake.testutils.models.raw
 
 case class RawOrphanetProduct6(disorder_id: Long = 21,
                                orpha_code: Long = 447,

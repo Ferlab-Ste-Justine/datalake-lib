@@ -1,8 +1,8 @@
 package bio.ferlab.datalake.spark3.publictables.normalized
 
 import bio.ferlab.datalake.commons.config.DatasetConf
-import bio.ferlab.datalake.spark3.testmodels.normalized.NormalizedClinvar
-import bio.ferlab.datalake.spark3.testmodels.raw.RawClinvar
+import bio.ferlab.datalake.testutils.models.normalized.NormalizedClinvar
+import bio.ferlab.datalake.testutils.models.raw.RawClinvar
 import bio.ferlab.datalake.spark3.testutils.WithTestConfig
 import bio.ferlab.datalake.testutils.{CleanUpBeforeAll, CreateDatabasesBeforeAll, SparkSpec, TestETLContext}
 import io.delta.tables.DeltaTable

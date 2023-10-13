@@ -19,13 +19,14 @@ import java.time.LocalDateTime
  * This ETL create an aggregated table on occurrences of SNV variants. Occurrences are aggregated by calculating the frequencies specified in parameter frequencies.
  * The table is enriched with information from other datasets such as genes, dbsnp, clinvar, spliceai, 1000 genomes, topmed_bravo, gnomad_genomes_v2, gnomad_exomes_v2, gnomad_genomes_v3.
  *
- * @param participantId  column used to distinct participants in order to calculate total number of participants (pn) and total allele number (an)
- * @param affectedStatus column used to calculate frequencies for affected / unaffected participants
- * @param snvDatasetId   the id of the dataset containing the SNV variants
- * @param frequencies    the frequencies to calculate. See [[FrequencyOperations.freq]]
- * @param rc             the etl context
+ * @param participantId     column used to distinct participants in order to calculate total number of participants (pn) and total allele number (an)
+ * @param affectedStatus    column used to calculate frequencies for affected / unaffected participants
+ * @param snvDatasetId      the id of the dataset containing the SNV variants
+ * @param frequencies       the frequencies to calculate. See [[FrequencyOperations.freq]]
+ * @param extraAggregations extra aggregations to be computed when grouping occurrences by locus. Will be added to the root of the data
+ * @param rc                the etl context
  */
-case class Variants(rc: RuntimeETLContext, participantId: Column = col("participant_id"), affectedStatus: Column = col("affected_status"), filterSnv: Option[Column] = Some(col("has_alt")), snvDatasetId: String, frequencies: Seq[FrequencySplit]) extends SimpleSingleETL(rc) {
+case class Variants(rc: RuntimeETLContext, participantId: Column = col("participant_id"), affectedStatus: Column = col("affected_status"), filterSnv: Option[Column] = Some(col("has_alt")), snvDatasetId: String, frequencies: Seq[FrequencySplit], extraAggregations: Seq[Column] = Nil) extends SimpleSingleETL(rc) {
 
   override val mainDestination: DatasetConf = conf.getDataset("enriched_variants")
   protected val thousand_genomes: DatasetConf = conf.getDataset("normalized_1000_genomes")
@@ -60,9 +61,16 @@ case class Variants(rc: RuntimeETLContext, participantId: Column = col("particip
                                lastRunDateTime: LocalDateTime = minDateTime,
                                currentRunDateTime: LocalDateTime = LocalDateTime.now()): DataFrame = {
     val snv = filterSnv.map(f => data(snvDatasetId).where(f)).getOrElse(data(snvDatasetId))
-    val variants = snv.selectLocus(col("hgvsg"), col("genes_symbol"), col("name"), col("end"), col("variant_class"))
+    val variantAggregations: Seq[Column] = Seq(
+      firstAs("hgvsg", ignoreNulls = true),
+      firstAs("genes_symbol", ignoreNulls = true),
+      firstAs("name", ignoreNulls = true),
+      firstAs("end", ignoreNulls = true),
+      firstAs("variant_class", ignoreNulls = true),
+    ) ++ extraAggregations
+    val variants = snv
       .groupByLocus()
-      .agg(firstAs("hgvsg", ignoreNulls = true), firstAs("genes_symbol", ignoreNulls = true), firstAs("name", ignoreNulls = true), firstAs("end", ignoreNulls = true), firstAs("variant_class", ignoreNulls = true))
+      .agg(variantAggregations.head, variantAggregations.tail: _*)
       .withColumn("dna_change", concat_ws(">", col("reference"), col("alternate")))
       .withColumn("assembly_version", lit("GRCh38"))
 

@@ -1,5 +1,4 @@
-package bio.ferlab.datalake.spark3.testmodels.frequency
-
+package bio.ferlab.datalake.testutils.models.frequency
 
 case class VariantFrequencyOutputByStudy(chromosome: String = "1",
                                          start: Long = 69897,

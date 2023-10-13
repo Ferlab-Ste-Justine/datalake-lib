@@ -26,7 +26,7 @@ class AnnovarScoresSpec extends SparkSpec {
 
     //ClassGenerator
     //  .writeCLassFile(
-    //    "bio.ferlab.datalake.spark3.testmodels",
+    //    "bio.ferlab.datalake.testutils.models",
     //    "AnnovarScoresOutput",
     //    resultDF,
     //    "datalake-spark3/src/test/scala/")
