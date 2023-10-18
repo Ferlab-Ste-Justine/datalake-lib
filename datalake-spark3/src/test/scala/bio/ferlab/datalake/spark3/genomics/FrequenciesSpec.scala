@@ -1,11 +1,11 @@
 package bio.ferlab.datalake.spark3.genomics
 
 import bio.ferlab.datalake.spark3.genomics.Frequencies._
-import bio.ferlab.datalake.testutils.models.frequency._
-import bio.ferlab.datalake.testutils.models.normalized.NormalizedSNV
 import bio.ferlab.datalake.spark3.testutils.WithTestConfig
 import bio.ferlab.datalake.testutils.SparkSpec
-import org.apache.spark.sql.functions.col
+import bio.ferlab.datalake.testutils.models.frequency._
+import bio.ferlab.datalake.testutils.models.normalized.NormalizedSNV
+import org.apache.spark.sql.functions.{col, explode}
 
 class FrequenciesSpec extends SparkSpec with WithTestConfig {
 
@@ -102,6 +102,49 @@ class FrequenciesSpec extends SparkSpec with WithTestConfig {
     chr2Result.frequency_by_study_id.find(_.study_id == "S2") shouldBe chr2Expected.frequency_by_study_id.find(_.study_id == "S2")
 
 
+  }
+
+  it should "filter input dataframe" in {
+    val input = Seq(
+      NormalizedSNV(participant_id = "P1", study_id = "S1", study_code = "study_code_1", transmission_mode = "AD", variant_type = "somatic"),
+      NormalizedSNV(participant_id = "P2", study_id = "S1", study_code = "study_code_1", transmission_mode = "AR", variant_type = "germline"),
+      NormalizedSNV(participant_id = "P3", study_id = "S2", study_code = "study_code_2", transmission_mode = "AR", variant_type = "germline"),
+    ).toDF()
+
+    val result = input.freq(split = Seq(
+      FrequencySplit("studies_not_ar", splitBy = Some(col("study_id")), filter = Some(col("transmission_mode") =!= "AR"),
+        extraAggregations = Seq(
+          AtLeastNElements(name = "participant_ids", c = col("participant_id"), n = 2),
+          SimpleAggregation(name = "transmissions", c = col("transmission_mode")),
+          FirstElement(name = "study_code", col("study_code"))
+        )),
+      FrequencySplit("germline_freq", filter = Some(col("variant_type") === "germline"),
+        extraAggregations = Seq(SimpleAggregation(name = "zygosities", c = col("zygosity"))))
+    ))
+
+    val studiesFreq = result
+      .select(explode($"studies_not_ar") as "studies")
+      .select("studies.*")
+      .as[FrequencyByStudyId]
+      .collect()
+
+    val germlineFreq = result
+      .select("germline_freq.*")
+      .as[GlobalFrequency]
+      .collect()
+
+    studiesFreq should contain theSameElementsAs Seq(
+      FrequencyByStudyId(study_id = "S1",
+        total = Frequency(ac = 2, an = 2, pc = 1, pn = 1, hom = 1, af = 1.0, pf = 1.0),
+        participant_ids = null,
+        transmissions = Set("AD"),
+        study_code = "study_code_1")
+    )
+
+    germlineFreq should contain theSameElementsAs Seq(
+      GlobalFrequency(total = Frequency(ac = 4, an = 4, pc = 2, pn = 2, hom = 2, af = 1.0, pf = 1.0),
+        zygosities = Set("HOM"))
+    )
   }
 
 }
