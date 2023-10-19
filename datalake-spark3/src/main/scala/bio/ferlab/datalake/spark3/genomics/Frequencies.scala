@@ -144,10 +144,11 @@ object Frequencies {
     def freq(participantId: Column = col("participant_id"), affectedStatus:Column = col("affected_status"), split: Seq[FrequencySplit]): DataFrame = {
 
       val allDataframes: Seq[DataFrame] = split.map { split =>
+        val filteredDf: DataFrame = split.filter.fold(df)(f => df.filter(f))
         val splitColumn: Seq[Column] = split.splitBy.toSeq
         val extraAggregationsFiltered: List[Column] = split.extraAggregations.map(agg => agg.filter(col(agg.name)) as agg.name).toList
         if (split.byAffected) {
-          val firstSplit = df
+          val firstSplit = filteredDf
             .groupByLocus(splitColumn :+ affectedStatus: _*)
             .agg(
               ifAffected(ac) as "affected_ac",
@@ -175,7 +176,7 @@ object Frequencies {
               col("affected.hom") + col("not_affected.hom") as "hom",
             ))
           split.splitBy.map { s =>
-            val anPnDF = df.groupBy(splitColumn :+ affectedStatus: _*).agg(
+            val anPnDF = filteredDf.groupBy(splitColumn :+ affectedStatus: _*).agg(
               ifAffected(countDistinct(participantId)) as "pn_affected",
               ifNotAffected(countDistinct(participantId)) as "pn_not_affected"
             )
@@ -211,7 +212,7 @@ object Frequencies {
                 ) as split.name
               )
           }.getOrElse {
-            val anPnDF = df.groupBy(affectedStatus).agg(
+            val anPnDF = filteredDf.groupBy(affectedStatus).agg(
               ifAffected(countDistinct(participantId)) as "pn_affected",
               ifNotAffected(countDistinct(participantId)) as "pn_not_affected"
             )
@@ -241,11 +242,11 @@ object Frequencies {
         } else {
 
           val firstSplit =
-            df.groupByLocus(splitColumn: _*)
+            filteredDf.groupByLocus(splitColumn: _*)
               .agg(struct(ac, pc, hom) as "total", split.extraAggregations.map(_.agg()): _*)
           split.splitBy.map {
             s =>
-              val anPnDF = df.groupBy(splitColumn: _*)
+              val anPnDF = filteredDf.groupBy(splitColumn: _*)
                 .agg(countDistinct(participantId) as "pn")
                 .withColumn("an", col("pn") * 2)
                 .withColumn("joinSplit", s)
@@ -263,7 +264,7 @@ object Frequencies {
                 )
 
           }.getOrElse {
-            val anPnRow: Row = df.select(countDistinct(participantId) as "pn").withColumn("an", col("pn") * 2).collect().head
+            val anPnRow: Row = filteredDf.select(countDistinct(participantId) as "pn").withColumn("an", col("pn") * 2).collect().head
             val pn = anPnRow.getLong(0)
             val an = anPnRow.getLong(1)
             firstSplit
