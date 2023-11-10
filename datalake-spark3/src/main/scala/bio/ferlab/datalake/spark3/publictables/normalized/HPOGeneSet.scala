@@ -1,7 +1,7 @@
 package bio.ferlab.datalake.spark3.publictables.normalized
 
 import bio.ferlab.datalake.commons.config.{Coalesce, DatasetConf, RuntimeETLContext}
-import bio.ferlab.datalake.spark3.etl.v3.SimpleETLP
+import bio.ferlab.datalake.spark3.etl.v4.SimpleETLP
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import mainargs.{ParserForMethods, main}
 import org.apache.spark.sql.DataFrame
@@ -12,16 +12,16 @@ case class HPOGeneSet(rc: RuntimeETLContext) extends SimpleETLP(rc) {
   private val hpo_gene_set = conf.getDataset("raw_hpo_gene_set")
   override val mainDestination: DatasetConf = conf.getDataset("normalized_hpo_gene_set")
 
-  override def extract(lastRunDateTime: LocalDateTime = minDateTime,
-                       currentRunDateTime: LocalDateTime = LocalDateTime.now()): Map[String, DataFrame] = {
+  override def extract(lastRunValue: LocalDateTime = minValue,
+                       currentRunValue: LocalDateTime = LocalDateTime.now()): Map[String, DataFrame] = {
     Map(
       hpo_gene_set.id -> hpo_gene_set.read
     )
   }
 
   override def transformSingle(data: Map[String, DataFrame],
-                               lastRunDateTime: LocalDateTime = minDateTime,
-                               currentRunDateTime: LocalDateTime = LocalDateTime.now()): DataFrame = {
+                               lastRunValue: LocalDateTime = minValue,
+                               currentRunValue: LocalDateTime = LocalDateTime.now()): DataFrame = {
     data(hpo_gene_set.id)
       .withColumnRenamed("_c0", "entrez_gene_id")
       .withColumnRenamed("_c1", "symbol")

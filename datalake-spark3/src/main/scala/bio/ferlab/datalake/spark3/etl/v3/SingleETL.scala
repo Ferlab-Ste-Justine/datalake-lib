@@ -1,11 +1,13 @@
 package bio.ferlab.datalake.spark3.etl.v3
 
-import bio.ferlab.datalake.commons.config.{Configuration, ETLContext}
+import bio.ferlab.datalake.commons.config.Configuration
+import bio.ferlab.datalake.commons.config.DeprecatedETLContext
 import org.apache.spark.sql.DataFrame
 
 import java.time.LocalDateTime
 
-abstract class SingleETL[T <: Configuration](context: ETLContext[T]) extends ETL(context) {
+@deprecated("use [[v4.SingleETL]] instead", "11.0.0")
+abstract class SingleETL[T <: Configuration](context: DeprecatedETLContext[T]) extends ETL(context) {
 
   /**
    * Takes a DataFrame as input and applies a set of transformations to it to produce the ETL output.

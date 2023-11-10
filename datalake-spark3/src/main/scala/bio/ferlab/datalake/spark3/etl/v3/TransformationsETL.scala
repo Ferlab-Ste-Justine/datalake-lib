@@ -1,12 +1,14 @@
 package bio.ferlab.datalake.spark3.etl.v3
 
-import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf, ETLContext}
+import bio.ferlab.datalake.commons.config.DeprecatedETLContext
+import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf}
 import bio.ferlab.datalake.spark3.transformation.Transformation
 import org.apache.spark.sql.DataFrame
 
 import java.time.LocalDateTime
 
-class TransformationsETL[T <: Configuration](context: ETLContext[T],
+@deprecated("use [[v4.TransformationsETL]] instead", "11.0.0")
+class TransformationsETL[T <: Configuration](context: DeprecatedETLContext[T],
                                              val source: DatasetConf,
                                              override val mainDestination: DatasetConf,
                                              val transformations: List[Transformation])

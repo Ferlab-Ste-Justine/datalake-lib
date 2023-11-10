@@ -1,7 +1,7 @@
 package bio.ferlab.datalake.spark3.publictables.normalized.cosmic
 
 import bio.ferlab.datalake.commons.config.{DatasetConf, RuntimeETLContext}
-import bio.ferlab.datalake.spark3.etl.v3.SimpleETLP
+import bio.ferlab.datalake.spark3.etl.v4.SimpleETLP
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits.DatasetConfOperations
 import bio.ferlab.datalake.spark3.transformation.Cast.castInt
 import mainargs.{ParserForMethods, main}
@@ -16,14 +16,14 @@ case class CosmicMutationSet(rc: RuntimeETLContext) extends SimpleETLP(rc) {
   private val cosmic_mutation_set = conf.getDataset("raw_cosmic_mutation_set")
   override val mainDestination: DatasetConf = conf.getDataset("normalized_cosmic_mutation_set")
 
-  override def extract(lastRunDateTime: LocalDateTime = minDateTime,
-                       currentRunDateTime: LocalDateTime = LocalDateTime.now()): Map[String, DataFrame] = {
+  override def extract(lastRunValue: LocalDateTime = minValue,
+                       currentRunValue: LocalDateTime = LocalDateTime.now()): Map[String, DataFrame] = {
     Map(cosmic_mutation_set.id -> cosmic_mutation_set.read)
   }
 
   override def transformSingle(data: Map[String, DataFrame],
-                               lastRunDateTime: LocalDateTime,
-                               currentRunDateTime: LocalDateTime): DataFrame = {
+                               lastRunValue: LocalDateTime,
+                               currentRunValue: LocalDateTime): DataFrame = {
     import spark.implicits._
 
     data(cosmic_mutation_set.id)

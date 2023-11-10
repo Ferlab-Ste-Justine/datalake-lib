@@ -1,7 +1,7 @@
 package bio.ferlab.datalake.spark3.publictables.normalized.omim
 
 import bio.ferlab.datalake.commons.config.{Coalesce, DatasetConf, RuntimeETLContext}
-import bio.ferlab.datalake.spark3.etl.v3.SimpleETLP
+import bio.ferlab.datalake.spark3.etl.v4.SimpleETLP
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import bio.ferlab.datalake.spark3.publictables.normalized.omim.OmimPhenotype.parse_pheno
 import mainargs.{ParserForMethods, main}
@@ -15,14 +15,14 @@ case class OmimGeneSet(rc: RuntimeETLContext) extends SimpleETLP(rc)  {
   override val mainDestination: DatasetConf = conf.getDataset("normalized_omim_gene_set")
   val raw_omim_gene_set: DatasetConf = conf.getDataset("raw_omim_gene_set")
 
-  override def extract(lastRunDateTime: LocalDateTime,
-                       currentRunDateTime: LocalDateTime): Map[String, DataFrame] = {
+  override def extract(lastRunValue: LocalDateTime,
+                       currentRunValue: LocalDateTime): Map[String, DataFrame] = {
     Map(raw_omim_gene_set.id -> raw_omim_gene_set.read)
   }
 
   override def transformSingle(data: Map[String, DataFrame],
-                         lastRunDateTime: LocalDateTime,
-                         currentRunDateTime: LocalDateTime): DataFrame = {
+                               lastRunValue: LocalDateTime,
+                               currentRunValue: LocalDateTime): DataFrame = {
     val intermediateDf =
       data(raw_omim_gene_set.id)
         .select(

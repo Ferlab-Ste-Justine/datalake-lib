@@ -1,7 +1,7 @@
 package bio.ferlab.datalake.spark3.publictables.normalized
 
 import bio.ferlab.datalake.commons.config.{Coalesce, DatasetConf, RuntimeETLContext}
-import bio.ferlab.datalake.spark3.etl.v3.SimpleETLP
+import bio.ferlab.datalake.spark3.etl.v4.SimpleETLP
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns._
 import bio.ferlab.datalake.spark3.implicits.SparkUtils._
@@ -19,14 +19,14 @@ case class Clinvar(rc: RuntimeETLContext) extends SimpleETLP(rc) {
 
   val clinvar_vcf: DatasetConf = conf.getDataset("raw_clinvar")
 
-  override def extract(lastRunDateTime: LocalDateTime,
-                       currentRunDateTime: LocalDateTime): Map[String, DataFrame] = {
+  override def extract(lastRunValue: LocalDateTime,
+                       currentRunValue: LocalDateTime): Map[String, DataFrame] = {
     Map(clinvar_vcf.id -> clinvar_vcf.read)
   }
 
   override def transformSingle(data: Map[String, DataFrame],
-                         lastRunDateTime: LocalDateTime,
-                         currentRunDateTime: LocalDateTime): DataFrame = {
+                               lastRunValue: LocalDateTime,
+                               currentRunValue: LocalDateTime): DataFrame = {
 
     val df = data(clinvar_vcf.id)
     spark.udf.register("inheritance", inheritance_udf)

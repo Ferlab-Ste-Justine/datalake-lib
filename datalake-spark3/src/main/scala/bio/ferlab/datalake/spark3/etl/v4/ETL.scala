@@ -1,9 +1,8 @@
-package bio.ferlab.datalake.spark3.etl.v3
+package bio.ferlab.datalake.spark3.etl.v4
 
 import bio.ferlab.datalake.commons.config.LoadType.{Insert, OverWritePartition, Scd1, Scd2}
 import bio.ferlab.datalake.commons.config.WriteOptions.{UPDATED_ON_COLUMN_NAME, VALID_FROM_COLUMN_NAME}
-import bio.ferlab.datalake.commons.config.DeprecatedETLContext
-import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf, IdentityRepartition, RunStep}
+import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf, ETLContext, IdentityRepartition, RunStep}
 import bio.ferlab.datalake.commons.file.FileSystemResolver
 import bio.ferlab.datalake.spark3.datastore.SqlBinderResolver
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
@@ -14,6 +13,7 @@ import org.slf4j.{Logger, LoggerFactory}
 
 import java.sql.{Date, Timestamp}
 import java.time.LocalDateTime
+import scala.reflect.classTag
 import scala.util.Try
 
 
@@ -22,12 +22,10 @@ import scala.util.Try
  * By definition an ETL can take 1..N sources as input and can produce 1..N output.
  *
  * @param context runtime configuration
+ * @tparam T Type used to capture data changes in the ETL
+ * @tparam C Configuration type
  */
-@deprecated("use [[v4.ETL]] instead", "11.0.0")
-abstract class ETL[T <: Configuration](context: DeprecatedETLContext[T]) {
-
-  val minDateTime: LocalDateTime = LocalDateTime.of(1900, 1, 1, 0, 0, 0)
-  val maxDateTime: LocalDateTime = LocalDateTime.of(9999, 12, 31, 23, 59, 55)
+abstract class ETL[T, C <: Configuration](context: ETLContext[T, C]) {
 
   def mainDestination: DatasetConf
 
@@ -36,6 +34,8 @@ abstract class ETL[T <: Configuration](context: DeprecatedETLContext[T]) {
   implicit val conf: Configuration = context.config
   implicit val spark: SparkSession = context.spark
 
+  val minValue: T = context.dataMinValue
+  val defaultCurrentValue: T = context.defaultDataCurrentValue
 
   /**
    * Reads data from a file system and produces a Map[DatasetConf, DataFrame].
@@ -43,8 +43,8 @@ abstract class ETL[T <: Configuration](context: DeprecatedETLContext[T]) {
    *
    * @return all the data needed to pass to the transform method and produce the desired output.
    */
-  def extract(lastRunDateTime: LocalDateTime = minDateTime,
-              currentRunDateTime: LocalDateTime = LocalDateTime.now()): Map[String, DataFrame]
+  def extract(lastRunValue: T = minValue,
+              currentRunValue: T = defaultCurrentValue): Map[String, DataFrame]
 
   /**
    * Takes a Map[DatasetConf, DataFrame] as input and applies a set of transformations to it to produce the ETL output.
@@ -54,8 +54,8 @@ abstract class ETL[T <: Configuration](context: DeprecatedETLContext[T]) {
    * @return
    */
   def transform(data: Map[String, DataFrame],
-                lastRunDateTime: LocalDateTime = minDateTime,
-                currentRunDateTime: LocalDateTime = LocalDateTime.now()): Map[String, DataFrame]
+                lastRunValue: T = minValue,
+                currentRunValue: T = defaultCurrentValue): Map[String, DataFrame]
 
   /**
    * Loads the output data into a persistent storage.
@@ -64,9 +64,8 @@ abstract class ETL[T <: Configuration](context: DeprecatedETLContext[T]) {
    * @param data output data produced by the transform method.
    */
   def load(data: Map[String, DataFrame],
-           lastRunDateTime: LocalDateTime = minDateTime,
-           currentRunDateTime: LocalDateTime = LocalDateTime.now()
-          ): Map[String, DataFrame] = {
+           lastRunValue: T = minValue,
+           currentRunValue: T = defaultCurrentValue): Map[String, DataFrame] = {
     data.map { case (dsid, df) =>
       val datasetConf = conf.getDataset(dsid)
       dsid -> loadDataset(df, datasetConf)
@@ -98,41 +97,40 @@ abstract class ETL[T <: Configuration](context: DeprecatedETLContext[T]) {
    * Entry point of the etl - execute this method in order to run the whole ETL
    *
    */
-  def run(
-           lastRunDateTime: Option[LocalDateTime] = None,
-           currentRunDateTime: Option[LocalDateTime] = None): Map[String, DataFrame] = {
+  def run(lastRunValue: Option[T] = None,
+          currentRunValue: Option[T] = None): Map[String, DataFrame] = {
     val runSteps = context.runSteps
     if (runSteps.isEmpty)
       log.info(s"WARNING ETL started with no runSteps. Nothing will be executed.")
     else
       log.info(s"RUN steps: \t\t ${runSteps.mkString(" -> ")}")
 
-    val lastRunDate = lastRunDateTime.getOrElse(if (runSteps.contains(RunStep.reset)) minDateTime else getLastRunDateFor(mainDestination))
-    val currentRunDate = currentRunDateTime.getOrElse(LocalDateTime.now())
+    val runtimeLastRunValue: T = lastRunValue.getOrElse(if (runSteps.contains(RunStep.reset)) minValue else getLastRunValue(mainDestination))
+    val runtimeCurrentRunValue: T = currentRunValue.getOrElse(defaultCurrentValue)
 
-    log.info(s"RUN lastRunDate: \t $lastRunDate")
-    log.info(s"RUN currentRunDate: \t $currentRunDate")
+    log.info(s"RUN lastRunValue: \t $lastRunValue")
+    log.info(s"RUN currentRunValue: \t $currentRunValue")
 
     if (runSteps.contains(RunStep.reset)) this.reset()
 
     val data: Map[String, DataFrame] =
       if (runSteps.contains(RunStep.extract) && runSteps.contains(RunStep.sample)) {
-        extract(lastRunDate, currentRunDate).map { case (ds, df) => ds -> sampling(ds).apply(df) }
+        extract(runtimeLastRunValue, runtimeCurrentRunValue).map { case (ds, df) => ds -> sampling(ds).apply(df) }
       } else if (runSteps.contains(RunStep.extract)) {
-        extract(lastRunDate, currentRunDate)
+        extract(runtimeLastRunValue, runtimeCurrentRunValue)
       } else {
         Map()
       }
 
     val output: Map[String, DataFrame] =
       if (runSteps.contains(RunStep.transform)) {
-        transform(data, lastRunDate, currentRunDate)
+        transform(data, runtimeLastRunValue, runtimeCurrentRunValue)
       } else {
         Map()
       }
 
     if (runSteps.contains(RunStep.load)) {
-      load(output)
+      load(output, runtimeLastRunValue, runtimeCurrentRunValue)
     } else {
       output.foreach { case (dsid, df) =>
         log.info(s"$dsid:")
@@ -150,36 +148,48 @@ abstract class ETL[T <: Configuration](context: DeprecatedETLContext[T]) {
   }
 
   /**
-   * If possible, fetch the last run date time from the dataset passed in argument
+   * If possible, fetch the last run value from the dataset passed in argument. Usually a date or an id.
    *
    * @param ds dataset
-   * @return the last run date or the [[minDateTime]]
+   * @return the last run value or the [[minValue]]
    */
-  def getLastRunDateFor(ds: DatasetConf): LocalDateTime = {
+  def getLastRunValue(ds: DatasetConf): T = {
     import spark.implicits._
-    ds.loadtype match {
-      case Scd1 =>
+    val StringType = classTag[String]
+    val LocalDateTimeType = classTag[LocalDateTime]
+
+    context.ETLType match {
+      case StringType =>
         Try(
-          ds.read.select(max(col(ds.writeoptions(UPDATED_ON_COLUMN_NAME)))).limit(1).as[Timestamp].head().toLocalDateTime
-        ).getOrElse(minDateTime)
+          ds.read.select(max(col(ds.writeoptions(UPDATED_ON_COLUMN_NAME)))).limit(1).as[String].head().asInstanceOf[T]
+        ).getOrElse(minValue)
 
-      case Scd2 =>
-        Try(
-          ds.read.select(max(col(ds.writeoptions(VALID_FROM_COLUMN_NAME)))).limit(1).as[Date].head().toLocalDate.atStartOfDay()
-        ).getOrElse(minDateTime)
+      case LocalDateTimeType =>
+        ds.loadtype match {
+          case Scd1 =>
+            Try(
+              ds.read.select(max(col(ds.writeoptions(UPDATED_ON_COLUMN_NAME)))).limit(1).as[Timestamp].head().toLocalDateTime.asInstanceOf[T]
+            ).getOrElse(minValue)
 
-      case Insert =>
-        Try(
-          ds.read.select(max(col(ds.writeoptions(UPDATED_ON_COLUMN_NAME)))).limit(1).as[Date].head().toLocalDate.atStartOfDay()
-        ).getOrElse(minDateTime)
+          case Scd2 =>
+            Try(
+              ds.read.select(max(col(ds.writeoptions(VALID_FROM_COLUMN_NAME)))).limit(1).as[Date].head().toLocalDate.atStartOfDay().asInstanceOf[T]
+            ).getOrElse(minValue)
 
-      case OverWritePartition =>
-        Try(
-          ds.read.select(max(col(ds.partitionby.head))).limit(1).as[Date].head().toLocalDate.atStartOfDay()
-        ).getOrElse(minDateTime)
+          case Insert =>
+            Try(
+              ds.read.select(max(col(ds.writeoptions(UPDATED_ON_COLUMN_NAME)))).limit(1).as[Date].head().toLocalDate.atStartOfDay().asInstanceOf[T]
+            ).getOrElse(minValue)
 
-      case _ => minDateTime
+          case OverWritePartition =>
+            Try(
+              ds.read.select(max(col(ds.partitionby.head))).limit(1).as[Date].head().toLocalDate.atStartOfDay().asInstanceOf[T]
+            ).getOrElse(minValue)
 
+          case _ => minValue
+        }
+
+      case _ => minValue
     }
   }
 

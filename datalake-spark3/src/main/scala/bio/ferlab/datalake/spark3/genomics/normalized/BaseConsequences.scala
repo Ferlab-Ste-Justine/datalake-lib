@@ -1,7 +1,7 @@
 package bio.ferlab.datalake.spark3.genomics.normalized
 
-import bio.ferlab.datalake.commons.config.{BaseETLContext, Configuration, DatasetConf, RuntimeETLContext}
-import bio.ferlab.datalake.spark3.etl.v3.{ETLP, SimpleETLP}
+import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf, TimestampETLContext}
+import bio.ferlab.datalake.spark3.etl.v4.ETLP
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits._
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns._
 import org.apache.spark.sql.functions._
@@ -10,15 +10,15 @@ import org.apache.spark.sql.{Column, DataFrame}
 import java.sql.Timestamp
 import java.time.LocalDateTime
 
-abstract class BaseConsequences[T <: Configuration](rc: BaseETLContext[T], annotationsColumn: Column = csq, groupByLocus: Boolean = true) extends ETLP(rc) {
+abstract class BaseConsequences[C <: Configuration](rc: TimestampETLContext[C], annotationsColumn: Column = csq, groupByLocus: Boolean = true) extends ETLP(rc) {
 
   override val mainDestination: DatasetConf = conf.getDataset("normalized_consequences")
 
   val raw_vcf: String = "raw_vcf"
 
   override def transformSingle(data: Map[String, DataFrame],
-                               lastRunDateTime: LocalDateTime = minDateTime,
-                               currentRunDateTime: LocalDateTime = LocalDateTime.now()): DataFrame = {
+                               lastRunValue: LocalDateTime = minValue,
+                               currentRunValue: LocalDateTime = LocalDateTime.now()): DataFrame = {
     import spark.implicits._
     val groupedByLocus = if (groupByLocus) {
       data(raw_vcf)
@@ -84,8 +84,8 @@ abstract class BaseConsequences[T <: Configuration](rc: BaseETLContext[T], annot
           when($"amino_acids.variant".isNull, lit("=")).otherwise(normalizeAminoAcid($"amino_acids.variant"))))
       .withColumn("coding_dna_change", when($"cds_position".isNotNull, concat(lit("c."), $"cds_position", $"reference", lit(">"), $"alternate")).otherwise(lit(null)))
       .withColumn("impact_score", when($"impact" === "MODIFIER", 1).when($"impact" === "LOW", 2).when($"impact" === "MODERATE", 3).when($"impact" === "HIGH", 4).otherwise(0))
-      .withColumn("created_on", lit(Timestamp.valueOf(currentRunDateTime)))
-      .withColumn("updated_on", lit(Timestamp.valueOf(currentRunDateTime)))
+      .withColumn("created_on", lit(Timestamp.valueOf(currentRunValue)))
+      .withColumn("updated_on", lit(Timestamp.valueOf(currentRunValue)))
       .withColumn(mainDestination.oid, col("created_on"))
       .dropDuplicates("chromosome", "start", "reference", "alternate", "ensembl_transcript_id")
 

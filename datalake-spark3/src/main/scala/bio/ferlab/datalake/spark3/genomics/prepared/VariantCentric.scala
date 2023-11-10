@@ -1,7 +1,7 @@
 package bio.ferlab.datalake.spark3.genomics.prepared
 
 import bio.ferlab.datalake.commons.config.{DatasetConf, RuntimeETLContext}
-import bio.ferlab.datalake.spark3.etl.v3.SimpleSingleETL
+import bio.ferlab.datalake.spark3.etl.v4.SimpleSingleETL
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits.DatasetConfOperations
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits._
 import mainargs.{ParserForMethods, main}
@@ -91,8 +91,8 @@ case class VariantCentric(rc: RuntimeETLContext) extends SimpleSingleETL(rc) {
   private val enriched_variants: DatasetConf = conf.getDataset("enriched_variants")
   private val enriched_consequences: DatasetConf = conf.getDataset("enriched_consequences")
 
-  override def extract(lastRunDateTime: LocalDateTime = minDateTime,
-                       currentRunDateTime: LocalDateTime = LocalDateTime.now()): Map[String, DataFrame] = {
+  override def extract(lastRunValue: LocalDateTime = minValue,
+                       currentRunValue: LocalDateTime = LocalDateTime.now()): Map[String, DataFrame] = {
 
     Map(
       enriched_variants.id -> enriched_variants.read,
@@ -101,8 +101,8 @@ case class VariantCentric(rc: RuntimeETLContext) extends SimpleSingleETL(rc) {
   }
 
   override def transformSingle(data: Map[String, DataFrame],
-                               lastRunDateTime: LocalDateTime = minDateTime,
-                               currentRunDateTime: LocalDateTime = LocalDateTime.now()): DataFrame = {
+                               lastRunValue: LocalDateTime = minValue,
+                               currentRunValue: LocalDateTime = LocalDateTime.now()): DataFrame = {
     val NO_GENE = "NO_GENE"
     val csq = data(enriched_consequences.id)
       .withColumn("symbol", coalesce(col("symbol"), lit(NO_GENE))) //Manage consequences without gene

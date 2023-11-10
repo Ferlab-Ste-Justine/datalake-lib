@@ -1,7 +1,7 @@
 package bio.ferlab.datalake.spark3.publictables.enriched
 
 import bio.ferlab.datalake.commons.config.{Coalesce, DatasetConf, RuntimeETLContext}
-import bio.ferlab.datalake.spark3.etl.v3.SimpleSingleETL
+import bio.ferlab.datalake.spark3.etl.v4.SimpleSingleETL
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import bio.ferlab.datalake.spark3.implicits.SparkUtils.removeEmptyObjectsIn
 import mainargs.{ParserForMethods, main}
@@ -21,8 +21,8 @@ case class Genes(rc: RuntimeETLContext) extends SimpleSingleETL(rc) {
   val cosmic_gene_set: DatasetConf = conf.getDataset("normalized_cosmic_gene_set")
   val gnomad_constraint: DatasetConf = conf.getDataset("normalized_gnomad_constraint_v2_1_1")
 
-  override def extract(lastRunDateTime: LocalDateTime,
-                       currentRunDateTime: LocalDateTime): Map[String, DataFrame] = {
+  override def extract(lastRunValue: LocalDateTime,
+                       currentRunValue: LocalDateTime): Map[String, DataFrame] = {
     Map(
       omim_gene_set.id -> omim_gene_set.read,
       orphanet_gene_set.id -> orphanet_gene_set.read,
@@ -35,8 +35,8 @@ case class Genes(rc: RuntimeETLContext) extends SimpleSingleETL(rc) {
   }
 
   override def transformSingle(data: Map[String, DataFrame],
-                               lastRunDateTime: LocalDateTime,
-                               currentRunDateTime: LocalDateTime): DataFrame = {
+                               lastRunValue: LocalDateTime,
+                               currentRunValue: LocalDateTime): DataFrame = {
     import spark.implicits._
 
     val humanGenes = data(human_genes.id)

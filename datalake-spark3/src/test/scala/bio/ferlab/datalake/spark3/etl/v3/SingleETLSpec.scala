@@ -2,10 +2,11 @@ package bio.ferlab.datalake.spark3.etl.v3
 
 import bio.ferlab.datalake.commons.config.LoadType._
 import bio.ferlab.datalake.commons.config._
+import bio.ferlab.datalake.commons.config.DeprecatedRuntimeETLContext
 import bio.ferlab.datalake.commons.file.{FileSystemResolver, HadoopFileSystem}
 import bio.ferlab.datalake.spark3.etl.{AirportInput, AirportOutput}
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
-import bio.ferlab.datalake.testutils.TestETLContext
+import bio.ferlab.datalake.testutils.DeprecatedTestETLContext
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.LongType
@@ -18,7 +19,7 @@ class SingleETLSpec extends WithETL {
 
   import spark.implicits._
 
-  case class TestETL(rc:RuntimeETLContext) extends SimpleSingleETL(rc) {
+  case class TestETL(rc: DeprecatedRuntimeETLContext) extends SimpleSingleETL(rc) {
 
     var repartitioned = false
 
@@ -70,7 +71,7 @@ class SingleETLSpec extends WithETL {
 
   }
 
-  override val defaultJob: TestETL = TestETL(TestETLContext())
+  override val defaultJob: TestETL = TestETL(DeprecatedTestETLContext())
 
 
   "extract" should "return the expected format" in {
@@ -157,7 +158,7 @@ class SingleETLSpec extends WithETL {
   }
 
   "first_load" should "run the ETL as if it was the first time running" in {
-    val job = TestETL(TestETLContext(RunStep.initial_load))
+    val job = TestETL(DeprecatedTestETLContext(RunStep.initial_load))
 
     val finalDataframes = job.run()
     val finalDf = finalDataframes(job.mainDestination.id)
@@ -168,7 +169,7 @@ class SingleETLSpec extends WithETL {
 
 
   "sample_load" should "run the ETL with a sampled data and override the current table" in {
-    val job = TestETL(TestETLContext(RunStep.allSteps))
+    val job = TestETL(DeprecatedTestETLContext(RunStep.allSteps))
     job.loadSingle(Seq(AirportOutput(11)).toDF())
 
     val finalDataframes = job.run()
@@ -179,7 +180,7 @@ class SingleETLSpec extends WithETL {
   }
 
   "incremental_load" should "run the ETL taking into account the past loads" in {
-    val job = TestETL(TestETLContext(RunStep.default_load))
+    val job = TestETL(DeprecatedTestETLContext(RunStep.default_load))
     job.reset()
     val firstLoad = job.loadSingle(Seq(AirportOutput(999, "test", "test2", "hash", "file")).toDF())
     firstLoad.show(false)

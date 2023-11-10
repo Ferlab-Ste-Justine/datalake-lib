@@ -9,6 +9,7 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
 import java.time.LocalDateTime
 import scala.util.{Failure, Success, Try}
 
+@deprecated("use [[v4.TransformationsETL]] instead", "11.0.0")
 class RawFileToNormalizedETL(override val source: DatasetConf,
                              override val mainDestination: DatasetConf,
                              override val transformations: List[Transformation])
