@@ -1,8 +1,8 @@
-package bio.ferlab.datalake.spark3.etl.v3
+package bio.ferlab.datalake.spark3.etl.v4
 
 import bio.ferlab.datalake.spark3.etl.{AirportInput, AirportOutput}
 import bio.ferlab.datalake.spark3.transformation._
-import bio.ferlab.datalake.testutils.DeprecatedTestETLContext
+import bio.ferlab.datalake.testutils.TestETLContext
 import org.apache.spark.sql.functions.col
 
 import java.time.LocalDateTime
@@ -11,7 +11,7 @@ class TransformationsETLSpec extends WithETL {
 
   import spark.implicits._
 
-  override val defaultJob = new TransformationsETL(DeprecatedTestETLContext(), srcConf, destConf,
+  override val defaultJob = new TransformationsETL(TestETLContext(), srcConf, destConf,
     List(
       DuplicateColumn("id", "hash_id") -> SHA1("", "hash_id"),
       ToLong("id"),
@@ -24,16 +24,17 @@ class TransformationsETLSpec extends WithETL {
         "description" -> "description_EN"
       ))
     ),
-
   )
 
-  "TransformationsETL extract" should "return the expected format" in {
+  type T = LocalDateTime
+
+  "extract" should "return the expected format" in {
 
     val data = defaultJob.extract()
     data(srcConf.id).as[AirportInput]
   }
 
-  "TransformationsETL transform" should "return the expected format" in {
+  "transform" should "return the expected format" in {
 
     val input = defaultJob.extract()
     val output = defaultJob.transformSingle(input, LocalDateTime.now(), LocalDateTime.now())
@@ -42,7 +43,7 @@ class TransformationsETLSpec extends WithETL {
 
   }
 
-  "TransformationsETL load" should "create the expected table" in {
+  "load" should "create the expected table" in {
 
     val output = Seq(AirportOutput()).toDF()
 

@@ -1,7 +1,7 @@
 package bio.ferlab.datalake.spark3.publictables.enriched
 
 import bio.ferlab.datalake.commons.config.{DatasetConf, RepartitionByRange, RuntimeETLContext}
-import bio.ferlab.datalake.spark3.etl.v3.SimpleSingleETL
+import bio.ferlab.datalake.spark3.etl.v4.SimpleSingleETL
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits.DatasetConfOperations
 import mainargs.{ParserForMethods, main}
 import org.apache.spark.sql.functions._
@@ -15,8 +15,8 @@ case class SpliceAi(rc: RuntimeETLContext) extends SimpleSingleETL(rc) {
   val spliceai_indel: DatasetConf = conf.getDataset("normalized_spliceai_indel")
   val spliceai_snv: DatasetConf = conf.getDataset("normalized_spliceai_snv")
 
-  override def extract(lastRunDateTime: LocalDateTime,
-                       currentRunDateTime: LocalDateTime): Map[String, DataFrame] = {
+  override def extract(lastRunValue: LocalDateTime,
+                       currentRunValue: LocalDateTime): Map[String, DataFrame] = {
     Map(
       spliceai_indel.id -> spliceai_indel.read,
       spliceai_snv.id -> spliceai_snv.read
@@ -24,8 +24,8 @@ case class SpliceAi(rc: RuntimeETLContext) extends SimpleSingleETL(rc) {
   }
 
   override def transformSingle(data: Map[String, DataFrame],
-                               lastRunDateTime: LocalDateTime,
-                               currentRunDateTime: LocalDateTime): DataFrame = {
+                               lastRunValue: LocalDateTime,
+                               currentRunValue: LocalDateTime): DataFrame = {
     import spark.implicits._
 
     val spliceai_snvDf = data(spliceai_snv.id)

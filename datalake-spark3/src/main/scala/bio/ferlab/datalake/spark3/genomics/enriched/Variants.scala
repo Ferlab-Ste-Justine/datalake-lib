@@ -1,7 +1,7 @@
 package bio.ferlab.datalake.spark3.genomics.enriched
 
 import bio.ferlab.datalake.commons.config.{DatasetConf, RuntimeETLContext}
-import bio.ferlab.datalake.spark3.etl.v3.SimpleSingleETL
+import bio.ferlab.datalake.spark3.etl.v4.SimpleSingleETL
 import bio.ferlab.datalake.spark3.genomics.Frequencies._
 import bio.ferlab.datalake.spark3.genomics.FrequencySplit
 import bio.ferlab.datalake.spark3.genomics.enriched.Variants._
@@ -40,8 +40,8 @@ case class Variants(rc: RuntimeETLContext, participantId: Column = col("particip
   protected val spliceai: DatasetConf = conf.getDataset("enriched_spliceai")
   protected val cosmic: DatasetConf = conf.getDataset("normalized_cosmic_mutation_set")
 
-  override def extract(lastRunDateTime: LocalDateTime = minDateTime,
-                       currentRunDateTime: LocalDateTime = LocalDateTime.now()): Map[String, DataFrame] = {
+  override def extract(lastRunValue: LocalDateTime = minValue,
+                       currentRunValue: LocalDateTime = LocalDateTime.now()): Map[String, DataFrame] = {
     Map(
       thousand_genomes.id -> thousand_genomes.read,
       topmed_bravo.id -> topmed_bravo.read,
@@ -58,8 +58,8 @@ case class Variants(rc: RuntimeETLContext, participantId: Column = col("particip
   }
 
   override def transformSingle(data: Map[String, DataFrame],
-                               lastRunDateTime: LocalDateTime = minDateTime,
-                               currentRunDateTime: LocalDateTime = LocalDateTime.now()): DataFrame = {
+                               lastRunValue: LocalDateTime = minValue,
+                               currentRunValue: LocalDateTime = LocalDateTime.now()): DataFrame = {
     val snv = filterSnv.map(f => data(snvDatasetId).where(f)).getOrElse(data(snvDatasetId))
     val variantAggregations: Seq[Column] = Seq(
       firstAs("hgvsg", ignoreNulls = true),

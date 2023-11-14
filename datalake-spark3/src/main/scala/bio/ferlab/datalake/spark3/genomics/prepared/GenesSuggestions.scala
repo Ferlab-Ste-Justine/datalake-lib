@@ -1,7 +1,7 @@
 package bio.ferlab.datalake.spark3.genomics.prepared
 
 import bio.ferlab.datalake.commons.config.{DatasetConf, RuntimeETLContext}
-import bio.ferlab.datalake.spark3.etl.v3.SimpleSingleETL
+import bio.ferlab.datalake.spark3.etl.v4.SimpleSingleETL
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits.DatasetConfOperations
 import bio.ferlab.datalake.spark3.implicits.SparkUtils.{array_remove_empty, getColumnOrElse}
 import mainargs.{ParserForMethods, main}
@@ -22,16 +22,16 @@ case class GenesSuggestions(rc: RuntimeETLContext) extends SimpleSingleETL(rc)  
 
   private val enriched_genes: DatasetConf = conf.getDataset("enriched_genes")
 
-  override def extract(lastRunDateTime: LocalDateTime = minDateTime,
-                       currentRunDateTime: LocalDateTime = LocalDateTime.now()): Map[String, DataFrame] = {
+  override def extract(lastRunValue: LocalDateTime = minValue,
+                       currentRunValue: LocalDateTime = LocalDateTime.now()): Map[String, DataFrame] = {
     Map(
       enriched_genes.id -> enriched_genes.read
     )
   }
 
   override def transformSingle(data: Map[String, DataFrame],
-                         lastRunDateTime: LocalDateTime = minDateTime,
-                         currentRunDateTime: LocalDateTime = LocalDateTime.now()): DataFrame = {
+                               lastRunValue: LocalDateTime = minValue,
+                               currentRunValue: LocalDateTime = LocalDateTime.now()): DataFrame = {
     val genes = data(enriched_genes.id).select("symbol", "alias", "ensembl_gene_id")
 
     getGenesSuggest(genes)

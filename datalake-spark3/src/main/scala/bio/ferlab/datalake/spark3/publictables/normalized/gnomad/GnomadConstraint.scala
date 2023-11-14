@@ -1,7 +1,7 @@
 package bio.ferlab.datalake.spark3.publictables.normalized.gnomad
 
 import bio.ferlab.datalake.commons.config.{DatasetConf, RepartitionByRange, RuntimeETLContext}
-import bio.ferlab.datalake.spark3.etl.v3.SimpleETLP
+import bio.ferlab.datalake.spark3.etl.v4.SimpleETLP
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits.DatasetConfOperations
 import bio.ferlab.datalake.spark3.transformation.Cast.{castDouble, castFloat, castInt, castLong}
 import mainargs.{ParserForMethods, main}
@@ -13,14 +13,14 @@ case class GnomadConstraint(rc: RuntimeETLContext) extends SimpleETLP(rc) {
   override val mainDestination: DatasetConf = conf.getDataset("normalized_gnomad_constraint_v2_1_1")
   val raw_gnomad_constraint: DatasetConf = conf.getDataset("raw_gnomad_constraint_v2_1_1")
 
-  override def extract(lastRunDateTime: LocalDateTime = minDateTime,
-                       currentRunDateTime: LocalDateTime = LocalDateTime.now()): Map[String, DataFrame] = {
+  override def extract(lastRunValue: LocalDateTime = minValue,
+                       currentRunValue: LocalDateTime = LocalDateTime.now()): Map[String, DataFrame] = {
     Map(raw_gnomad_constraint.id -> raw_gnomad_constraint.read)
   }
 
   override def transformSingle(data: Map[String, DataFrame],
-                               lastRunDateTime: LocalDateTime = minDateTime,
-                               currentRunDateTime: LocalDateTime = LocalDateTime.now()): DataFrame = {
+                               lastRunValue: LocalDateTime = minValue,
+                               currentRunValue: LocalDateTime = LocalDateTime.now()): DataFrame = {
     import spark.implicits._
 
     data(raw_gnomad_constraint.id)

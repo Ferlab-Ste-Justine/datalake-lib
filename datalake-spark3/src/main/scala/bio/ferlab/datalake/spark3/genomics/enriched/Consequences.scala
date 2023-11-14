@@ -1,7 +1,7 @@
 package bio.ferlab.datalake.spark3.genomics.enriched
 
 import bio.ferlab.datalake.commons.config.{DatasetConf, RuntimeETLContext}
-import bio.ferlab.datalake.spark3.etl.v3.SimpleSingleETL
+import bio.ferlab.datalake.spark3.etl.v4.SimpleSingleETL
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits._
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns.formatted_consequences
@@ -21,11 +21,11 @@ case class Consequences(rc: RuntimeETLContext) extends SimpleSingleETL(rc) {
   val normalized_ensembl_mapping: DatasetConf = conf.getDataset("normalized_ensembl_mapping")
   val enriched_genes: DatasetConf = conf.getDataset("enriched_genes")
 
-  override def extract(lastRunDateTime: LocalDateTime = minDateTime,
-                       currentRunDateTime: LocalDateTime = LocalDateTime.now()): Map[String, DataFrame] = {
+  override def extract(lastRunValue: LocalDateTime = minValue,
+                       currentRunValue: LocalDateTime = LocalDateTime.now()): Map[String, DataFrame] = {
     Map(
       normalized_consequences.id -> normalized_consequences.read
-        .where(col("updated_on") >= Timestamp.valueOf(lastRunDateTime)),
+        .where(col("updated_on") >= Timestamp.valueOf(lastRunValue)),
       dbnsfp_original.id -> dbnsfp_original.read,
       normalized_ensembl_mapping.id -> normalized_ensembl_mapping.read,
       enriched_genes.id -> enriched_genes.read
@@ -33,8 +33,8 @@ case class Consequences(rc: RuntimeETLContext) extends SimpleSingleETL(rc) {
   }
 
   override def transformSingle(data: Map[String, DataFrame],
-                               lastRunDateTime: LocalDateTime = minDateTime,
-                               currentRunDateTime: LocalDateTime = LocalDateTime.now()): DataFrame = {
+                               lastRunValue: LocalDateTime = minValue,
+                               currentRunValue: LocalDateTime = LocalDateTime.now()): DataFrame = {
     import spark.implicits._
     val consequences = data(normalized_consequences.id)
 

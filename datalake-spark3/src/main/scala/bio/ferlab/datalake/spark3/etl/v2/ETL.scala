@@ -22,6 +22,7 @@ import scala.util.Try
  *
  * @param conf application configuration
  */
+@deprecated("use [[v4.ETL]] instead", "11.0.0")
 abstract class ETL()(implicit val conf: Configuration) {
 
   val minDateTime: LocalDateTime = LocalDateTime.of(1900, 1, 1, 0, 0, 0)

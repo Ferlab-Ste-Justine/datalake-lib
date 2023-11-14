@@ -1,7 +1,7 @@
 package bio.ferlab.datalake.spark3.publictables.enriched
 
 import bio.ferlab.datalake.commons.config.{DatasetConf, RepartitionByColumns, RuntimeETLContext}
-import bio.ferlab.datalake.spark3.etl.v3.SimpleSingleETL
+import bio.ferlab.datalake.spark3.etl.v4.SimpleSingleETL
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits.DatasetConfOperations
 import bio.ferlab.datalake.spark3.transformation.Cast.{castDouble, castLong}
 import mainargs.{ParserForMethods, main}
@@ -29,16 +29,16 @@ override val mainDestination: DatasetConf = conf.getDataset("enriched_dbnsfp")
   def pred(colName: String): Column = when(element_at_postion(colName) === ".", null)
     .otherwise(element_at_postion(colName)) as colName
 
-  override def extract(lastRunDateTime: LocalDateTime = minDateTime,
-                       currentRunDateTime: LocalDateTime = LocalDateTime.now()): Map[String, DataFrame] = {
+  override def extract(lastRunValue: LocalDateTime = minValue,
+                       currentRunValue: LocalDateTime = LocalDateTime.now()): Map[String, DataFrame] = {
     Map(
       normalized_dbnsfp.id-> normalized_dbnsfp.read
     )
   }
 
   override def transformSingle(data: Map[String, DataFrame],
-                               lastRunDateTime: LocalDateTime = minDateTime,
-                               currentRunDateTime: LocalDateTime = LocalDateTime.now()): DataFrame = {
+                               lastRunValue: LocalDateTime = minValue,
+                               currentRunValue: LocalDateTime = LocalDateTime.now()): DataFrame = {
     data(normalized_dbnsfp.id)
       .select(
         col("chromosome"),

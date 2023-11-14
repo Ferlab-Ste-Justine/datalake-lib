@@ -1,7 +1,7 @@
 package bio.ferlab.datalake.spark3.publictables.normalized.cosmic
 
 import bio.ferlab.datalake.commons.config.{Coalesce, DatasetConf, RuntimeETLContext}
-import bio.ferlab.datalake.spark3.etl.v3.SimpleETLP
+import bio.ferlab.datalake.spark3.etl.v4.SimpleETLP
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import mainargs.{ParserForMethods, main}
 import org.apache.spark.sql.DataFrame
@@ -17,8 +17,8 @@ case class CosmicGeneSet(rc: RuntimeETLContext) extends SimpleETLP(rc) {
   private val cosmic_gene_set = conf.getDataset("raw_cosmic_gene_set")
   override val mainDestination: DatasetConf = conf.getDataset("normalized_cosmic_gene_set")
 
-  override def extract(lastRunDateTime: LocalDateTime = minDateTime,
-                       currentRunDateTime: LocalDateTime = LocalDateTime.now()): Map[String, DataFrame] = {
+  override def extract(lastRunValue: LocalDateTime = minValue,
+                       currentRunValue: LocalDateTime = LocalDateTime.now()): Map[String, DataFrame] = {
     Map(cosmic_gene_set.id -> cosmic_gene_set.read)
   }
 
@@ -34,8 +34,8 @@ case class CosmicGeneSet(rc: RuntimeETLContext) extends SimpleETLP(rc) {
   }
 
   override def transformSingle(data: Map[String, DataFrame],
-                               lastRunDateTime: LocalDateTime = minDateTime,
-                               currentRunDateTime: LocalDateTime = LocalDateTime.now()): DataFrame = {
+                               lastRunValue: LocalDateTime = minValue,
+                               currentRunValue: LocalDateTime = LocalDateTime.now()): DataFrame = {
     import spark.implicits._
     spark.udf.register("trim_array", trim_array_udf)
 

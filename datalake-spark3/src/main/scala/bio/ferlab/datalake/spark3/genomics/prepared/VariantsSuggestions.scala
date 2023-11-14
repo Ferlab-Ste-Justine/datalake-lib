@@ -1,7 +1,7 @@
 package bio.ferlab.datalake.spark3.genomics.prepared
 
 import bio.ferlab.datalake.commons.config.{DatasetConf, RuntimeETLContext}
-import bio.ferlab.datalake.spark3.etl.v3.SimpleSingleETL
+import bio.ferlab.datalake.spark3.etl.v4.SimpleSingleETL
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits.DatasetConfOperations
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits._
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns.locus
@@ -24,8 +24,8 @@ case class VariantsSuggestions(rc: RuntimeETLContext) extends SimpleSingleETL(rc
   final val indexColumns =
     List("type", "locus", "suggestion_id", "hgvsg", "suggest", "chromosome", "rsnumber", "symbol_aa_change")
 
-  override def extract(lastRunDateTime: LocalDateTime = minDateTime,
-                       currentRunDateTime: LocalDateTime = LocalDateTime.now()): Map[String, DataFrame] = {
+  override def extract(lastRunValue: LocalDateTime = minValue,
+                       currentRunValue: LocalDateTime = LocalDateTime.now()): Map[String, DataFrame] = {
 
     Map(
       enriched_variants.id -> enriched_variants.read,
@@ -35,8 +35,8 @@ case class VariantsSuggestions(rc: RuntimeETLContext) extends SimpleSingleETL(rc
   }
 
   override def transformSingle(data: Map[String, DataFrame],
-                               lastRunDateTime: LocalDateTime = minDateTime,
-                               currentRunDateTime: LocalDateTime = LocalDateTime.now()): DataFrame = {
+                               lastRunValue: LocalDateTime = minValue,
+                               currentRunValue: LocalDateTime = LocalDateTime.now()): DataFrame = {
 
     val variants =
       data(enriched_variants.id)

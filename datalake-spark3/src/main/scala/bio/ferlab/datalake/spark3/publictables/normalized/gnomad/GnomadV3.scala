@@ -1,7 +1,7 @@
 package bio.ferlab.datalake.spark3.publictables.normalized.gnomad
 
 import bio.ferlab.datalake.commons.config.{DatasetConf, RepartitionByRange, RuntimeETLContext}
-import bio.ferlab.datalake.spark3.etl.v3.SimpleETLP
+import bio.ferlab.datalake.spark3.etl.v4.SimpleETLP
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns._
 import mainargs.{ParserForMethods, main}
@@ -16,14 +16,14 @@ case class GnomadV3(rc: RuntimeETLContext) extends SimpleETLP(rc) {
   override val mainDestination: DatasetConf = conf.getDataset("normalized_gnomad_genomes_v3")
   val gnomad_vcf: DatasetConf = conf.getDataset("raw_gnomad_genomes_v3")
 
-  override def extract(lastRunDateTime: LocalDateTime = minDateTime,
-                       currentRunDateTime: LocalDateTime = LocalDateTime.now()): Map[String, DataFrame] = {
+  override def extract(lastRunValue: LocalDateTime = minValue,
+                       currentRunValue: LocalDateTime = LocalDateTime.now()): Map[String, DataFrame] = {
     Map(gnomad_vcf.id -> gnomad_vcf.read)
   }
 
   override def transformSingle(data: Map[String, DataFrame],
-                               lastRunDateTime: LocalDateTime = minDateTime,
-                               currentRunDateTime: LocalDateTime = LocalDateTime.now()): DataFrame = {
+                               lastRunValue: LocalDateTime = minValue,
+                               currentRunValue: LocalDateTime = LocalDateTime.now()): DataFrame = {
     import spark.implicits._
 
     val df = data(gnomad_vcf.id)

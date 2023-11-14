@@ -1,7 +1,7 @@
 package bio.ferlab.datalake.spark3.publictables.enriched
 
 import bio.ferlab.datalake.commons.config.{DatasetConf, RepartitionByRange, RuntimeETLContext}
-import bio.ferlab.datalake.spark3.etl.v3.SimpleSingleETL
+import bio.ferlab.datalake.spark3.etl.v4.SimpleSingleETL
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits.DatasetConfOperations
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits._
 import mainargs.{ParserForMethods, main}
@@ -15,15 +15,15 @@ case class RareVariant(rc: RuntimeETLContext) extends SimpleSingleETL(rc) {
   override val mainDestination: DatasetConf = conf.getDataset("enriched_rare_variant")
   val gnomad: DatasetConf = conf.getDataset("normalized_gnomad_genomes_v3")
 
-  override def extract(lastRunDateTime: LocalDateTime,
-                       currentRunDateTime: LocalDateTime): Map[String, DataFrame] = {
+  override def extract(lastRunValue: LocalDateTime,
+                       currentRunValue: LocalDateTime): Map[String, DataFrame] = {
     Map(
       gnomad.id -> gnomad.read)
   }
 
   override def transformSingle(data: Map[String, DataFrame],
-                               lastRunDateTime: LocalDateTime,
-                               currentRunDateTime: LocalDateTime): DataFrame = {
+                               lastRunValue: LocalDateTime,
+                               currentRunValue: LocalDateTime): DataFrame = {
     data(gnomad.id)
       .select(columns.locus :+ col("af"): _*)
       .groupByLocus()

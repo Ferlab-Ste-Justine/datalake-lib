@@ -1,7 +1,7 @@
 package bio.ferlab.datalake.spark3.publictables.normalized
 
 import bio.ferlab.datalake.commons.config.{DatasetConf, RepartitionByRange, RuntimeETLContext}
-import bio.ferlab.datalake.spark3.etl.v3.SimpleETLP
+import bio.ferlab.datalake.spark3.etl.v4.SimpleETLP
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits.DatasetConfOperations
 import bio.ferlab.datalake.spark3.transformation.Cast.{castFloat, castLong}
 import mainargs.{ParserForMethods, main}
@@ -15,14 +15,14 @@ case class AnnovarScores(rc: RuntimeETLContext) extends SimpleETLP(rc) {
   override val mainDestination: DatasetConf = conf.getDataset("normalized_dbnsfp_annovar")
   val raw_dbnsfp_annovar: DatasetConf = conf.getDataset("raw_dbnsfp_annovar")
 
-  override def extract(lastRunDateTime: LocalDateTime = minDateTime,
-                       currentRunDateTime: LocalDateTime = LocalDateTime.now()): Map[String, DataFrame] = {
+  override def extract(lastRunValue: LocalDateTime = minValue,
+                       currentRunValue: LocalDateTime = LocalDateTime.now()): Map[String, DataFrame] = {
     Map(raw_dbnsfp_annovar.id -> raw_dbnsfp_annovar.read)
   }
 
   override def transformSingle(data: Map[String, DataFrame],
-                               lastRunDateTime: LocalDateTime = minDateTime,
-                               currentRunDateTime: LocalDateTime = LocalDateTime.now()): DataFrame = {
+                               lastRunValue: LocalDateTime = minValue,
+                               currentRunValue: LocalDateTime = LocalDateTime.now()): DataFrame = {
     import spark.implicits._
     data(raw_dbnsfp_annovar.id)
       .select(

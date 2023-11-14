@@ -1,13 +1,15 @@
 package bio.ferlab.datalake.spark3.etl.v3
 
-import bio.ferlab.datalake.commons.config.{Configuration, ETLContext}
+import bio.ferlab.datalake.commons.config.Configuration
+import bio.ferlab.datalake.commons.config.DeprecatedETLContext
 import bio.ferlab.datalake.spark3.hive.UpdateTableComments
 import org.apache.spark.sql.functions.{col, lit, regexp_extract, trim}
 
 import scala.util.Try
 
 
-abstract class ETLP[T <: Configuration](context: ETLContext[T]) extends SingleETL(context) {
+@deprecated("use [[v4.ETLP]] instead", "11.0.0")
+abstract class ETLP[T <: Configuration](context: DeprecatedETLContext[T]) extends SingleETL(context) {
 
   override def publish(): Unit = {
 
