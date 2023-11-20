@@ -8,7 +8,7 @@ import org.apache.spark.sql.SparkSession
  * Default Test ETL context is a timestamp-based ETL.
  */
 class TestETLContext(steps: Seq[RunStep] = Nil)(implicit configuration: SimpleConfiguration, sparkSession: SparkSession)
-  extends RuntimeETLContext("path", steps = "", appName = Some("Spark Test")) {
+  extends RuntimeETLContext("path", steps = Nil, appName = Some("Spark Test")) {
   override lazy val config: SimpleConfiguration = configuration
   override lazy val spark: SparkSession = sparkSession
   override lazy val runSteps: Seq[RunStep] = steps
@@ -24,7 +24,7 @@ object TestETLContext {
  * Timestamp-based ETL context for testing.
  */
 class TestTimestampETLContext(steps: Seq[RunStep] = Nil)(implicit configuration: SimpleConfiguration, sparkSession: SparkSession)
-  extends RuntimeTimestampETLContext("path", steps = "", appName = Some("Spark Test")) {
+  extends RuntimeTimestampETLContext("path", steps = Nil, appName = Some("Spark Test")) {
   override lazy val config: SimpleConfiguration = configuration
   override lazy val spark: SparkSession = sparkSession
   override lazy val runSteps: Seq[RunStep] = steps
@@ -40,7 +40,7 @@ object TestTimestampETLContext {
  * Id-based ETL context for testing.
  */
 class TestIdETLContext(steps: Seq[RunStep] = Nil)(implicit configuration: SimpleConfiguration, sparkSession: SparkSession)
-  extends RuntimeIdETLContext("path", steps = "", appName = Some("Spark Test")) {
+  extends RuntimeIdETLContext("path", steps = Nil, appName = Some("Spark Test")) {
   override lazy val config: SimpleConfiguration = configuration
   override lazy val spark: SparkSession = sparkSession
   override lazy val runSteps: Seq[RunStep] = steps
