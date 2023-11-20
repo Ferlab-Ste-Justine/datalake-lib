@@ -1,6 +1,6 @@
 package bio.ferlab.datalake.commons.config
 
-import mainargs.{ParserForClass, arg}
+import mainargs.{ParserForClass, TokensReader, arg}
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.SparkSession
@@ -39,7 +39,7 @@ trait ETLContext[T, C <: Configuration] {
   def defaultDataCurrentValue: T
 }
 
-abstract class BaseETLContext[T, C <: Configuration](path: String, steps: String, appName: Option[String])(implicit cr: ConfigReader[C])
+abstract class BaseETLContext[T, C <: Configuration](path: String, steps: Seq[RunStep], appName: Option[String])(implicit cr: ConfigReader[C])
   extends ETLContext[T, C] {
   private val log: slf4j.Logger = slf4j.LoggerFactory.getLogger(getClass.getCanonicalName)
   log.info(s"Loading config file: [$path]")
@@ -48,7 +48,7 @@ abstract class BaseETLContext[T, C <: Configuration](path: String, steps: String
 
   lazy val sparkConf: SparkConf = this.config.sparkconf.foldLeft(new SparkConf()) { case (c, (k, v)) => c.set(k, v) }
 
-  lazy val runSteps: Seq[RunStep] = RunStep.getSteps(steps)
+  lazy val runSteps: Seq[RunStep] = steps
 
   lazy val spark: SparkSession =
     SparkSession
@@ -65,7 +65,7 @@ abstract class BaseETLContext[T, C <: Configuration](path: String, steps: String
 /**
  * Context for timestamp-based ETL. This is the default context type for ETLs.
  */
-abstract class TimestampETLContext[C <: Configuration](path: String, steps: String, appName: Option[String])(implicit cr: ConfigReader[C])
+abstract class TimestampETLContext[C <: Configuration](path: String, steps: Seq[RunStep], appName: Option[String])(implicit cr: ConfigReader[C])
   extends BaseETLContext[LocalDateTime, C](path, steps, appName) {
 
   override val ETLType: ClassTag[LocalDateTime] = classTag[LocalDateTime]
@@ -77,7 +77,7 @@ abstract class TimestampETLContext[C <: Configuration](path: String, steps: Stri
 /**
  * Context for ID-based ETL.
  */
-abstract class IdETLContext[C <: Configuration](path: String, steps: String, appName: Option[String])(implicit cr: ConfigReader[C])
+abstract class IdETLContext[C <: Configuration](path: String, steps: Seq[RunStep], appName: Option[String])(implicit cr: ConfigReader[C])
   extends BaseETLContext[String, C](path, steps, appName) {
 
   override val ETLType: ClassTag[String] = classTag[String]
@@ -90,23 +90,29 @@ abstract class IdETLContext[C <: Configuration](path: String, steps: String, app
  */
 case class RuntimeETLContext(
                               @arg(name = "config", short = 'c', doc = "Config path") path: String,
-                              @arg(name = "steps", short = 's', doc = "Steps") steps: String,
+                              @arg(name = "steps", short = 's', doc = "Steps") steps: Seq[RunStep],
                               @arg(name = "app-name", short = 'a', doc = "App name") appName: Option[String]
                             ) extends TimestampETLContext[SimpleConfiguration](path, steps, appName)
 
 case class RuntimeTimestampETLContext(
                                        @arg(name = "config", short = 'c', doc = "Config path") path: String,
-                                       @arg(name = "steps", short = 's', doc = "Steps") steps: String,
+                                       @arg(name = "steps", short = 's', doc = "Steps") steps: Seq[RunStep],
                                        @arg(name = "app-name", short = 'a', doc = "App name") appName: Option[String]
                                      ) extends TimestampETLContext[SimpleConfiguration](path, steps, appName)
 
 case class RuntimeIdETLContext(
                                 @arg(name = "config", short = 'c', doc = "Config path") path: String,
-                                @arg(name = "steps", short = 's', doc = "Steps") steps: String,
+                                @arg(name = "steps", short = 's', doc = "Steps") steps: Seq[RunStep],
                                 @arg(name = "app-name", short = 'a', doc = "App name") appName: Option[String]
                               ) extends IdETLContext[SimpleConfiguration](path, steps, appName)
 
 object RuntimeETLContext {
+
+  implicit object StepsRead extends TokensReader.Simple[Seq[RunStep]] {
+    override val shortName: String = "steps"
+    override def read(strs: Seq[String]): Either[String, Seq[RunStep]] = Right(RunStep.getSteps(strs.head))
+  }
+
   implicit def ETLConfigParser: ParserForClass[RuntimeETLContext] = ParserForClass[RuntimeETLContext]
 
   implicit def TimestampETLConfigParser: ParserForClass[RuntimeTimestampETLContext] = ParserForClass[RuntimeTimestampETLContext]
