@@ -66,4 +66,12 @@ trait FileSystem {
       }
   }
 
+  /**
+   * Returns true if the path exists, otherwise returns false
+   *
+   * @param path path to verify
+   * @return true if the path exists
+   */
+  def exists(path: String): Boolean
+
 }
