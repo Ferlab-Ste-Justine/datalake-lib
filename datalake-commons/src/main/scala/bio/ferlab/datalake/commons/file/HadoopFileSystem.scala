@@ -64,4 +64,9 @@ object HadoopFileSystem extends file.FileSystem {
     val fs = getFileSystem(path)
     fs.delete(path, true)
   }
+
+  override def exists(path: String): Boolean = {
+    val fs = getFileSystem(path)
+    fs.exists(path)
+  }
 }
