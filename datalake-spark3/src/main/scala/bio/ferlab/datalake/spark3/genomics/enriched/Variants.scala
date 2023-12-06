@@ -205,7 +205,7 @@ object Variants {
       case Nil => df
       case _ =>
         val variantWithFreq = snv.freq(participantId = participantId, affectedStatus = affectedStatus, split = frequencies)
-        df.joinByLocus(variantWithFreq, "inner")
+        df.joinByLocus(variantWithFreq, "left")
     }
 
     def withSpliceAi(spliceai: DataFrame)(implicit spark: SparkSession): DataFrame = {
