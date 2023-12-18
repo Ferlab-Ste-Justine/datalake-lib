@@ -2,8 +2,8 @@ package bio.ferlab.datalake.spark3.genomics.enriched
 
 import bio.ferlab.datalake.commons.config.{DatasetConf, RuntimeETLContext}
 import bio.ferlab.datalake.spark3.etl.v4.SimpleSingleETL
-import bio.ferlab.datalake.spark3.genomics.Frequencies._
-import bio.ferlab.datalake.spark3.genomics.FrequencySplit
+import bio.ferlab.datalake.spark3.genomics.Splits._
+import bio.ferlab.datalake.spark3.genomics.{FrequencySplit, OccurrenceSplit}
 import bio.ferlab.datalake.spark3.genomics.enriched.Variants._
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits._
@@ -26,7 +26,7 @@ import java.time.LocalDateTime
  * @param extraAggregations extra aggregations to be computed when grouping occurrences by locus. Will be added to the root of the data
  * @param rc                the etl context
  */
-case class Variants(rc: RuntimeETLContext, participantId: Column = col("participant_id"), affectedStatus: Column = col("affected_status"), filterSnv: Option[Column] = Some(col("has_alt")), snvDatasetId: String, frequencies: Seq[FrequencySplit], extraAggregations: Seq[Column] = Nil) extends SimpleSingleETL(rc) {
+case class Variants(rc: RuntimeETLContext, participantId: Column = col("participant_id"), affectedStatus: Column = col("affected_status"), filterSnv: Option[Column] = Some(col("has_alt")), snvDatasetId: String, splits: Seq[OccurrenceSplit], extraAggregations: Seq[Column] = Nil) extends SimpleSingleETL(rc) {
 
   override val mainDestination: DatasetConf = conf.getDataset("enriched_variants")
   protected val thousand_genomes: DatasetConf = conf.getDataset("normalized_1000_genomes")
@@ -75,7 +75,7 @@ case class Variants(rc: RuntimeETLContext, participantId: Column = col("particip
       .withColumn("assembly_version", lit("GRCh38"))
 
     variants
-      .withFrequencies(participantId, affectedStatus, snv, frequencies)
+      .withFrequencies(participantId, affectedStatus, snv, splits)
       .withPopulations(data(thousand_genomes.id), data(topmed_bravo.id), data(gnomad_genomes_v2.id), data(gnomad_exomes_v2.id), data(gnomad_genomes_v3.id))
       .withDbSNP(data(dbsnp.id))
       .withClinvar(data(clinvar.id))
@@ -201,10 +201,10 @@ object Variants {
     }
 
 
-    def withFrequencies(participantId: Column, affectedStatus: Column, snv: DataFrame, frequencies: Seq[FrequencySplit]): DataFrame = frequencies match {
+    def withFrequencies(participantId: Column, affectedStatus: Column, snv: DataFrame, splits: Seq[OccurrenceSplit]): DataFrame = splits match {
       case Nil => df
       case _ =>
-        val variantWithFreq = snv.freq(participantId = participantId, affectedStatus = affectedStatus, split = frequencies)
+        val variantWithFreq = snv.split(participantId = participantId, affectedStatus = affectedStatus, splits)
         df.joinByLocus(variantWithFreq, "left")
     }
 

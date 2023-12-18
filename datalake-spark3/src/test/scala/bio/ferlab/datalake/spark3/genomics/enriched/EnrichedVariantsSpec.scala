@@ -45,7 +45,7 @@ class EnrichedVariantsSpec extends SparkSpec with WithTestConfig {
   val spliceaiDf: DataFrame = Seq(EnrichedSpliceAi(chromosome = "1", start = 69897, reference = "T", alternate = "C", symbol = "OR4F5", ds_ag = 0.01, `max_score` = MAX_SCORE(ds = 0.01, `type` = Seq("AG")))).toDF()
   val cosmicDf: DataFrame = Seq(NormalizedCosmicMutationSet(chromosome = "1", start = 69897, reference = "T", alternate = "C")).toDF()
 
-  val etl = Variants(TestETLContext(), snvDatasetId = snvKeyId, frequencies = Seq(FrequencySplit("frequency", extraAggregations = Seq(SimpleAggregation(name = "zygosities", c = col("zygosity"))))))
+  val etl = Variants(TestETLContext(), snvDatasetId = snvKeyId, splits = Seq(FrequencySplit("frequency", extraAggregations = Seq(SimpleAggregation(name = "zygosities", c = col("zygosity"))))))
 
   private val data = Map(
     snvKeyId -> occurrencesDf,

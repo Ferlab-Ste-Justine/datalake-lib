@@ -1,17 +1,17 @@
 package bio.ferlab.datalake.spark3.genomics
 
-import bio.ferlab.datalake.spark3.genomics.Frequencies._
+import bio.ferlab.datalake.spark3.genomics.Splits._
 import bio.ferlab.datalake.spark3.testutils.WithTestConfig
 import bio.ferlab.datalake.testutils.SparkSpec
 import bio.ferlab.datalake.testutils.models.frequency._
 import bio.ferlab.datalake.testutils.models.normalized.NormalizedSNV
 import org.apache.spark.sql.functions.{col, explode}
 
-class FrequenciesSpec extends SparkSpec with WithTestConfig {
+class SplitsSpec extends SparkSpec with WithTestConfig {
 
   import spark.implicits._
 
-  "frequencies" should "return expected values" in {
+  "split" should "return expected values" in {
     val input = Seq(
       NormalizedSNV(),
       NormalizedSNV(participant_id = "P2", transmission_mode = "AD", zygosity = "HET", calls = Seq(0, 1)),
@@ -20,16 +20,19 @@ class FrequenciesSpec extends SparkSpec with WithTestConfig {
     ).toDF()
 
 
-    val result = input.freq(split = Seq(
-      FrequencySplit("frequency_by_study_id", splitBy = Some(col("study_id")), extraAggregations = Seq(
+    val result = input.split(splits = Seq(
+      FrequencySplit("frequency_by_study_id", extraSplitBy = Some(col("study_id")), extraAggregations = Seq(
         AtLeastNElements(name = "participant_ids", c = col("participant_id"), n = 2),
         SimpleAggregation(name = "transmissions", c = col("transmission_mode")),
-        FirstElement(name = "study_code", col("study_code"))
-      )
-      ),
-      FrequencySplit("frequency_kf", extraAggregations = Seq(SimpleAggregation(name = "zygosities", c = col("zygosity"))))
-    )
-    )
+        FirstElement(name = "study_code", c = col("study_code"))
+      )),
+      FrequencySplit("frequency_kf", extraAggregations = Seq(SimpleAggregation(name = "zygosities", c = col("zygosity")))),
+      SimpleSplit("studies", extraSplitBy = Some(col("study_id")), aggregations = Seq(
+        FirstElement(name = "study_code", c = col("study_code")),
+        SimpleAggregation(name = "zygosities", c = col("zygosity"))
+      )),
+      SimpleSplit("global", aggregations = Seq(SimpleAggregation("study_codes", c = col("study_code"))))
+    ))
 
     result.show(false)
     val collectedResult = result.as[VariantFrequencyOutputByStudy].collect()
@@ -39,7 +42,10 @@ class FrequenciesSpec extends SparkSpec with WithTestConfig {
       chromosome = "2",
       frequency_kf = GlobalFrequency(total = Frequency(ac = 2, pc = 1, hom = 1, an = 8, pn = 4, af = 0.25, pf = 0.25), zygosities = Set("HOM")),
       frequency_by_study_id = Set(
-        FrequencyByStudyId(study_id = "S2", total = Frequency(ac = 2, pc = 1, hom = 1, an = 4, pn = 2, af = 0.5, pf = 0.5), participant_ids = null, transmissions = Set("AR"), study_code = "STUDY_CODE_2"))
+        FrequencyByStudyId(study_id = "S2", total = Frequency(ac = 2, pc = 1, hom = 1, an = 4, pn = 2, af = 0.5, pf = 0.5), participant_ids = null, transmissions = Set("AR"), study_code = "STUDY_CODE_2")),
+      studies = Set(
+        SplitByStudyId(study_id = "S2", study_code = "STUDY_CODE_2", zygosities = Set("HOM"))),
+      global = GlobalSplit(study_codes = Set("STUDY_CODE_2"))
     ))
 
   }
@@ -52,13 +58,12 @@ class FrequenciesSpec extends SparkSpec with WithTestConfig {
       NormalizedSNV(chromosome = "2", study_id = "S2", participant_id = "P4", study_code = "STUDY_CODE_2")
     ).toDF()
     input.show(false)
-    val result = input.freq(split = Seq(
-      FrequencySplit("frequency_by_study_id", splitBy = Some(col("study_id")), byAffected = true, extraAggregations = Seq(
+    val result = input.split(splits = Seq(
+      FrequencySplit("frequency_by_study_id", extraSplitBy = Some(col("study_id")), byAffected = true, extraAggregations = Seq(
         AtLeastNElements(name = "participant_ids", c = col("participant_id"), n = 2),
         SimpleAggregation(name = "transmissions", c = col("transmission_mode")),
         FirstElement(name = "study_code", col("study_code"))
-      )
-      ),
+      )),
       FrequencySplit("frequency_kf", byAffected = true, extraAggregations = Seq(SimpleAggregation(name = "zygosities", c = col("zygosity"))))
     ))
     result.show(false)
@@ -111,15 +116,17 @@ class FrequenciesSpec extends SparkSpec with WithTestConfig {
       NormalizedSNV(participant_id = "P3", study_id = "S2", study_code = "study_code_2", transmission_mode = "AR", variant_type = "germline"),
     ).toDF()
 
-    val result = input.freq(split = Seq(
-      FrequencySplit("studies_not_ar", splitBy = Some(col("study_id")), filter = Some(col("transmission_mode") =!= "AR"),
+    val result = input.split(splits = Seq(
+      FrequencySplit("studies_not_ar", extraSplitBy = Some(col("study_id")), filter = Some(col("transmission_mode") =!= "AR"),
         extraAggregations = Seq(
           AtLeastNElements(name = "participant_ids", c = col("participant_id"), n = 2),
           SimpleAggregation(name = "transmissions", c = col("transmission_mode")),
           FirstElement(name = "study_code", col("study_code"))
         )),
       FrequencySplit("germline_freq", filter = Some(col("variant_type") === "germline"),
-        extraAggregations = Seq(SimpleAggregation(name = "zygosities", c = col("zygosity"))))
+        extraAggregations = Seq(SimpleAggregation(name = "zygosities", c = col("zygosity")))),
+      SimpleSplit("somatic_global", filter = Some(col("variant_type") === "somatic"),
+        aggregations = Seq(SimpleAggregation("study_codes", c = col("study_code"))))
     ))
 
     val studiesFreq = result
@@ -133,6 +140,11 @@ class FrequenciesSpec extends SparkSpec with WithTestConfig {
       .as[GlobalFrequency]
       .collect()
 
+    val globalSplit = result
+      .select("somatic_global.*")
+      .as[GlobalSplit]
+      .collect()
+
     studiesFreq should contain theSameElementsAs Seq(
       FrequencyByStudyId(study_id = "S1",
         total = Frequency(ac = 2, an = 2, pc = 1, pn = 1, hom = 1, af = 1.0, pf = 1.0),
@@ -144,6 +156,10 @@ class FrequenciesSpec extends SparkSpec with WithTestConfig {
     germlineFreq should contain theSameElementsAs Seq(
       GlobalFrequency(total = Frequency(ac = 4, an = 4, pc = 2, pn = 2, hom = 2, af = 1.0, pf = 1.0),
         zygosities = Set("HOM"))
+    )
+
+    globalSplit should contain theSameElementsAs Seq(
+      GlobalSplit(study_codes = Set("study_code_1"))
     )
   }
 
