@@ -163,4 +163,42 @@ class SplitsSpec extends SparkSpec with WithTestConfig {
     )
   }
 
+  it should "keep all variants" in {
+    val input = Seq(
+      NormalizedSNV(variant_type = "somatic"),
+      NormalizedSNV(variant_type = "somatic"),
+      NormalizedSNV(variant_type = "somatic"),
+    ).toDF()
+
+    val result = input.split(splits = Seq(
+      // Will filter out all occurrences
+      FrequencySplit("germline_frequency", filter = Some(col("variant_type") === "germline"),
+        extraAggregations = Seq(SimpleAggregation(name = "zygosities", c = col("zygosity")))),
+      // Will return all occurrences
+      SimpleSplit("all_studies", extraSplitBy = Some(col("study_id")), aggregations = Seq(
+        FirstElement(name = "study_code", c = col("study_code")),
+        SimpleAggregation(name = "zygosities", c = col("zygosity"))
+      )),
+      // Will filter out all occurrences
+      SimpleSplit("germline_studies", filter = Some(col("variant_type") === "germline"),
+        aggregations = Seq(SimpleAggregation("study_codes", c = col("study_code"))))
+    ))
+
+    result.isEmpty shouldBe false
+
+    result
+      .where($"germline_frequency".isNotNull)
+      .collect() shouldBe empty
+
+    result
+      .where($"germline_studies".isNotNull)
+      .collect() shouldBe empty
+
+    result
+      .select(explode($"all_studies") as "all_studies")
+      .select("all_studies.*")
+      .as[SplitByStudyId]
+      .collect() should contain theSameElementsAs Seq(SplitByStudyId(study_id = "S1", study_code = "STUDY_CODE_1", zygosities = Set("HOM")))
+  }
+
 }

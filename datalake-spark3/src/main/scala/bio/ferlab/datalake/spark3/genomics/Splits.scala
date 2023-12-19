@@ -298,7 +298,7 @@ object Splits {
             }
         }
       }
-      allDataframes.reduce((df1, df2) => df1.joinByLocus(df2, "inner"))
+      allDataframes.reduce((df1, df2) => df1.joinByLocus(df2, "full"))
 
     }
   }
