@@ -3,19 +3,21 @@ package bio.ferlab.datalake.spark3.genomics
 
 import bio.ferlab.datalake.spark3.implicits.FrequencyUtils.array_sum
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits._
+import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns.locus
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{Column, DataFrame, Row}
 
-object Frequencies {
+object Splits {
 
-  implicit class FrequencyOperations(df: DataFrame) {
+  implicit class SplitOperations(df: DataFrame) {
 
     /**
-     * Calculate frequencies on variants in DataFrame df and according to splits parameters.
-     * @param participantId This column is used to determine number of distinct participants (pn) that has been sequenced
+     * Calculate frequencies and simple splits on variants in DataFrame df.
+     *
+     * @param participantId  This column is used to determine number of distinct participants (pn) that has been sequenced
      * @param affectedStatus This column is used to calculate frequencies by affected status.
-     * @param split List of frequencies to calculate
-     * @return A dataframe with one line per locus and frequencies columns specified by splits parameter.
+     * @param splits         List of splits to calculate, can contain both simple splits and frequency splits
+     * @return A dataframe with one line per locus and split columns specified by splits parameter.
      * @example
      *          Using this dataframe as input :
      * {{{
@@ -31,8 +33,8 @@ object Frequencies {
      *
      *          And then calculate frequencies with these parameters :
      * {{{
-     *  val result = input.freq(
-     *    FrequencySplit("frequency_by_study_id", splitBy = Some(col("study_id")), byAffected = true, extraAggregations = Seq(
+     *  val result = input.split(
+     *    FrequencySplit("frequency_by_study_id", extraSplitBy = Some(col("study_id")), byAffected = true, extraAggregations = Seq(
      *        AtLeastNElements(name = "participant_ids", c = col("participant_id"), n = 2),
      *        SimpleAggregation(name = "transmissions", c = col("transmission_mode")),
      *        FirstElement(name = "study_code", col("study_code"))
@@ -55,7 +57,7 @@ object Frequencies {
      *
      *
      *          - frequency_by_study_id :
-     *            - induced by split parameter FrequencySplit("frequency_by_study_id", splitBy = Some(col("study_id"))). See [[FrequencySplit]].
+     *            - induced by split parameter FrequencySplit("frequency_by_study_id", extraSplitBy = Some(col("study_id"))). See [[FrequencySplit]].
      *            - is an array of struct, each struct represents a frequency  for a study_id. Fields of this struct are :
      *              - study_id (split column)
      *              - total frequency, which is also a struct that contains these fields : ac (allele count), an (allele number), pc (patient count), pn (patient number), hom (number of homozygous), af (allele frequency), pf (participant frequency)
@@ -141,141 +143,160 @@ object Frequencies {
      * }}}
      *
      */
-    def freq(participantId: Column = col("participant_id"), affectedStatus:Column = col("affected_status"), split: Seq[FrequencySplit]): DataFrame = {
+    def split(participantId: Column = col("participant_id"), affectedStatus: Column = col("affected_status"), splits: Seq[OccurrenceSplit]): DataFrame = {
 
-      val allDataframes: Seq[DataFrame] = split.map { split =>
+      val allDataframes: Seq[DataFrame] = splits.map { split =>
         val filteredDf: DataFrame = split.filter.fold(df)(f => df.filter(f))
-        val splitColumn: Seq[Column] = split.splitBy.toSeq
-        val extraAggregationsFiltered: List[Column] = split.extraAggregations.map(agg => agg.filter(col(agg.name)) as agg.name).toList
-        if (split.byAffected) {
-          val firstSplit = filteredDf
-            .groupByLocus(splitColumn :+ affectedStatus: _*)
-            .agg(
-              ifAffected(ac) as "affected_ac",
-              Seq(
-                ifAffected(pc) as "affected_pc",
-                ifAffected(hom) as "affected_hom",
-                ifNotAffected(ac) as "not_affected_ac",
-                ifNotAffected(pc) as "not_affected_pc",
-                ifNotAffected(hom) as "not_affected_hom")
-                ++ split.extraAggregations.map(_.agg())
-                : _*
-            )
-            .groupByLocus(splitColumn: _*)
-            .agg(
-              struct(sum("affected_ac") as "ac", sum("affected_pc") as "pc", sum("affected_hom") as "hom") as "affected",
-              Seq(
-                struct(sum(col("not_affected_ac")) as "ac", sum("not_affected_pc") as "pc", sum("not_affected_hom") as "hom") as "not_affected"
-              ) ++ split.extraAggregations.map(_.aggArray)
-                : _*
+        val splitColumns: Seq[Column] = split.extraSplitBy.fold(locus)(s => locus :+ s)
+        val filterAggCols: Seq[OccurrenceAggregation] => List[Column] = aggs => aggs.map(agg => agg.filter(col(agg.name)) as agg.name).toList
 
-            ).withColumn("total",
-            struct(
-              col("affected.ac") + col("not_affected.ac") as "ac",
-              col("affected.pc") + col("not_affected.pc") as "pc",
-              col("affected.hom") + col("not_affected.hom") as "hom",
-            ))
-          split.splitBy.map { s =>
-            val anPnDF = filteredDf.groupBy(splitColumn :+ affectedStatus: _*).agg(
-              ifAffected(countDistinct(participantId)) as "pn_affected",
-              ifNotAffected(countDistinct(participantId)) as "pn_not_affected"
-            )
-              .groupBy(splitColumn: _*)
-              .agg(
-                sum("pn_affected") as "pn_affected",
-                sum("pn_not_affected") as "pn_not_affected",
-              )
-              .withColumn("pn", col("pn_affected") + col("pn_not_affected"))
-              .withColumn("an_affected", col("pn_affected") * 2)
-              .withColumn("an_not_affected", col("pn_not_affected") * 2)
-              .withColumn("an", col("pn") * 2)
-              .withColumn("joinSplit", s)
-              .drop(s)
-            val frame = firstSplit
-              .withColumn("joinSplit", s)
-              .join(anPnDF, Seq("joinSplit"))
-              .withColumn("total", col("total").withField("pn", col("pn")).withField("an", col("an")))
-              .withColumn("affected", col("affected").withField("pn", col("pn_affected")).withField("an", col("an_affected")))
-              .withColumn("not_affected", col("not_affected").withField("pn", col("pn_not_affected")).withField("an", col("an_not_affected")))
-              .drop("joinSplit")
-            frame
-              .groupByLocus()
-              .agg(
-                collect_list(
-                  struct(
-                    s ::
-                      afpf("total") ::
+        split match {
+          case FrequencySplit(name, extraSplitBy, _, byAffected, extraAggregations) =>
+            val extraFilteredAggCols: List[Column] = filterAggCols(extraAggregations)
+
+            if (byAffected) {
+              val firstSplit = filteredDf
+                .groupBy(splitColumns :+ affectedStatus: _*)
+                .agg(
+                  ifAffected(ac) as "affected_ac",
+                  Seq(
+                    ifAffected(pc) as "affected_pc",
+                    ifAffected(hom) as "affected_hom",
+                    ifNotAffected(ac) as "not_affected_ac",
+                    ifNotAffected(pc) as "not_affected_pc",
+                    ifNotAffected(hom) as "not_affected_hom")
+                    ++ extraAggregations.map(_.agg())
+                    : _*
+                )
+                .groupBy(splitColumns: _*)
+                .agg(
+                  struct(sum("affected_ac") as "ac", sum("affected_pc") as "pc", sum("affected_hom") as "hom") as "affected",
+                  Seq(
+                    struct(sum(col("not_affected_ac")) as "ac", sum("not_affected_pc") as "pc", sum("not_affected_hom") as "hom") as "not_affected"
+                  ) ++ extraAggregations.map(_.aggArray)
+                    : _*
+
+                ).withColumn("total",
+                struct(
+                  col("affected.ac") + col("not_affected.ac") as "ac",
+                  col("affected.pc") + col("not_affected.pc") as "pc",
+                  col("affected.hom") + col("not_affected.hom") as "hom",
+                ))
+              extraSplitBy.map { s =>
+                val anPnDF = filteredDf.groupBy(s, affectedStatus).agg(
+                  ifAffected(countDistinct(participantId)) as "pn_affected",
+                  ifNotAffected(countDistinct(participantId)) as "pn_not_affected"
+                )
+                  .groupBy(s)
+                  .agg(
+                    sum("pn_affected") as "pn_affected",
+                    sum("pn_not_affected") as "pn_not_affected",
+                  )
+                  .withColumn("pn", col("pn_affected") + col("pn_not_affected"))
+                  .withColumn("an_affected", col("pn_affected") * 2)
+                  .withColumn("an_not_affected", col("pn_not_affected") * 2)
+                  .withColumn("an", col("pn") * 2)
+                  .withColumn("joinSplit", s)
+                  .drop(s)
+                val frame = firstSplit
+                  .withColumn("joinSplit", s)
+                  .join(anPnDF, Seq("joinSplit"))
+                  .withColumn("total", col("total").withField("pn", col("pn")).withField("an", col("an")))
+                  .withColumn("affected", col("affected").withField("pn", col("pn_affected")).withField("an", col("an_affected")))
+                  .withColumn("not_affected", col("not_affected").withField("pn", col("pn_not_affected")).withField("an", col("an_not_affected")))
+                  .drop("joinSplit")
+                frame
+                  .groupByLocus()
+                  .agg(
+                    collect_list(
+                      struct(
+                        s ::
+                          afpf("total") ::
+                          afpf("affected") ::
+                          afpf("not_affected") ::
+                          extraFilteredAggCols: _*
+                      )
+                    ) as name
+                  )
+              }.getOrElse {
+                val anPnDF = filteredDf.groupBy(affectedStatus).agg(
+                  ifAffected(countDistinct(participantId)) as "pn_affected",
+                  ifNotAffected(countDistinct(participantId)) as "pn_not_affected"
+                )
+                  .select(
+                    sum("pn_affected") as "pn_affected",
+                    sum("pn_not_affected") as "pn_not_affected",
+                  )
+                  .withColumn("pn", col("pn_affected") + col("pn_not_affected"))
+                  .withColumn("an_affected", col("pn_affected") * 2)
+                  .withColumn("an_not_affected", col("pn_not_affected") * 2)
+                  .withColumn("an", col("pn") * 2)
+                  .collect()
+                  .head
+
+                firstSplit
+                  .withColumn("total", col("total").withField("pn", lit(anPnDF.getAs[Long]("pn"))).withField("an", lit(anPnDF.getAs[Long]("an"))))
+                  .withColumn("affected", col("affected").withField("pn", lit(anPnDF.getAs[Long]("pn_affected"))).withField("an", lit(anPnDF.getAs[Long]("an_affected"))))
+                  .withColumn("not_affected", col("not_affected").withField("pn", lit(anPnDF.getAs[Long]("pn_not_affected"))).withField("an", lit(anPnDF.getAs[Long]("an_not_affected"))))
+                  .withColumn(name, struct(
+                    afpf("total") ::
                       afpf("affected") ::
                       afpf("not_affected") ::
-                      extraAggregationsFiltered: _*
+                      extraFilteredAggCols: _*)
                   )
-                ) as split.name
-              )
-          }.getOrElse {
-            val anPnDF = filteredDf.groupBy(affectedStatus).agg(
-              ifAffected(countDistinct(participantId)) as "pn_affected",
-              ifNotAffected(countDistinct(participantId)) as "pn_not_affected"
-            )
-              .select(
-                sum("pn_affected") as "pn_affected",
-                sum("pn_not_affected") as "pn_not_affected",
-              )
-              .withColumn("pn", col("pn_affected") + col("pn_not_affected"))
-              .withColumn("an_affected", col("pn_affected") * 2)
-              .withColumn("an_not_affected", col("pn_not_affected") * 2)
-              .withColumn("an", col("pn") * 2)
-              .collect()
-              .head
+                  .drop("total" :: "affected" :: "not_affected" :: extraAggregations.map(_.name).toList: _*)
+              }
+            } else {
 
-            firstSplit
-              .withColumn("total", col("total").withField("pn", lit(anPnDF.getAs[Long]("pn"))).withField("an", lit(anPnDF.getAs[Long]("an"))))
-              .withColumn("affected", col("affected").withField("pn", lit(anPnDF.getAs[Long]("pn_affected"))).withField("an", lit(anPnDF.getAs[Long]("an_affected"))))
-              .withColumn("not_affected", col("not_affected").withField("pn", lit(anPnDF.getAs[Long]("pn_not_affected"))).withField("an", lit(anPnDF.getAs[Long]("an_not_affected"))))
-              .withColumn(split.name, struct(
-                afpf("total") ::
-                  afpf("affected") ::
-                  afpf("not_affected") ::
-                  extraAggregationsFiltered: _*)
-              )
-              .drop("total" :: "affected" :: "not_affected" :: split.extraAggregations.map(_.name).toList: _*)
-          }
-        } else {
+              val firstSplit =
+                filteredDf.groupBy(splitColumns: _*)
+                  .agg(struct(ac, pc, hom) as "total", extraAggregations.map(_.agg()): _*)
+              extraSplitBy.map { s =>
+                val anPnDF = filteredDf.groupBy(s)
+                  .agg(countDistinct(participantId) as "pn")
+                  .withColumn("an", col("pn") * 2)
+                  .withColumn("joinSplit", s)
+                  .drop(s)
+                firstSplit
+                  .withColumn("joinSplit", s)
+                  .join(anPnDF, Seq("joinSplit"))
+                  .drop("joinSplit")
+                  .withColumn("total", col("total").withField("pn", col("pn")).withField("an", col("an")))
+                  .groupByLocus()
+                  .agg(
+                    collect_list(
+                      struct(s :: afpf("total") :: extraFilteredAggCols: _*)
+                    ) as name
+                  )
 
-          val firstSplit =
-            filteredDf.groupByLocus(splitColumn: _*)
-              .agg(struct(ac, pc, hom) as "total", split.extraAggregations.map(_.agg()): _*)
-          split.splitBy.map {
-            s =>
-              val anPnDF = filteredDf.groupBy(splitColumn: _*)
-                .agg(countDistinct(participantId) as "pn")
-                .withColumn("an", col("pn") * 2)
-                .withColumn("joinSplit", s)
-                .drop(s)
+              }.getOrElse {
+                val anPnRow: Row = filteredDf.select(countDistinct(participantId) as "pn").withColumn("an", col("pn") * 2).collect().head
+                val pn = anPnRow.getLong(0)
+                val an = anPnRow.getLong(1)
+                firstSplit
+                  .withColumn("total", col("total").withField("pn", lit(pn)).withField("an", lit(an)))
+                  .withColumn(name, struct(afpf("total") :: extraFilteredAggCols: _*) as name)
+                  .drop("total" :: extraAggregations.map(_.name).toList: _*)
+              }
+            }
+
+          case SimpleSplit(name, extraSplitBy, _, aggregations) =>
+            val filteredAggCols: List[Column] = filterAggCols(aggregations)
+            val firstSplit = filteredDf
+              .groupBy(splitColumns: _*)
+              .agg(aggregations.head.agg(), aggregations.tail.map(_.agg()): _*)
+
+            extraSplitBy.map { s =>
               firstSplit
-                .withColumn("joinSplit", s)
-                .join(anPnDF, Seq("joinSplit"))
-                .drop("joinSplit")
-                .withColumn("total", col("total").withField("pn", col("pn")).withField("an", col("an")))
                 .groupByLocus()
-                .agg(
-                  collect_list(
-                    struct(s :: afpf("total") :: extraAggregationsFiltered: _*)
-                  ) as split.name
-                )
+                .agg(collect_list(struct(s :: filteredAggCols: _*)) as name)
 
-          }.getOrElse {
-            val anPnRow: Row = filteredDf.select(countDistinct(participantId) as "pn").withColumn("an", col("pn") * 2).collect().head
-            val pn = anPnRow.getLong(0)
-            val an = anPnRow.getLong(1)
-            firstSplit
-              .withColumn("total", col("total").withField("pn", lit(pn)).withField("an", lit(an)))
-              .withColumn(split.name, struct(afpf("total") :: extraAggregationsFiltered: _*) as split.name)
-              .drop("total" :: split.extraAggregations.map(_.name).toList: _*)
-          }
-
+            }.getOrElse {
+              firstSplit
+                .withColumn(name, struct(filteredAggCols: _*))
+                .drop(aggregations.map(_.name).toList: _*)
+            }
         }
-
-
       }
       allDataframes.reduce((df1, df2) => df1.joinByLocus(df2, "inner"))
 
@@ -324,15 +345,38 @@ object Frequencies {
 }
 
 /**
- * Represents a split for a frequency.
+ * Represents a split.
+ *
+ * @param name         column name used as an output for this split
+ * @param extraSplitBy extra column to use with locus for the split
+ * @param filter       column used to filter input dataframe
+ */
+sealed trait OccurrenceSplit {
+  def name: String
+
+  def extraSplitBy: Option[Column]
+
+  def filter: Option[Column]
+}
+
+/**
  *
  * @param name              column name used as an output for this split
+ * @param extraSplitBy      extra column to use with locus for the split
  * @param filter            column used to filter input dataframe
- * @param splitBy           column used to split frequencies
  * @param byAffected        flag that indicates if we need to calculate distinct frequencies by affected and not affected
- * @param extraAggregations extra aggregations to be calculated. See [[OccurrenceAggregation]]
+ * @param extraAggregations optional extra aggregations to be calculated. See [[OccurrenceAggregation]].
  */
-case class FrequencySplit(name: String, filter: Option[Column] = None, splitBy: Option[Column] = None, byAffected: Boolean = false, extraAggregations: Seq[OccurrenceAggregation] = Nil)
+case class FrequencySplit(override val name: String, override val extraSplitBy: Option[Column] = None, override val filter: Option[Column] = None, byAffected: Boolean = false, extraAggregations: Seq[OccurrenceAggregation] = Nil) extends OccurrenceSplit
+
+/**
+ *
+ * @param name         column name used as an output for this split
+ * @param extraSplitBy extra column to use with locus for the split
+ * @param filter       column used to filter input dataframe
+ * @param aggregations aggregations to be calculated in the split. At least one must be specified. See [[OccurrenceAggregation]].
+ */
+case class SimpleSplit(override val name: String, override val extraSplitBy: Option[Column] = None, override val filter: Option[Column] = None, aggregations: Seq[OccurrenceAggregation]) extends OccurrenceSplit
 
 /**
  * Represents an aggregation to be calculated.

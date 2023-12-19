@@ -7,7 +7,11 @@ case class VariantFrequencyOutputByStudy(chromosome: String = "1",
                                          frequency_kf: GlobalFrequency = GlobalFrequency(total = Frequency()),
                                          frequency_by_study_id: Set[FrequencyByStudyId] = Set(
                                            FrequencyByStudyId(),
-                                           FrequencyByStudyId(study_id = "S2", total = Frequency(ac = 2, pc = 1, hom = 1, an = 4, pn = 2, af = 0.5, pf = 0.5), participant_ids = null, transmissions = Set("AR"), study_code = "STUDY_CODE_2"))
+                                           FrequencyByStudyId(study_id = "S2", total = Frequency(ac = 2, pc = 1, hom = 1, an = 4, pn = 2, af = 0.5, pf = 0.5), participant_ids = null, transmissions = Set("AR"), study_code = "STUDY_CODE_2")),
+                                         studies: Set[SplitByStudyId] = Set(
+                                           SplitByStudyId(),
+                                           SplitByStudyId(study_id = "S2", study_code = "STUDY_CODE_2", zygosities = Set("HOM"))),
+                                         global: GlobalSplit = GlobalSplit()
                                         )
 
 case class VariantFrequencyOutputByStudyAffected(chromosome: String = "1",
@@ -54,6 +58,13 @@ case class FrequencyByStudyIdAffected(study_id: String = "S1",
                                       participant_ids: Set[String] = Set("P1", "P2"), transmissions: Set[String] = Set("AR", "AD"),
                                       study_code: String = "STUDY_CODE_1"
                                      )
+
+case class SplitByStudyId(study_id: String = "S1",
+                          study_code: String = "STUDY_CODE_1",
+                          zygosities: Set[String] = Set("HOM", "HET")
+                         )
+
+case class GlobalSplit(study_codes: Set[String] = Set("STUDY_CODE_1", "STUDY_CODE_2"))
 
 case class Frequency(ac: Long = 5,
                      an: Long = 8,
