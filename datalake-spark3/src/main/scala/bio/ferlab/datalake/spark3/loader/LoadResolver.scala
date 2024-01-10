@@ -38,6 +38,9 @@ object LoadResolver {
     case (DELTA, Compact)   => (ds: DatasetConf, df: DataFrame) =>
       DeltaLoader.writeOnce(ds.location, ds.table.map(_.database).getOrElse(""), ds.table.map(_.name).getOrElse(""), df, ds.partitionby, ds.format.sparkFormat, ds.writeoptions)
 
+    case (DELTA, Insert) => (ds: DatasetConf, df: DataFrame) =>
+      DeltaLoader.insert(ds.location, ds.table.map(_.database).getOrElse(""), ds.table.map(_.name).getOrElse(""), df, ds.partitionby, ds.format.sparkFormat, ds.writeoptions)
+
     case (format, OverWrite) if format == JDBC || format == SQL_SERVER => (ds: DatasetConf, df: DataFrame) =>
       JdbcLoader.writeOnce(ds.location, ds.table.map(_.database).getOrElse(""), ds.table.map(_.name).getOrElse(""), df, ds.partitionby, ds.format.sparkFormat, ds.writeoptions)
 
