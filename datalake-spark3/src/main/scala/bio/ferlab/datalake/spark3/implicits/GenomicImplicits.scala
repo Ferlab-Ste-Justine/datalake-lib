@@ -729,12 +729,11 @@ object GenomicImplicits {
     val refConcatAltList: Column = array_union(array(reference), col("alternates")) as "refConcatAltList"
     val uniqBases: Column = filter(array_distinct(transform(refConcatAltList, x => substring(x, 1, 1))), (allele: Column) => allele.notEqual("*"))
 
-    val matchingAllele: Column = when(
-      (alternate === "*").or(size(uniqBases) > 1), alternate
-    ).otherwise(
-      when(
-        length(alternate) === 1, lit("-")
-      ).otherwise(substring(alternate, 2, Int.MaxValue))
+    private val isStarOrNoCommonBases = (alternate === "*").or(size(uniqBases) > 1)
+    private val alternateWithoutFirstLetter = substring(alternate, 2, Int.MaxValue)
+
+    val matchingAllele: Column = when(isStarOrNoCommonBases, alternate).otherwise(
+      when(length(alternate) === 1, lit("-")).otherwise(alternateWithoutFirstLetter)
     ) as "matchingAllele"
 
     val annotations: Column = when(
