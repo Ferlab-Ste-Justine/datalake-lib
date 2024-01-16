@@ -6,6 +6,7 @@ import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns._
 import bio.ferlab.datalake.testutils.models.enriched.EnrichedGenes
 import bio.ferlab.datalake.testutils.SparkSpec
 import bio.ferlab.datalake.testutils.models.genomicimplicits._
+import bio.ferlab.datalake.testutils.models.raw.{InfoCSQ, RawVcf, RawVcfWithInfoAnn}
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{AnalysisException, Column, DataFrame, functions}
 import org.slf4j
@@ -863,6 +864,161 @@ class GenomicImplicitsSpec extends SparkSpec {
       vcf(List("f1", "f2"), None, optional = false)
     }
     exception.getMessage should include("Path does not exist:")
+  }
+
+  "refConcatAltList" should "return a list with referenceAllele and all the elements of alternates" in {
+    val input = Seq(
+      RawVcfWithInfoAnn(`referenceAllele` = "A", `alternateAlleles` = List("*")),
+      RawVcfWithInfoAnn(`referenceAllele` = "A", `alternateAlleles` = List("T", "*")),
+      RawVcfWithInfoAnn(`referenceAllele` = "G", `alternateAlleles` = List("GAA", "A")),
+      RawVcfWithInfoAnn(`referenceAllele` = "TCC", `alternateAlleles` = List("T", "TA")),
+      RawVcfWithInfoAnn(`referenceAllele` = "A", `alternateAlleles` = List("AT", "ATT")),
+    ).toDF()
+    val result = input
+      .withColumn("alternates", col("alternateAlleles"))
+      .withSplitMultiAllelic
+      .withColumn("refConcatAltList", refConcatAltList)
+      .select("referenceAllele", "alternateAlleles", "refConcatAltList")
+    result.as[(String, Seq[String], Seq[String])].collect() should contain theSameElementsAs Seq(
+      ("A", Seq("*"), Seq("A", "*")),
+      ("A", Seq("T"), Seq("A", "T", "*")),
+      ("A", Seq("*"), Seq("A", "T", "*")),
+      ("G", Seq("GAA"), Seq("G", "GAA", "A")),
+      ("G", Seq("A"), Seq("G", "GAA", "A")),
+      ("TCC", Seq("T"), Seq("TCC", "T", "TA")),
+      ("TCC", Seq("TA"), Seq("TCC", "T", "TA")),
+      ("A", Seq("AT"), Seq("A", "AT", "ATT")),
+      ("A", Seq("ATT"), Seq("A", "AT", "ATT")),
+    )
+  }
+
+  "uniqBases" should "return the first character of each element of refConcatAltList without duplicates" in {
+    val input = Seq(
+      RawVcfWithInfoAnn(`referenceAllele` = "A", `alternateAlleles` = List("*")),
+      RawVcfWithInfoAnn(`referenceAllele` = "A", `alternateAlleles` = List("T", "*")),
+      RawVcfWithInfoAnn(`referenceAllele` = "G", `alternateAlleles` = List("GAA", "A")),
+      RawVcfWithInfoAnn(`referenceAllele` = "TCC", `alternateAlleles` = List("T", "TA")),
+      RawVcfWithInfoAnn(`referenceAllele` = "A", `alternateAlleles` = List("AT", "ATT")),
+    ).toDF()
+    val result = input
+      .withColumn("alternates", col("alternateAlleles"))
+      .withSplitMultiAllelic
+      .withColumn("uniqBases", uniqBases)
+      .select("referenceAllele", "alternateAlleles", "uniqBases")
+    result.as[(String, Seq[String], Seq[String])].collect() should contain theSameElementsAs Seq(
+      ("A", Seq("*"), Seq("A", "*")),
+      ("A", Seq("T"), Seq("A", "T", "*")),
+      ("A", Seq("*"), Seq("A", "T", "*")),
+      ("G", Seq("GAA"), Seq("G", "A")),
+      ("G", Seq("A"), Seq("G", "A")),
+      ("TCC", Seq("T"), Seq("T")),
+      ("TCC", Seq("TA"), Seq("T")),
+      ("A", Seq("AT"), Seq("A")),
+      ("A", Seq("ATT"), Seq("A")),
+    )
+  }
+
+  "matchingAllele" should "return * if allele is *" in {
+    val input = Seq(
+      RawVcfWithInfoAnn(`referenceAllele` = "A", `alternateAlleles` = List("*")),
+    ).toDF()
+    val result = input
+      .withColumn("alternates", col("alternateAlleles"))
+      .withSplitMultiAllelic
+      .withColumn("matchingAllele", matchingAllele)
+      .select("referenceAllele", "alternateAlleles", "matchingAllele")
+    result.as[(String, Seq[String], String)].collect() should contain theSameElementsAs Seq(
+      ("A", Seq("*"), "*"),
+    )
+  }
+
+  it should "return the allele as is if there are more than 2 bases (means that reference and alternates don't share the same base)" in {
+    val input = Seq(
+      RawVcfWithInfoAnn(`referenceAllele` = "A", `alternateAlleles` = List("T", "*")),
+    ).toDF()
+    val result = input
+      .withColumn("alternates", col("alternateAlleles"))
+      .withSplitMultiAllelic
+      .withColumn("matchingAllele", matchingAllele)
+      .select("referenceAllele", "alternateAlleles", "matchingAllele")
+    result.as[(String, Seq[String], String)].collect() should contain theSameElementsAs Seq(
+      ("A", Seq("T"), "T"),
+      ("A", Seq("*"), "*"),
+    )
+  }
+
+  it should "return the allele as is if there are 2 bases but not * (means that reference and alternates don't share the same base)" in {
+    val input = Seq(
+      RawVcfWithInfoAnn(`referenceAllele` = "G", `alternateAlleles` = List("GAA", "A")),
+    ).toDF()
+    val result = input
+      .withColumn("alternates", col("alternateAlleles"))
+      .withSplitMultiAllelic
+      .withColumn("matchingAllele", matchingAllele)
+      .select("referenceAllele", "alternateAlleles", "matchingAllele")
+    result.as[(String, Seq[String], String)].collect() should contain theSameElementsAs Seq(
+      ("G", Seq("GAA"), "GAA"),
+      ("G", Seq("A"), "A"),
+    )
+  }
+
+  it should "return - if the alternate has only 1 character" in {
+    val input = Seq(
+      RawVcfWithInfoAnn(`referenceAllele` = "TCC", `alternateAlleles` = List("T", "TA")),
+    ).toDF()
+    val result = input
+      .withColumn("alternates", col("alternateAlleles"))
+      .withSplitMultiAllelic
+      .withColumn("matchingAllele", matchingAllele)
+      .select("referenceAllele", "alternateAlleles", "matchingAllele")
+    result.as[(String, Seq[String], String)].collect() should contain theSameElementsAs Seq(
+      ("TCC", Seq("T"), "-"),
+      ("TCC", Seq("TA"), "A"),
+    )
+  }
+
+  it should "return the alternate without the first letter" in {
+    val input = Seq(
+      RawVcfWithInfoAnn(`referenceAllele` = "A", `alternateAlleles` = List("AT", "ATT")),
+    ).toDF()
+    val result = input
+      .withColumn("alternates", col("alternateAlleles"))
+      .withSplitMultiAllelic
+      .withColumn("matchingAllele", matchingAllele)
+      .select("referenceAllele", "alternateAlleles", "matchingAllele")
+    result.as[(String, Seq[String], String)].collect() should contain theSameElementsAs Seq(
+      ("A", Seq("AT"), "T"),
+      ("A", Seq("ATT"), "TT"),
+    )
+  }
+
+  "annotations" should "return all INFO_ANN if splitFromMultiAllelic is false" in {
+    val input = Seq(
+      RawVcfWithInfoAnn(`referenceAllele` = "A", `alternateAlleles` = List("AT"), `INFO_ANN` = List(InfoCSQ(`Allele` = "T", `Gene` = "GENE1"), InfoCSQ(`Allele` = "T", `Gene` = "GENE2"))),
+    ).toDF()
+    val result = input
+      .withColumn("alternates", col("alternateAlleles"))
+      .withSplitMultiAllelic
+      .withColumn("annotations", annotations)
+      .select("referenceAllele", "alternateAlleles", "annotations")
+    result.as[(String, Seq[String], List[InfoCSQ])].collect() should contain theSameElementsAs Seq(
+      ("A", Seq("AT"), List(InfoCSQ(`Allele` = "T", `Gene` = "GENE1"), InfoCSQ(`Allele` = "T", `Gene` = "GENE2"))),
+    )
+  }
+
+  it should "return only annotations in INFO_ANN for the alternate allele using matchingAllele" in {
+    val input = Seq(
+      RawVcfWithInfoAnn(`referenceAllele` = "A", `alternateAlleles` = List("AT", "ATT"), `INFO_ANN` = List(InfoCSQ(`Allele` = "T", `Gene` = "GENE1"), InfoCSQ(`Allele` = "TT", `Gene` = "GENE1"), InfoCSQ(`Allele` = "T", `Gene` = "GENE2"), InfoCSQ(`Allele` = "TT", `Gene` = "GENE2"))),
+    ).toDF()
+    val result = input
+      .withColumn("alternates", col("alternateAlleles"))
+      .withSplitMultiAllelic
+      .withColumn("annotations", annotations)
+      .select("referenceAllele", "alternateAlleles", "annotations")
+    result.as[(String, Seq[String], List[InfoCSQ])].collect() should contain theSameElementsAs Seq(
+      ("A", Seq("AT"), List(InfoCSQ(`Allele` = "T", `Gene` = "GENE1"), InfoCSQ(`Allele` = "T", `Gene` = "GENE2"))),
+      ("A", Seq("ATT"), List(InfoCSQ(`Allele` = "TT", `Gene` = "GENE1"), InfoCSQ(`Allele` = "TT", `Gene` = "GENE2"))),
+    )
   }
 
 }
