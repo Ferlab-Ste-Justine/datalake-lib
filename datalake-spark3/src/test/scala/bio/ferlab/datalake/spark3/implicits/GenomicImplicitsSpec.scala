@@ -932,9 +932,10 @@ class GenomicImplicitsSpec extends SparkSpec {
     )
   }
 
-  it should "return the allele as is if there are more than 2 bases (means that reference and alternates don't share the same base)" in {
+  it should "return the allele as is if they are no common bases" in {
     val input = Seq(
       RawVcfWithInfoAnn(`referenceAllele` = "A", `alternateAlleles` = List("T", "*")),
+      RawVcfWithInfoAnn(`referenceAllele` = "G", `alternateAlleles` = List("GAA", "A")),
     ).toDF()
     val result = input
       .withColumn("alternates", col("alternateAlleles"))
@@ -944,19 +945,6 @@ class GenomicImplicitsSpec extends SparkSpec {
     result.as[(String, Seq[String], String)].collect() should contain theSameElementsAs Seq(
       ("A", Seq("T"), "T"),
       ("A", Seq("*"), "*"),
-    )
-  }
-
-  it should "return the allele as is if there are 2 bases but not * (means that reference and alternates don't share the same base)" in {
-    val input = Seq(
-      RawVcfWithInfoAnn(`referenceAllele` = "G", `alternateAlleles` = List("GAA", "A")),
-    ).toDF()
-    val result = input
-      .withColumn("alternates", col("alternateAlleles"))
-      .withSplitMultiAllelic
-      .withColumn("matchingAllele", matchingAllele)
-      .select("referenceAllele", "alternateAlleles", "matchingAllele")
-    result.as[(String, Seq[String], String)].collect() should contain theSameElementsAs Seq(
       ("G", Seq("GAA"), "GAA"),
       ("G", Seq("A"), "A"),
     )
