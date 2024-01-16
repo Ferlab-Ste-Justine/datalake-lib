@@ -892,7 +892,7 @@ class GenomicImplicitsSpec extends SparkSpec {
     )
   }
 
-  "uniqBases" should "return the first character of each element of refConcatAltList without duplicates" in {
+  "uniqBases" should "return the first character of each element of refConcatAltList without duplicates and without *" in {
     val input = Seq(
       RawVcfWithInfoAnn(`referenceAllele` = "A", `alternateAlleles` = List("*")),
       RawVcfWithInfoAnn(`referenceAllele` = "A", `alternateAlleles` = List("T", "*")),
@@ -906,9 +906,9 @@ class GenomicImplicitsSpec extends SparkSpec {
       .withColumn("uniqBases", uniqBases)
       .select("referenceAllele", "alternateAlleles", "uniqBases")
     result.as[(String, Seq[String], Seq[String])].collect() should contain theSameElementsAs Seq(
-      ("A", Seq("*"), Seq("A", "*")),
-      ("A", Seq("T"), Seq("A", "T", "*")),
-      ("A", Seq("*"), Seq("A", "T", "*")),
+      ("A", Seq("*"), Seq("A")),
+      ("A", Seq("T"), Seq("A", "T")),
+      ("A", Seq("*"), Seq("A", "T")),
       ("G", Seq("GAA"), Seq("G", "A")),
       ("G", Seq("A"), Seq("G", "A")),
       ("TCC", Seq("T"), Seq("T")),
