@@ -726,9 +726,18 @@ object GenomicImplicits {
         .otherwise("UNK")
 
     //Annotations
+    val refConcatAltList: Column = array_union(array(reference), col("alternates")) as "refConcatAltList"
+    val uniqBases: Column = filter(array_distinct(transform(refConcatAltList, x => substring(x, 1, 1))), (allele: Column) => allele.notEqual("*"))
+
+    private val isStarOrNoCommonBases = (alternate === "*").or(size(uniqBases) > 1)
+    private val alternateWithoutFirstLetter = substring(alternate, 2, Int.MaxValue)
+
+    val matchingAllele: Column = when(isStarOrNoCommonBases, alternate).otherwise(
+      when(length(alternate) === 1, lit("-")).otherwise(alternateWithoutFirstLetter)
+    ) as "matchingAllele"
+
     val annotations: Column = when(
-      col("splitFromMultiAllelic"),
-      expr("filter(INFO_ANN, ann-> ann.Allele == alternateAlleles[0])")
+      col("splitFromMultiAllelic"), filter(col("INFO_ANN"), (ann: Column) => matchingAllele === ann("Allele"))
     ).otherwise(col("INFO_ANN")) as "annotations"
 
     val csq: Column = when(
@@ -807,6 +816,7 @@ object GenomicImplicits {
         .option("flattenInfoFields", "true")
         .load(inputs: _*)
         .withColumnRenamed("filters", "INFO_FILTERS") // Avoid losing filters columns before split
+        .withColumn("alternates", col("alternateAlleles")) // Keep a copy of the list of alternate alleles after split
         .withSplitMultiAllelic
       referenceGenomePath
         .fold(

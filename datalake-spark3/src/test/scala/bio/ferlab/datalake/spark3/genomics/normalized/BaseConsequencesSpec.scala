@@ -5,6 +5,7 @@ import bio.ferlab.datalake.testutils.models.normalized.NormalizedConsequences
 import bio.ferlab.datalake.testutils.models.raw.{InfoCSQ, RawVcf, RawVcfWithInfoAnn}
 import bio.ferlab.datalake.spark3.testutils.WithTestConfig
 import bio.ferlab.datalake.testutils.{SparkSpec, TestETLContext}
+import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.{Column, DataFrame}
 
 import java.time.LocalDateTime
@@ -37,7 +38,7 @@ class BaseConsequencesSpec extends SparkSpec with WithTestConfig {
   it should "transform data with column INFO_ANN in vcf in expected format" in {
     val jobWithInfoAnn = new ConsequenceEtl(groupByLocus = false, annotationsColumn = annotations)
     val data = Map(
-      jobWithInfoAnn.raw_vcf -> Seq(RawVcfWithInfoAnn()).toDF()
+      jobWithInfoAnn.raw_vcf -> Seq(RawVcfWithInfoAnn()).toDF().withColumn("alternates", col("alternateAlleles"))
     )
     val results = jobWithInfoAnn.transform(data)
     val resultDf = results(jobWithInfoAnn.mainDestination.id)
