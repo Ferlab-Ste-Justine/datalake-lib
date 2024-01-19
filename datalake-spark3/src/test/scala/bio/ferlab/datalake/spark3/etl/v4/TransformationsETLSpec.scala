@@ -1,6 +1,7 @@
 package bio.ferlab.datalake.spark3.etl.v4
 
-import bio.ferlab.datalake.spark3.etl.{AirportInput, AirportOutput}
+import bio.ferlab.datalake.spark3.etl.AirportOutput
+import bio.ferlab.datalake.spark3.testutils.AirportInput
 import bio.ferlab.datalake.spark3.transformation._
 import bio.ferlab.datalake.testutils.TestETLContext
 import org.apache.spark.sql.functions.col

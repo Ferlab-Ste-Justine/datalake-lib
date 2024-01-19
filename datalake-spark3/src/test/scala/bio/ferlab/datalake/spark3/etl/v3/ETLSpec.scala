@@ -4,8 +4,9 @@ import bio.ferlab.datalake.commons.config.LoadType._
 import bio.ferlab.datalake.commons.config._
 import bio.ferlab.datalake.commons.config.DeprecatedRuntimeETLContext
 import bio.ferlab.datalake.commons.file.{FileSystemResolver, HadoopFileSystem}
-import bio.ferlab.datalake.spark3.etl.{AirportInput, AirportOutput}
+import bio.ferlab.datalake.spark3.etl.AirportOutput
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
+import bio.ferlab.datalake.spark3.testutils.AirportInput
 import bio.ferlab.datalake.testutils.DeprecatedTestETLContext
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.functions._

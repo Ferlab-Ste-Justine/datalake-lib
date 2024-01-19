@@ -1,6 +1,6 @@
 package bio.ferlab.datalake.spark3.loader
 
-import bio.ferlab.datalake.commons.config.Format.{DELTA, ELASTICSEARCH, JDBC, SQL_SERVER}
+import bio.ferlab.datalake.commons.config.Format.{DELTA, ELASTICSEARCH, EXCEL, JDBC, SQL_SERVER}
 import bio.ferlab.datalake.commons.config.LoadType._
 import bio.ferlab.datalake.commons.config._
 import org.apache.spark.sql.{DataFrame, SparkSession}
@@ -66,6 +66,9 @@ object LoadResolver {
 
     case ELASTICSEARCH => ds: DatasetConf =>
       ElasticsearchLoader.read(ds.location, ELASTICSEARCH.sparkFormat, ds.readoptions, ds.table.map(_.database), ds.table.map(_.name))
+
+    case EXCEL => ds: DatasetConf =>
+      ExcelLoader.read(ds.location, EXCEL.sparkFormat, ds.readoptions)
 
     case format => ds: DatasetConf =>
       GenericLoader.read(ds.location, format.sparkFormat, ds.readoptions, ds.table.map(_.database), ds.table.map(_.name))
