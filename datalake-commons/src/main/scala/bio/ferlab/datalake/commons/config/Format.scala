@@ -23,6 +23,11 @@ object Format {
   case object CSV extends Format {override val sparkFormat = "csv"; override val fileExtension: String = ".csv"}
 
   /**
+   * Microsoft Excel files, can be both xls and xlsx files
+   */
+  case object EXCEL extends Format {override val sparkFormat = "excel"; override val fileExtension: String = ".xls*"}
+
+  /**
    * Variant Call Format https://en.wikipedia.org/wiki/Variant_Call_Format
    */
   case object VCF extends Format {override val sparkFormat = "vcf"; override val fileExtension: String = ".vcf.gz"}
