@@ -8,14 +8,14 @@ lazy val scala212 = "2.12.18"
 lazy val supportedScalaVersions = List(scala212)
 
 scalacOptions ++= Seq("-deprecation", "-Ypartial-unification")
-javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
+javacOptions ++= Seq("-source", "11", "-target", "11", "-Xlint")
 
-val spark3Version = "3.3.1"
+val spark3Version = "3.4.2"
 val catsVersion = "2.7.0"
 val scalatestVersion = "3.2.12"
 val pureconfigVersion = "0.17.2"
 val elasticsearchVersion = "7.15.0"
-val deltaVersion = "2.1.1"
+val deltaVersion = "2.4.0"
 val glowVersion = "1.2.1"
 
 updateOptions := updateOptions.value.withGigahorse(false)
@@ -66,7 +66,7 @@ lazy val `datalake-spark3` = (project in file("datalake-spark3"))
       "com.microsoft.sqlserver" % "mssql-jdbc" % "8.4.1.jre8" % Provided,
       "com.microsoft.aad" % "adal4j" % "0.0.2" % Provided,
       "com.microsoft.azure" % "spark-mssql-connector_2.12" % "1.1.0" % Provided,
-      "com.crealytics" %% "spark-excel" % s"${spark3Version}_0.18.7" % Provided,
+      "com.crealytics" %% "spark-excel" % s"${spark3Version}_0.20.3" % Provided,
       //Use by ElasticsearchClient
       "com.softwaremill.sttp.client3" %% "core" % "3.8.15",
       "com.softwaremill.sttp.client3" %% "json4s" % "3.8.15" exclude("org.json4s", "json4s-core_2.12"), //Exclusion because json4s is used in spark
