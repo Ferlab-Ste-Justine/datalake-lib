@@ -14,6 +14,7 @@ import scala.collection.immutable
 
 object GenomicImplicits {
   val log: slf4j.Logger = slf4j.LoggerFactory.getLogger(getClass.getCanonicalName)
+
   implicit class GenomicOperations(df: DataFrame) {
 
     def joinAndMerge(other: DataFrame, outputColumnName: String, joinType: String = "inner"): DataFrame = {
@@ -788,7 +789,7 @@ object GenomicImplicits {
                       colName: String,
                       alias: String,
                       colType: String = "string"): Column =
-      (if (df.columns.contains(colName)) col(colName) else lit(null).cast(colType)).as(alias)
+      (if (df.columns.contains(colName)) col(colName).cast(colType).as(alias) else lit(null).cast(colType)).as(alias)
 
     //the order matters, do not change it
     val locusColumnNames: List[String] = List("chromosome", "start", "reference", "alternate")
@@ -800,7 +801,7 @@ object GenomicImplicits {
 
   /**
    * Reads vcf files into dataframe and apply transformations:
-   *  - split_multiallelics
+   *  - optionally split multiallelics variants
    *  - optionally normalize_variants if a path to a reference genome is given
    *
    * @param input               where the vcf files are located
@@ -808,7 +809,7 @@ object GenomicImplicits {
    * @param spark               a Spark session
    * @return data into a dataframe
    */
-  def vcf(input: String, referenceGenomePath: Option[String], optional: Boolean)(implicit spark: SparkSession): DataFrame = {
+  def vcf(input: String, referenceGenomePath: Option[String], optional: Boolean, split: Boolean)(implicit spark: SparkSession): DataFrame = {
     try {
       val inputs = input.split(",")
       val df = spark.read
@@ -817,10 +818,10 @@ object GenomicImplicits {
         .load(inputs: _*)
         .withColumnRenamed("filters", "INFO_FILTERS") // Avoid losing filters columns before split
         .withColumn("alternates", col("alternateAlleles")) // Keep a copy of the list of alternate alleles after split
-        .withSplitMultiAllelic
+      val dfSplit = if(split) df.withSplitMultiAllelic else df
       referenceGenomePath
         .fold(
-          df.withColumn("normalizationStatus",
+          dfSplit.withColumn("normalizationStatus",
             struct(
               lit(false) as "changed",
               lit(null).cast(StringType) as "errorMessage"))
@@ -835,15 +836,15 @@ object GenomicImplicits {
   }
 
   def vcf(input: String, referenceGenomePath: Option[String])(implicit spark: SparkSession): DataFrame = {
-    vcf(input, referenceGenomePath, optional = false)
+    vcf(input, referenceGenomePath, optional = false, split = false)
   }
 
-  def vcf(files: List[String], referenceGenomePath: Option[String], optional: Boolean)(implicit spark: SparkSession): DataFrame = {
-    vcf(files.mkString(","), referenceGenomePath, optional)
+  def vcf(files: List[String], referenceGenomePath: Option[String], optional: Boolean, split:Boolean)(implicit spark: SparkSession): DataFrame = {
+    vcf(files.mkString(","), referenceGenomePath, optional, split)
   }
 
   def vcf(files: List[String], referenceGenomePath: Option[String])(implicit spark: SparkSession): DataFrame = {
-    vcf(files.mkString(","), referenceGenomePath, optional = false)
+    vcf(files.mkString(","), referenceGenomePath, optional = false, split = false)
   }
 
 }

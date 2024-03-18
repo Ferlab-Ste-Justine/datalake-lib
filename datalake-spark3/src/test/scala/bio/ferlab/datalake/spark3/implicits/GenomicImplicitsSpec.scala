@@ -855,13 +855,13 @@ class GenomicImplicitsSpec extends SparkSpec {
   }
 
   it should "return an empty DataFrame if optional VCF is missing" in {
-    val df = vcf(List("f1", "f2"), None, optional = true)
+    val df = vcf(List("f1", "f2"), None, optional = true, split = false)
     df shouldEqual spark.emptyDataFrame
   }
 
   it should "throw an exception if VCF is missing when not optional" in {
     val exception = intercept[AnalysisException] {
-      vcf(List("f1", "f2"), None, optional = false)
+      vcf(List("f1", "f2"), None, optional = false, split = false)
     }
     exception.getMessage should include("Path does not exist:")
   }
