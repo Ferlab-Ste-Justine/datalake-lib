@@ -80,7 +80,7 @@ case class Variants(rc: RuntimeETLContext, participantId: Column = col("particip
     val variantsCheckpoint = if (checkpoint) variants.checkpoint() else variants
 
     variantsCheckpoint
-      .withFrequencies(participantId, affectedStatus, snv, splits)
+      .withFrequencies(participantId, affectedStatus, snv, splits, checkpoint)
       .withPopulations(data(thousand_genomes.id), data(topmed_bravo.id), data(gnomad_genomes_v2.id), data(gnomad_exomes_v2.id), data(gnomad_genomes_v3.id))
       .withDbSNP(data(dbsnp.id))
       .withClinvar(data(clinvar.id))
@@ -206,11 +206,15 @@ object Variants {
     }
 
 
-    def withFrequencies(participantId: Column, affectedStatus: Column, snv: DataFrame, splits: Seq[OccurrenceSplit]): DataFrame = splits match {
+    def withFrequencies(participantId: Column, affectedStatus: Column, snv: DataFrame, splits: Seq[OccurrenceSplit], checkpoint: Boolean = false): DataFrame = splits match {
       case Nil => df
       case _ =>
         val variantWithFreq = snv.split(participantId = participantId, affectedStatus = affectedStatus, splits)
-        df.joinByLocus(variantWithFreq, "left")
+        if (checkpoint) {
+          df.joinByLocus(variantWithFreq.checkpoint(), "left").checkpoint()
+        } else {
+          df.joinByLocus(variantWithFreq, "left")
+        }
     }
 
     def withSpliceAi(spliceai: DataFrame)(implicit spark: SparkSession): DataFrame = {
