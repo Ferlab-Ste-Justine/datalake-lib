@@ -44,6 +44,9 @@ object LoadResolver {
     case (format, Insert) if format == JDBC || format == SQL_SERVER => (ds: DatasetConf, df: DataFrame) =>
       JdbcLoader.insert(ds.location, ds.table.map(_.database).getOrElse(""), ds.table.map(_.name).getOrElse(""), df, ds.partitionby, ds.format.sparkFormat, ds.writeoptions)
 
+    case (format, Upsert) if format == JDBC || format == SQL_SERVER => (ds: DatasetConf, df: DataFrame) =>
+      JdbcLoader.upsert(ds.location, ds.table.map(_.database).getOrElse(""), ds.table.map(_.name).getOrElse(""), df, ds.keys, ds.partitionby, ds.format.sparkFormat, ds.writeoptions)
+
     case (ELASTICSEARCH, OverWrite) => (ds: DatasetConf, df: DataFrame) =>
       ElasticsearchLoader.writeOnce(ds.location, ds.table.map(_.database).getOrElse(""), ds.table.map(_.name).getOrElse(ds.location), df, ds.partitionby, ds.format.sparkFormat, ds.writeoptions)
 

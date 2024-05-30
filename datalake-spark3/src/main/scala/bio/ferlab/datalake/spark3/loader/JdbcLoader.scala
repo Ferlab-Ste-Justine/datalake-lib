@@ -1,5 +1,7 @@
 package bio.ferlab.datalake.spark3.loader
-import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
+
+import org.apache.spark.sql.functions.coalesce
+import org.apache.spark.sql.{Column, DataFrame, SaveMode, SparkSession}
 
 import java.time.LocalDate
 
@@ -7,6 +9,7 @@ object JdbcLoader extends Loader {
 
   /**
    * Default read logic for a loader
+   *
    * @param location     absolute path of where the data is
    * @param format       string representing the format
    * @param readOptions  read options
@@ -36,15 +39,15 @@ object JdbcLoader extends Loader {
   }
 
   /**
-   * @param location where to write the data
+   * @param location     where to write the data
    * @param databaseName database name
-   * @param tableName table name
-   * @param df new data to write into the table
+   * @param tableName    table name
+   * @param df           new data to write into the table
    * @param partitioning how the data is partitionned
-   * @param format format
-   * @param options write options
-   * @param spark a spark session
-   *  @return updated data
+   * @param format       format
+   * @param options      write options
+   * @param spark        a spark session
+   * @return updated data
    */
   override def writeOnce(location: String,
                          databaseName: String,
@@ -91,11 +94,12 @@ object JdbcLoader extends Loader {
   /**
    * Update or insert data into a table
    * Resolves duplicates by using the list of primary key passed as argument
-   * @param location full path of where the data will be located
-   * @param tableName the name of the updated/created table
-   * @param updates new data to be merged with existing data
+   *
+   * @param location    full path of where the data will be located
+   * @param tableName   the name of the updated/created table
+   * @param updates     new data to be merged with existing data
    * @param primaryKeys name of the columns holding the unique id
-   * @param spark a valid spark session
+   * @param spark       a valid spark session
    * @return the data as a dataframe
    */
   override def upsert(location: String,
@@ -105,7 +109,30 @@ object JdbcLoader extends Loader {
                       primaryKeys: Seq[String],
                       partitioning: List[String],
                       format: String,
-                      options: Map[String, String])(implicit spark: SparkSession): DataFrame = ???
+                      options: Map[String, String])(implicit spark: SparkSession): DataFrame = {
+    import spark.implicits._
+
+    require(primaryKeys.nonEmpty, "Primary keys are required for an Upsert write.")
+    require(primaryKeys.forall(updates.columns.contains), s"Columns [${primaryKeys.mkString(", ")}] are required in the DataFrame.")
+
+    val readOptions = options + ("dbtable" -> s"$databaseName.$tableName")
+    val existingDf = read(location, format, readOptions, Some(databaseName), Some(tableName))
+      .persist() // Make sure table is read once and at first
+
+    val updatedDf = if (existingDf.isEmpty) updates
+    else {
+      // No upsert operation with JDBC connection
+      // Do the merge with Spark then overwrite the table with the result
+      val keysAreIdentical: Column = primaryKeys.map(col => $"new.$col" <=> $"existing.$col").reduce(_ && _)
+      val updatedColumns: Seq[Column] = updates.columns.map(col => coalesce($"new.$col", $"existing.$col") as col)
+
+      updates.as("new")
+        .join(existingDf.as("existing"), keysAreIdentical, "full")
+        .select(updatedColumns: _*)
+    }
+
+    writeOnce(location, databaseName, tableName, updatedDf, partitioning, format, options)
+  }
 
   /**
    * Update the data only if the data has changed
