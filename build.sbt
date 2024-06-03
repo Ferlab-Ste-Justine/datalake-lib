@@ -70,6 +70,8 @@ lazy val `datalake-spark3` = (project in file("datalake-spark3"))
       "com.softwaremill.sttp.client3" %% "slf4j-backend" % "3.9.2",
       "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.41.0" % Test,
       "com.dimafeng" %% "testcontainers-scala-elasticsearch" % "0.41.2" % Test,
+      "com.dimafeng" %% "testcontainers-scala-postgresql" % "0.41.3" % Test,
+      "org.postgresql" % "postgresql" % "42.5.1" % Test,
       "org.scalatest" %% "scalatest" % scalatestVersion % Test,
       "org.apache.spark" %% "spark-hive" % spark3Version % Test,
 
