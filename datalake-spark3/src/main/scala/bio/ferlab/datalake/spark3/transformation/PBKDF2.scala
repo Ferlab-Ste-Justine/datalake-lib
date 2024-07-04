@@ -17,7 +17,7 @@ import scala.language.postfixOps
  * @param keyLength length of the resulting hash
  * @param columns names of the columns to hash
  */
-case class PBKDF2(salt: String, iteration: Int, keyLength: Int, override val columns: String*) extends HashTransformation {
+case class PBKDF2(salt: String, iteration: Int, keyLength: Int, override val columns: String*) extends HashTransformation[Seq[String]] {
 
   override def transform: DataFrame => DataFrame = { df =>
 
