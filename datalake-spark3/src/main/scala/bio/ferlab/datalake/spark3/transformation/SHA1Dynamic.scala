@@ -1,12 +1,13 @@
 package bio.ferlab.datalake.spark3.transformation
 
 import org.apache.spark.sql.DataFrame
-import org.apache.spark.sql.functions._
+import org.apache.spark.sql.functions.{col, concat_ws, lit, sha1, when}
 import org.apache.spark.sql.types.StringType
 
-case class SHA1(salt: String, override val columns: String*) extends HashTransformation[Seq[String]] {
+case class SHA1Dynamic(salt: String, override val columns: DataFrame => Seq[String]) extends HashTransformation[DataFrame => Seq[String]] {
+
   override def transform: DataFrame => DataFrame = { df =>
-    columns.foldLeft(df){ case (d, column) =>
+    columns(df).foldLeft(df){ case (d, column) =>
       d.withColumn(column,
         when(col(column).isNull, nullValues)
           .otherwise(
@@ -16,4 +17,3 @@ case class SHA1(salt: String, override val columns: String*) extends HashTransfo
     }
   }
 }
-
