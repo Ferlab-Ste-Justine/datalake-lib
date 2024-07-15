@@ -1,10 +1,11 @@
 package bio.ferlab.datalake.spark3.transformation
 
+import bio.ferlab.datalake.spark3.transformation.HashTransformation.DynamicHashTransformation
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.functions.{col, concat_ws, lit, sha1, when}
 import org.apache.spark.sql.types.StringType
 
-case class SHA1Dynamic(salt: String, override val columns: DataFrame => Seq[String]) extends HashTransformation[DataFrame => Seq[String]] {
+case class SHA1Dynamic(salt: String, override val columns: DataFrame => Seq[String]) extends DynamicHashTransformation {
 
   override def transform: DataFrame => DataFrame = { df =>
     columns(df).foldLeft(df){ case (d, column) =>

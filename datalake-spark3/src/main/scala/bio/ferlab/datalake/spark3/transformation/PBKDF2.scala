@@ -1,5 +1,6 @@
 package bio.ferlab.datalake.spark3.transformation
 
+import bio.ferlab.datalake.spark3.transformation.HashTransformation.SimpleHashTransformation
 import bio.ferlab.datalake.spark3.transformation.PBKDF2.pbkdf2Udf
 import com.roundeights.hasher.Implicits._
 import org.apache.spark.sql._
@@ -17,7 +18,7 @@ import scala.language.postfixOps
  * @param keyLength length of the resulting hash
  * @param columns names of the columns to hash
  */
-case class PBKDF2(salt: String, iteration: Int, keyLength: Int, override val columns: String*) extends HashTransformation[Seq[String]] {
+case class PBKDF2(salt: String, iteration: Int, keyLength: Int, override val columns: String*) extends SimpleHashTransformation {
 
   override def transform: DataFrame => DataFrame = { df =>
 
