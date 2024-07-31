@@ -3,10 +3,13 @@ package bio.ferlab.datalake.spark3.publictables.enriched
 import bio.ferlab.datalake.commons.config.{Coalesce, DatasetConf, RuntimeETLContext}
 import bio.ferlab.datalake.spark3.etl.v4.SimpleSingleETL
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
+import bio.ferlab.datalake.spark3.implicits.GenomicImplicits._
+import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns.locusColumnNames
 import bio.ferlab.datalake.spark3.implicits.SparkUtils.removeEmptyObjectsIn
+import bio.ferlab.datalake.spark3.publictables.enriched.Genes._
 import mainargs.{ParserForMethods, main}
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.{Column, DataFrame}
+import org.apache.spark.sql.{Column, DataFrame, SparkSession}
 
 import java.time.LocalDateTime
 
@@ -20,6 +23,7 @@ case class Genes(rc: RuntimeETLContext) extends SimpleSingleETL(rc) {
   val ddd_gene_set: DatasetConf = conf.getDataset("normalized_ddd_gene_set")
   val cosmic_gene_set: DatasetConf = conf.getDataset("normalized_cosmic_gene_set")
   val gnomad_constraint: DatasetConf = conf.getDataset("normalized_gnomad_constraint_v2_1_1")
+  val spliceai: DatasetConf = conf.getDataset("enriched_spliceai")
 
   override def extract(lastRunValue: LocalDateTime,
                        currentRunValue: LocalDateTime): Map[String, DataFrame] = {
@@ -30,7 +34,8 @@ case class Genes(rc: RuntimeETLContext) extends SimpleSingleETL(rc) {
       human_genes.id -> human_genes.read,
       ddd_gene_set.id -> ddd_gene_set.read,
       cosmic_gene_set.id -> cosmic_gene_set.read,
-      gnomad_constraint.id -> gnomad_constraint.read
+      gnomad_constraint.id -> gnomad_constraint.read,
+      spliceai.id -> spliceai.read
     )
   }
 
@@ -55,10 +60,40 @@ case class Genes(rc: RuntimeETLContext) extends SimpleSingleETL(rc) {
       .withDDD(data(ddd_gene_set.id))
       .withCosmic(data(cosmic_gene_set.id))
       .withGnomadConstraint(data(gnomad_constraint.id))
-
+      .withSpliceAi(data(spliceai.id))
   }
 
+  override def defaultRepartition: DataFrame => DataFrame = Coalesce()
+}
+
+object Genes {
+  @main
+  def run(rc: RuntimeETLContext): Unit = {
+    Genes(rc).run()
+  }
+
+  def main(args: Array[String]): Unit = ParserForMethods(this).runOrThrow(args)
+
   implicit class DataFrameOps(df: DataFrame) {
+
+    def joinAndMergeWith(gene_set: DataFrame,
+                                 joinOn: Seq[String],
+                                 asColumnName: String,
+                                 aggFirst: Boolean = false): DataFrame = {
+      val aggFn: Column => Column = c => if (aggFirst) first(c) else collect_list(c)
+      val aggDF = df
+        .join(gene_set, joinOn, "left")
+        .groupBy("symbol")
+        .agg(
+          first(struct(df("*"))) as "hg",
+          aggFn(struct(gene_set.drop(joinOn: _*)("*"))) as asColumnName,
+        )
+        .select(col("hg.*"), col(asColumnName))
+      if (aggFirst)
+        aggDF
+      else
+        aggDF.withColumn(asColumnName, removeEmptyObjectsIn(asColumnName))
+    }
 
     def withGnomadConstraint(gnomad: DataFrame): DataFrame = {
       val gnomadConstraint = gnomad
@@ -105,34 +140,17 @@ case class Genes(rc: RuntimeETLContext) extends SimpleSingleETL(rc) {
       df.joinAndMergeWith(hpoPrepared, Seq("entrez_gene_id"), "hpo")
     }
 
-    def joinAndMergeWith(gene_set: DataFrame, joinOn: Seq[String], asColumnName: String, aggFirst: Boolean = false): DataFrame = {
-      val aggFn: Column => Column = c => if (aggFirst) first(c) else collect_list(c)
-      val aggDF = df
-        .join(gene_set, joinOn, "left")
-        .groupBy("symbol")
-        .agg(
-          first(struct(df("*"))) as "hg",
-          aggFn(struct(gene_set.drop(joinOn: _*)("*"))) as asColumnName,
-        )
-        .select(col("hg.*"), col(asColumnName))
-      if (aggFirst)
-        aggDF
-      else
-        aggDF.withColumn(asColumnName, removeEmptyObjectsIn(asColumnName))
+    def withSpliceAi(spliceai: DataFrame)(implicit spark: SparkSession): DataFrame = {
+      import spark.implicits._
+
+      val spliceAiPrepared = spliceai
+        .select($"symbol", $"max_score.*")
+        .withColumn("type", when($"ds" === 0, null).otherwise($"type"))
+
+      df
+        .joinAndMergeWith(spliceAiPrepared, Seq("symbol"), "spliceai", aggFirst = true)
+        .withColumn("spliceai", when($"spliceai.ds".isNull and $"spliceai.type".isNull, null).otherwise($"spliceai"))
     }
-
   }
-
-
-  override def defaultRepartition: DataFrame => DataFrame = Coalesce()
-}
-
-object Genes {
-  @main
-  def run(rc: RuntimeETLContext): Unit = {
-    Genes(rc).run()
-  }
-
-  def main(args: Array[String]): Unit = ParserForMethods(this).runOrThrow(args)
 }
 

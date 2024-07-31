@@ -19,7 +19,8 @@ case class EnrichedGenes(`symbol`: String = "OR4F5",
                          `chromosome`: String = "1",
                          `ddd`: List[DDD] = List(DDD()),
                          `cosmic`: List[COSMIC] = List(COSMIC()),
-                          gnomad: Option[GNOMAD] = Some(GNOMAD()))
+                         gnomad: Option[GNOMAD] = Some(GNOMAD()),
+                         spliceai: Option[SPLICEAI] = Some(SPLICEAI()))
 
 case class ORPHANET(`disorder_id`: Long = 17827,
                     `panel`: String = "Immunodeficiency due to a classical component pathway complement deficiency",
@@ -40,3 +41,6 @@ case class COSMIC(`tumour_types_germline`: List[String] = List("breast", "colon"
 
 case class GNOMAD(pli: Float = 1.0f,
                   loeuf: Float = 0.054f)
+
+case class SPLICEAI(ds: Double = 0.1,
+                    `type`: Option[Seq[String]] = Some(Seq("AG", "AL", "DG", "DL")))

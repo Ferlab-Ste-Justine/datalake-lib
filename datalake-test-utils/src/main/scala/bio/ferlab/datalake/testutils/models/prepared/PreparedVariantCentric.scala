@@ -139,8 +139,8 @@ object PreparedVariantCentric {
                  `hpo_term_name`: String = "Hyperreflexia",
                  `hpo_term_label`: String = "Hyperreflexia (HP:0001347)")
 
-  case class SPLICEAI(`ds`: Double = 0.01,
-                      `type`: Seq[String] = Seq("AG"))
+  case class SPLICEAI(`ds`: Double = 0.1,
+                      `type`: Option[Seq[String]] = Some(Seq("AG", "AL", "DG", "DL")))
 
   case class TOPMED_BRAVO(`ac`: Long = 2,
                           `an`: Long = 125568,

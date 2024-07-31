@@ -2,10 +2,10 @@ package bio.ferlab.datalake.spark3.publictables.enriched
 
 import bio.ferlab.datalake.commons.config.DatasetConf
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
-import bio.ferlab.datalake.testutils.models.enriched.{EnrichedGenes, OMIM, ORPHANET, COSMIC}
-import bio.ferlab.datalake.testutils.models.normalized._
+import bio.ferlab.datalake.spark3.publictables.enriched.Genes._
 import bio.ferlab.datalake.spark3.testutils.WithTestConfig
-import bio.ferlab.datalake.testutils.models.normalized.NormalizedCosmicGeneSet
+import bio.ferlab.datalake.testutils.models.enriched._
+import bio.ferlab.datalake.testutils.models.normalized._
 import bio.ferlab.datalake.testutils.{CleanUpBeforeAll, CreateDatabasesBeforeAll, SparkSpec, TestETLContext}
 import org.apache.spark.sql.functions
 import org.apache.spark.sql.functions.col
@@ -22,6 +22,7 @@ class GenesSpec extends SparkSpec with WithTestConfig with CreateDatabasesBefore
   val ddd_gene_set: DatasetConf = conf.getDataset("normalized_ddd_gene_set")
   val cosmic_gene_set: DatasetConf = conf.getDataset("normalized_cosmic_gene_set")
   val gnomad_constraint: DatasetConf = conf.getDataset("normalized_gnomad_constraint_v2_1_1")
+  val spliceai: DatasetConf = conf.getDataset("enriched_spliceai")
 
   private val inputData = Map(
     omim_gene_set.id -> Seq(
@@ -35,7 +36,8 @@ class GenesSpec extends SparkSpec with WithTestConfig with CreateDatabasesBefore
     gnomad_constraint.id -> Seq(
       NormalizedGnomadConstraint(chromosome = "1", start = 69897, symbol = "OR4F5", `pLI` = 1.0f, oe_lof_upper = 0.01f),
       NormalizedGnomadConstraint(chromosome = "1", start = 69900, symbol = "OR4F5", `pLI` = 0.9f, oe_lof_upper = 0.054f)
-    ).toDF()
+    ).toDF(),
+    spliceai.id -> Seq(EnrichedSpliceAi(`symbol` = "OR4F5")).toDF()
   )
 
   val job = new Genes(TestETLContext())
@@ -77,6 +79,37 @@ class GenesSpec extends SparkSpec with WithTestConfig with CreateDatabasesBefore
 
     resultDF.where("symbol='OR4F5'").as[EnrichedGenes].collect().head shouldBe
       EnrichedGenes(`orphanet` = expectedOrphanet, `omim` = expectedOmim, `cosmic` = expectedCosmic)
+  }
+
+  "withSpliceAi" should "enrich genes with SpliceAi scores" in {
+    val genes = Seq(
+      EnrichedGenes(`chromosome` = "1", `symbol` = "gene1"),
+      EnrichedGenes(`chromosome` = "1", `symbol` = "gene2"),
+      EnrichedGenes(`chromosome` = "2", `symbol` = "gene3"),
+      EnrichedGenes(`chromosome` = "3", `symbol` = "gene4"),
+    ).toDF().drop("spliceai")
+
+    val spliceai = Seq(
+      // snv
+      EnrichedSpliceAi(`chromosome` = "1", `start` = 1, `end` = 2, `reference` = "T", `alternate` = "C", `symbol` = "gene1", `max_score` = MAX_SCORE(`ds` = 2.0, `type` = Seq("AL"))),
+      EnrichedSpliceAi(`chromosome` = "1", `start` = 1, `end` = 2, `reference` = "T", `alternate` = "C", `symbol` = "gene2", `max_score` = MAX_SCORE(`ds` = 0.0, `type` = Seq("AG", "AL", "DG", "DL"))),
+
+      // indel
+      EnrichedSpliceAi(`chromosome` = "2", `start` = 1, `end` = 2, `reference` = "T", `alternate` = "AT", `symbol` = "gene3", `max_score` = MAX_SCORE(`ds` = 1.0, `type` = Seq("AG", "AL")))
+    ).toDF()
+
+    val result = genes.withSpliceAi(spliceai)
+
+    val expected = Seq(
+      EnrichedGenes(`chromosome` = "1", `symbol` = "gene1", `spliceai` = Some(SPLICEAI(`ds` = 2.0, `type` = Some(List("AL"))))),
+      EnrichedGenes(`chromosome` = "1", `symbol` = "gene2", `spliceai` = Some(SPLICEAI(`ds` = 0.0, `type` = None))),
+      EnrichedGenes(`chromosome` = "2", `symbol` = "gene3", `spliceai` = Some(SPLICEAI(`ds` = 1.0, `type` = Some(List("AG", "AL"))))),
+      EnrichedGenes(`chromosome` = "3", `symbol` = "gene4", `spliceai` = None),
+    )
+
+    result
+      .as[EnrichedGenes]
+      .collect() should contain theSameElementsAs expected
   }
 }
 

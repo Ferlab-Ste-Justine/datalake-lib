@@ -81,8 +81,8 @@ object EnrichedVariant {
                   )
 
 
-  case class SPLICEAI(ds: Double = 0.01,
-                      `type`: Seq[String] = Seq("AG"))
+  case class SPLICEAI(ds: Double = 0.1,
+                      `type`: Option[Seq[String]] = Some(Seq("AG", "AL", "DG", "DL")))
 
   case class CMC(mutation_url: String = "https://cancer.sanger.ac.uk/cosmic/mutation/overview?id=29491889&genome=37",
                  shared_aa: Int = 9,
