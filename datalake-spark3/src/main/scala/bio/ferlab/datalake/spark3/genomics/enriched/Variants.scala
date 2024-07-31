@@ -18,7 +18,7 @@ import java.time.LocalDateTime
 
 /**
  * This ETL create an aggregated table on occurrences of SNV variants. Occurrences are aggregated by calculating the frequencies specified in parameter frequencies.
- * The table is enriched with information from other datasets such as genes, dbsnp, clinvar, spliceai, 1000 genomes, topmed_bravo, gnomad_genomes_v2, gnomad_exomes_v2, gnomad_genomes_v3.
+ * The table is enriched with information from other datasets such as genes, dbsnp, clinvar, 1000 genomes, topmed_bravo, gnomad_genomes_v2, gnomad_exomes_v2, gnomad_genomes_v3.
  *
  * @param participantId     column used to distinct participants in order to calculate total number of participants (pn) and total allele number (an)
  * @param affectedStatus    column used to calculate frequencies for affected / unaffected participants
@@ -40,7 +40,6 @@ case class Variants(rc: RuntimeETLContext, participantId: Column = col("particip
   protected val dbsnp: DatasetConf = conf.getDataset("normalized_dbsnp")
   protected val clinvar: DatasetConf = conf.getDataset("normalized_clinvar")
   protected val genes: DatasetConf = conf.getDataset("enriched_genes")
-  protected val spliceai: DatasetConf = conf.getDataset("enriched_spliceai")
   protected val cosmic: DatasetConf = conf.getDataset("normalized_cosmic_mutation_set")
 
   override def extract(lastRunValue: LocalDateTime = minValue,
@@ -54,7 +53,6 @@ case class Variants(rc: RuntimeETLContext, participantId: Column = col("particip
       dbsnp.id -> dbsnp.read,
       clinvar.id -> clinvar.read,
       genes.id -> genes.read,
-      spliceai.id -> spliceai.read,
       cosmic.id -> cosmic.read,
       snvDatasetId -> conf.getDataset(snvDatasetId).read
     )
@@ -85,7 +83,6 @@ case class Variants(rc: RuntimeETLContext, participantId: Column = col("particip
       .withDbSNP(data(dbsnp.id))
       .withClinvar(data(clinvar.id))
       .withGenes(data(genes.id))
-      .withSpliceAi(data(spliceai.id))
       .withCosmic(data(cosmic.id))
       .withGeneExternalReference
       .withVariantExternalReference
@@ -215,27 +212,6 @@ object Variants {
         } else {
           df.joinByLocus(variantWithFreq, "left")
         }
-    }
-
-    def withSpliceAi(spliceai: DataFrame)(implicit spark: SparkSession): DataFrame = {
-      import spark.implicits._
-
-      val scores = spliceai.selectLocus($"symbol", $"max_score" as "spliceai")
-        .withColumn("type", when($"spliceai.ds" === 0, null).otherwise($"spliceai.type"))
-        .withColumn("spliceai", struct($"spliceai.ds" as "ds", $"type"))
-        .drop("type")
-
-      df
-        .select($"*", explode_outer($"genes") as "gene", $"gene.symbol" as "symbol") // explode_outer since genes can be null
-        .join(scores, locusColumnNames :+ "symbol", "left")
-        .drop("symbol") // only used for joining
-        .withColumn("gene", struct($"gene.*", $"spliceai")) // add spliceai struct as nested field of gene struct
-        .groupByLocus()
-        .agg(
-          first(struct(df.drop("genes")("*"))) as "variant",
-          collect_list("gene") as "genes" // re-create genes list for each locus, now containing spliceai struct
-        )
-        .select("variant.*", "genes")
     }
 
     def withCosmic(cosmic: DataFrame)(implicit spark: SparkSession): DataFrame = {
