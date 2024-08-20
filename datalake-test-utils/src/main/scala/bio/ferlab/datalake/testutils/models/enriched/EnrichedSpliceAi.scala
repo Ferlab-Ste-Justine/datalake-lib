@@ -22,4 +22,4 @@ case class EnrichedSpliceAi(`chromosome`: String = "1",
                             `max_score`: MAX_SCORE = MAX_SCORE())
 
 case class MAX_SCORE(`ds`: Double = 0.1,
-                     `type`: Seq[String] = Seq("AG", "AL", "DG", "DL"))
+                     `type`: Option[Seq[String]] = Some(Seq("AG", "AL", "DG", "DL")))

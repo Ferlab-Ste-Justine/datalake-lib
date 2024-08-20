@@ -73,7 +73,10 @@ object ImportPublicTable {
   def spliceai_snv(rc: RuntimeETLContext): Unit = SpliceAi.run(rc, "snv")
 
   @main
-  def spliceai_enriched(rc: RuntimeETLContext): Unit = enriched.SpliceAi.run(rc)
+  def spliceai_enriched_indel(rc: RuntimeETLContext): Unit = enriched.SpliceAi.run(rc, "indel")
+
+  @main
+  def spliceai_enriched_snv(rc: RuntimeETLContext): Unit = enriched.SpliceAi.run(rc, "snv")
 
   @main
   def topmed_bravo(rc: RuntimeETLContext): Unit = TopMed.run(rc)
