@@ -3,13 +3,14 @@ package bio.ferlab.datalake.spark3.genomics.enriched
 import bio.ferlab.datalake.commons.config.DatasetConf
 import bio.ferlab.datalake.spark3.genomics.enriched.Variants.DataFrameOps
 import bio.ferlab.datalake.spark3.genomics.{FrequencySplit, SimpleAggregation}
+import bio.ferlab.datalake.spark3.implicits.GenomicImplicits._
 import bio.ferlab.datalake.spark3.testutils.WithTestConfig
-import bio.ferlab.datalake.testutils.models.enriched.EnrichedVariant.CMC
-import bio.ferlab.datalake.testutils.models.enriched.{EnrichedGenes, EnrichedVariant}
+import bio.ferlab.datalake.testutils.models.enriched.EnrichedVariant.{CMC, GENES, SPLICEAI}
+import bio.ferlab.datalake.testutils.models.enriched.{EnrichedGenes, EnrichedSpliceAi, EnrichedVariant, MAX_SCORE}
 import bio.ferlab.datalake.testutils.models.normalized._
 import bio.ferlab.datalake.testutils.{SparkSpec, TestETLContext}
 import org.apache.spark.sql.DataFrame
-import org.apache.spark.sql.functions.{col, collect_set, max}
+import org.apache.spark.sql.functions.{col, collect_set, max, transform}
 
 class EnrichedVariantsSpec extends SparkSpec with WithTestConfig {
 
@@ -26,6 +27,8 @@ class EnrichedVariantsSpec extends SparkSpec with WithTestConfig {
   val clinvar: DatasetConf = conf.getDataset("normalized_clinvar")
   val genes: DatasetConf = conf.getDataset("enriched_genes")
   val cosmic: DatasetConf = conf.getDataset("normalized_cosmic_mutation_set")
+  val spliceai_snv: DatasetConf = conf.getDataset("enriched_spliceai_snv")
+  val spliceai_indel: DatasetConf = conf.getDataset("enriched_spliceai_indel")
 
   val occurrencesDf: DataFrame = Seq(
     NormalizedSNV(`participant_id` = "PA0001", study_id = "S1"),
@@ -41,6 +44,8 @@ class EnrichedVariantsSpec extends SparkSpec with WithTestConfig {
   val clinvarDf: DataFrame = Seq(NormalizedClinvar(chromosome = "1", start = 69897, reference = "T", alternate = "C")).toDF
   val genesDf: DataFrame = Seq(EnrichedGenes()).toDF()
   val cosmicDf: DataFrame = Seq(NormalizedCosmicMutationSet(chromosome = "1", start = 69897, reference = "T", alternate = "C")).toDF()
+  val spliceAiSnvDf: DataFrame = Seq(EnrichedSpliceAi(chromosome = "1", start = 69897, reference = "T", alternate = "C", symbol = "OR4F5", ds_ag = 0.01, `max_score` = MAX_SCORE(ds = 0.1, `type` = Some(Seq("AG", "AL", "DG", "DL"))))).toDF()
+  val spliceAiIndelDf: DataFrame = Seq(EnrichedSpliceAi(chromosome = "1", start = 69897, reference = "TTG", alternate = "C", symbol = "OR4F5", ds_ag = 0.01, `max_score` = MAX_SCORE(ds = 0.2, `type` = Some(Seq("AG"))))).toDF()
 
   val etl = Variants(TestETLContext(), snvDatasetId = snvKeyId, splits = Seq(FrequencySplit("frequency", extraAggregations = Seq(SimpleAggregation(name = "zygosities", c = col("zygosity"))))))
 
@@ -54,8 +59,23 @@ class EnrichedVariantsSpec extends SparkSpec with WithTestConfig {
     dbsnp.id -> dbsnpDf,
     clinvar.id -> clinvarDf,
     genes.id -> genesDf,
-    cosmic.id -> cosmicDf
+    cosmic.id -> cosmicDf,
+    spliceai_snv.id -> spliceAiSnvDf,
+    spliceai_indel.id -> spliceAiIndelDf
   )
+
+  it should "not join with SpliceAI if it is set to false" in {
+    val noSpliceAiETL = etl.copy(spliceAi = false)
+
+    val result = noSpliceAiETL.transformSingle(data).cache()
+
+    result
+      .as[EnrichedVariant]
+      .collect() should contain theSameElementsAs Seq(
+      EnrichedVariant(genes = List(GENES(spliceai = None)),
+        gene_external_reference = List("HPO", "Orphanet", "OMIM", "DDD", "Cosmic", "gnomAD"))
+    )
+  }
 
   "transformSingle" should "return expected result" in {
     val df = etl.transformSingle(data)
@@ -95,5 +115,45 @@ class EnrichedVariantsSpec extends SparkSpec with WithTestConfig {
     val df = job.transformSingle(data)
     val result = df.select("participant_ids", "latest_study").as[(Set[String], String)].collect()
     result.head shouldBe(Set("PA0001", "PA0002"), "S2")
+  }
+
+  "withSpliceAi" should "enrich variants with SpliceAi scores" in {
+    val variants = Seq(
+      EnrichedVariant(`chromosome` = "1", `start` = 1, `end` = 2, `reference` = "T", `alternate` = "C"  , variant_class = "SNV", `genes` = List(GENES(`symbol` = Some("gene1")), GENES(`symbol` = Some("gene2")))),
+      EnrichedVariant(`chromosome` = "1", `start` = 1, `end` = 2, `reference` = "T", `alternate` = "AT" , variant_class = "Insertion"),
+      EnrichedVariant(`chromosome` = "2", `start` = 1, `end` = 2, `reference` = "A", `alternate` = "T"  , variant_class = "SNV"),
+      EnrichedVariant(`chromosome` = "3", `start` = 1, `end` = 2, `reference` = "C", `alternate` = "A"  , variant_class = "SNV" , genes = List(null)),
+    ).toDF()
+
+    // Remove spliceai nested field from variants df
+    val variantsWithoutSpliceAi = variants.withColumn("genes", transform($"genes", g => g.dropFields("spliceai")))
+
+    val spliceAiSnv = Seq(
+      // snv
+      EnrichedSpliceAi(`chromosome` = "1", `start` = 1, `end` = 2, `reference` = "T", `alternate` = "C", `symbol` = "gene1", `max_score` = MAX_SCORE(`ds` = 2.0, `type` = Some(Seq("AL")))),
+      EnrichedSpliceAi(`chromosome` = "1", `start` = 1, `end` = 2, `reference` = "T", `alternate` = "C", `symbol` = "gene2", `max_score` = MAX_SCORE(`ds` = 0.0, `type` = None)),
+      EnrichedSpliceAi(`chromosome` = "1", `start` = 1, `end` = 2, `reference` = "T", `alternate` = "C", `symbol` = "gene3", `max_score` = MAX_SCORE(`ds` = 0.0, `type` = None)),
+    ).toDF()
+
+    val spliceAiIndel = Seq(
+      // indel
+      EnrichedSpliceAi(`chromosome` = "1", `start` = 1, `end` = 2, `reference` = "T", `alternate` = "AT", `symbol` = "OR4F5", `max_score` = MAX_SCORE(`ds` = 1.0, `type` = Some(Seq("AG", "AL"))))
+    ).toDF()
+
+    val result = variantsWithoutSpliceAi.withSpliceAi(spliceAiSnv, spliceAiIndel)
+
+    val expected = Seq(
+      EnrichedVariant(`chromosome` = "1", `start` = 1, `end` = 2, `reference` = "T", `alternate` = "C", variant_class = "SNV", `genes` = List(
+        GENES(`symbol` = Some("gene1"), `spliceai` = Some(SPLICEAI(`ds` = 2.0, `type` = Some(Seq("AL"))))),
+        GENES(`symbol` = Some("gene2"), `spliceai` = Some(SPLICEAI(`ds` = 0.0, `type` = None))),
+      )),
+      EnrichedVariant(`chromosome` = "1", `start` = 1, `end` = 2, `reference` = "T", `alternate` = "AT", variant_class = "Insertion", `genes` = List(GENES(`spliceai` = Some(SPLICEAI(`ds` = 1.0, `type` = Some(Seq("AG", "AL"))))))),
+      EnrichedVariant(`chromosome` = "2", `start` = 1, `end` = 2, `reference` = "A", `alternate` = "T", variant_class = "SNV"       , `genes` = List(GENES(`spliceai` = None))),
+      EnrichedVariant(`chromosome` = "3", `start` = 1, `end` = 2, `reference` = "C", `alternate` = "A", variant_class = "SNV"       , `genes` = List(null))
+    ).toDF().selectLocus($"genes.spliceai").collect()
+
+    result
+      .selectLocus($"genes.spliceai")
+      .collect() should contain theSameElementsAs expected
   }
 }

@@ -21,7 +21,6 @@ case class Genes(rc: RuntimeETLContext) extends SimpleSingleETL(rc) {
   val ddd_gene_set: DatasetConf = conf.getDataset("normalized_ddd_gene_set")
   val cosmic_gene_set: DatasetConf = conf.getDataset("normalized_cosmic_gene_set")
   val gnomad_constraint: DatasetConf = conf.getDataset("normalized_gnomad_constraint_v2_1_1")
-  val spliceai: DatasetConf = conf.getDataset("enriched_spliceai")
 
   override def extract(lastRunValue: LocalDateTime,
                        currentRunValue: LocalDateTime): Map[String, DataFrame] = {
@@ -32,8 +31,7 @@ case class Genes(rc: RuntimeETLContext) extends SimpleSingleETL(rc) {
       human_genes.id -> human_genes.read,
       ddd_gene_set.id -> ddd_gene_set.read,
       cosmic_gene_set.id -> cosmic_gene_set.read,
-      gnomad_constraint.id -> gnomad_constraint.read,
-      spliceai.id -> spliceai.read
+      gnomad_constraint.id -> gnomad_constraint.read
     )
   }
 
@@ -58,7 +56,6 @@ case class Genes(rc: RuntimeETLContext) extends SimpleSingleETL(rc) {
       .withDDD(data(ddd_gene_set.id))
       .withCosmic(data(cosmic_gene_set.id))
       .withGnomadConstraint(data(gnomad_constraint.id))
-      .withSpliceAi(data(spliceai.id))
   }
 
   override def defaultRepartition: DataFrame => DataFrame = Coalesce()
@@ -137,20 +134,6 @@ object Genes {
         .distinct()
         .withColumn("hpo_term_label", concat(col("hpo_term_name"), lit(" ("), col("hpo_term_id"), lit(")")))
       df.joinAndMergeWith(hpoPrepared, Seq("entrez_gene_id"), "hpo", broadcastOtherDf = true)
-    }
-
-    def withSpliceAi(spliceai: DataFrame)(implicit spark: SparkSession): DataFrame = {
-      import spark.implicits._
-
-      val spliceAiPrepared = spliceai
-        .groupBy("symbol")
-        .agg(first("max_score") as "max_score")
-        .select($"symbol", $"max_score.*")
-        .withColumn("type", when($"ds" === 0, null).otherwise($"type"))
-
-      df
-        .joinAndMergeWith(spliceAiPrepared, Seq("symbol"), "spliceai", aggFirst = true, broadcastOtherDf = true)
-        .withColumn("spliceai", when($"spliceai.ds".isNull and $"spliceai.type".isNull, null).otherwise($"spliceai"))
     }
   }
 }
