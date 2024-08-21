@@ -3,24 +3,20 @@ package bio.ferlab.datalake.spark3.publictables.enriched
 import bio.ferlab.datalake.commons.config.{DatasetConf, RepartitionByRange, RuntimeETLContext}
 import bio.ferlab.datalake.spark3.etl.v4.SimpleSingleETL
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits.DatasetConfOperations
-import mainargs.{ParserForMethods, main}
+import mainargs.{ParserForMethods, arg, main}
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{Column, DataFrame, functions}
 
 import java.time.LocalDateTime
 
-case class SpliceAi(rc: RuntimeETLContext) extends SimpleSingleETL(rc) {
+case class SpliceAi(rc: RuntimeETLContext, variantType: String) extends SimpleSingleETL(rc) {
 
-  override val mainDestination: DatasetConf = conf.getDataset("enriched_spliceai")
-  val spliceai_indel: DatasetConf = conf.getDataset("normalized_spliceai_indel")
-  val spliceai_snv: DatasetConf = conf.getDataset("normalized_spliceai_snv")
+  override val mainDestination: DatasetConf = conf.getDataset(s"enriched_spliceai_$variantType")
+  val normalized_spliceai: DatasetConf = conf.getDataset(s"normalized_spliceai_$variantType")
 
   override def extract(lastRunValue: LocalDateTime,
                        currentRunValue: LocalDateTime): Map[String, DataFrame] = {
-    Map(
-      spliceai_indel.id -> spliceai_indel.read,
-      spliceai_snv.id -> spliceai_snv.read
-    )
+    Map(normalized_spliceai.id -> normalized_spliceai.read)
   }
 
   override def transformSingle(data: Map[String, DataFrame],
@@ -28,10 +24,8 @@ case class SpliceAi(rc: RuntimeETLContext) extends SimpleSingleETL(rc) {
                                currentRunValue: LocalDateTime): DataFrame = {
     import spark.implicits._
 
-    val spliceai_snvDf = data(spliceai_snv.id)
-    val spliceai_indelDf = data(spliceai_indel.id)
-
-    val originalColumns = spliceai_snvDf.columns.map(col)
+    val df = data(normalized_spliceai.id)
+    val originalColumns = df.columns.map(col)
 
     val getDs: Column => Column = _.getItem(0).getField("ds") // Get delta score
     val scoreColumnNames = Array("AG", "AL", "DG", "DL")
@@ -43,8 +37,7 @@ case class SpliceAi(rc: RuntimeETLContext) extends SimpleSingleETL(rc) {
           .otherwise(c2)
     }
 
-    spliceai_snvDf
-      .union(spliceai_indelDf)
+    df
       .select(
         originalColumns :+
           $"ds_ag".as("AG") :+ // acceptor gain
@@ -57,17 +50,17 @@ case class SpliceAi(rc: RuntimeETLContext) extends SimpleSingleETL(rc) {
         getDs($"max_score_temp") as "ds",
         functions.transform($"max_score_temp", c => c.getField("type")) as "type")
       )
+      .withColumn("max_score", $"max_score".withField("type", when($"max_score.ds" === 0, null).otherwise($"max_score.type")))
       .select(originalColumns :+ $"max_score": _*)
   }
 
   override def defaultRepartition: DataFrame => DataFrame = RepartitionByRange(columnNames = Seq("chromosome", "start"), n = Some(500))
-
 }
 
 object SpliceAi {
   @main
-  def run(rc: RuntimeETLContext): Unit = {
-    SpliceAi(rc).run()
+  def run(rc: RuntimeETLContext, @arg(name = "variant_type", short = 'v', doc = "Variant Type") variantType: String): Unit = {
+    SpliceAi(rc, variantType).run()
   }
 
   def main(args: Array[String]): Unit = ParserForMethods(this).runOrThrow(args)

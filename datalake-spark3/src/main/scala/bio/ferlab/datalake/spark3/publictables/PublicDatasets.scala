@@ -60,10 +60,11 @@ case class PublicDatasets(alias: String, tableDatabase: Option[String], viewData
           DatasetConf("normalized_spliceai_snv"            , alias, "/public/spliceai/snv"                         , DELTA, OverWrite , partitionby = List("chromosome"), table = table("spliceai_snv")             , view = view("spliceai_snv")),
 
           // enriched
-          DatasetConf("enriched_genes"                     , alias, "/public/genes"                , DELTA, OverWrite , partitionby = List()            , table = table("genes")                , view = view("genes")),
-          DatasetConf("enriched_dbnsfp"                    , alias, "/public/dbnsfp/scores"        , DELTA, OverWrite , partitionby = List("chromosome"), table = table("dbnsfp_original")      , view = view("dbnsfp_original")),
-          DatasetConf("enriched_spliceai"                  , alias, "/public/spliceai/enriched"    , DELTA, OverWrite , partitionby = List("chromosome"), repartition= Some(RepartitionByRange(columnNames = Seq("chromosome", "start"))), table = table("spliceai_enriched")    , view = view("spliceai_enriched")),
-          DatasetConf("enriched_rare_variant"              , alias, "/public/rare_variant/enriched", DELTA, OverWrite , partitionby = List("chromosome", "is_rare"), table = table("rare_variant_enriched"), view = view("rare_variant_enriched"))
+          DatasetConf("enriched_genes"                     , alias, "/public/genes"                  , DELTA, OverWrite , partitionby = List()            , table = table("genes")                , view = view("genes")),
+          DatasetConf("enriched_dbnsfp"                    , alias, "/public/dbnsfp/scores"          , DELTA, OverWrite , partitionby = List("chromosome"), table = table("dbnsfp_original")      , view = view("dbnsfp_original")),
+          DatasetConf("enriched_spliceai_indel"            , alias, "/public/spliceai/enriched/indel", DELTA, OverWrite , partitionby = List("chromosome"), repartition= Some(RepartitionByRange(columnNames = Seq("chromosome", "start"))), table = table("spliceai_enriched_indel"), view = view("spliceai_enriched_indel")),
+          DatasetConf("enriched_spliceai_snv"              , alias, "/public/spliceai/enriched/snv"  , DELTA, OverWrite , partitionby = List("chromosome"), repartition= Some(RepartitionByRange(columnNames = Seq("chromosome", "start"))), table = table("spliceai_enriched_snv")  , view = view("spliceai_enriched_snv")),
+          DatasetConf("enriched_rare_variant"              , alias, "/public/rare_variant/enriched"  , DELTA, OverWrite , partitionby = List("chromosome", "is_rare"), table = table("rare_variant_enriched"), view = view("rare_variant_enriched"))
 
   )
 
