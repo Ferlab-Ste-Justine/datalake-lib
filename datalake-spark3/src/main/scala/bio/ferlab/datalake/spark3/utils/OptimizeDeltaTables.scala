@@ -21,8 +21,8 @@ case class OptimizeDeltaTables(rc: RuntimeETLContext, datasetIds: Seq[String], n
 object OptimizeDeltaTables {
   @main
   def run(rc: RuntimeETLContext,
-          @arg(name = "dataset_ids", short = 'd', doc = "Dataset Ids") datasetIds: Seq[String],
-          @arg(name = "number_of_versions", short = 'n', doc = "Number of Versions") numberOfVersions: Int): Unit = {
+          @arg(name = "dataset-ids", short = 'd', doc = "Dataset Ids") datasetIds: Seq[String],
+          @arg(name = "number-of-versions", short = 'n', doc = "Number of Versions") numberOfVersions: Int): Unit = {
     OptimizeDeltaTables(rc, datasetIds, numberOfVersions).run()
   }
 
