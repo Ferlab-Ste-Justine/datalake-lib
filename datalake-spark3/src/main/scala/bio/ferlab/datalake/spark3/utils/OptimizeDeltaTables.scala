@@ -9,9 +9,7 @@ case class OptimizeDeltaTables(rc: RuntimeETLContext, datasetIds: Seq[String], n
   implicit val conf: Configuration = rc.config
   implicit val spark: SparkSession = rc.spark
 
-  val datasetConfs =  datasetIds.foldLeft(List[DatasetConf]()) {
-    (l, id) => l :+ conf.getDataset(id)
-  }
+  val datasetConfs : Seq[DatasetConf] =  datasetIds.map(id => conf.getDataset(id))
 
   def run(): Unit = {
     datasetConfs.foreach { ds =>
@@ -24,7 +22,7 @@ case class OptimizeDeltaTables(rc: RuntimeETLContext, datasetIds: Seq[String], n
 object OptimizeDeltaTables {
   @main
   def run(rc: RuntimeETLContext,
-          @arg(name = "dataset-ids", short = 'd', doc = "Dataset Ids") datasetIds: Seq[String],
+          @arg(name = "dataset-id", short = 'd', doc = "Dataset Id") datasetIds: Seq[String],
           @arg(name = "number-of-versions", short = 'n', doc = "Number of Versions") numberOfVersions: Int): Unit = {
     OptimizeDeltaTables(rc, datasetIds, numberOfVersions).run()
   }
