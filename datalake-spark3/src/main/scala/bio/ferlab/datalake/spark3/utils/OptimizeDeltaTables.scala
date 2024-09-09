@@ -1,6 +1,6 @@
 package bio.ferlab.datalake.spark3.utils
 
-import bio.ferlab.datalake.commons.config.{Configuration, RuntimeETLContext}
+import bio.ferlab.datalake.commons.config.{Configuration, DatasetConf, RuntimeETLContext}
 import bio.ferlab.datalake.spark3.utils.DeltaUtils.{compact, vacuum}
 import mainargs.{ParserForMethods, arg, main}
 import org.apache.spark.sql.SparkSession
@@ -9,9 +9,10 @@ case class OptimizeDeltaTables(rc: RuntimeETLContext, datasetIds: Seq[String], n
   implicit val conf: Configuration = rc.config
   implicit val spark: SparkSession = rc.spark
 
+  val datasetConfs : Seq[DatasetConf] =  datasetIds.map(id => conf.getDataset(id))
+
   def run(): Unit = {
-    datasetIds.foreach { id =>
-      val ds = conf.getDataset(id)
+    datasetConfs.foreach { ds =>
       compact(ds)
       vacuum(ds, numberOfVersions)
     }
@@ -21,7 +22,7 @@ case class OptimizeDeltaTables(rc: RuntimeETLContext, datasetIds: Seq[String], n
 object OptimizeDeltaTables {
   @main
   def run(rc: RuntimeETLContext,
-          @arg(name = "dataset-ids", short = 'd', doc = "Dataset Ids") datasetIds: Seq[String],
+          @arg(name = "dataset-id", short = 'd', doc = "Dataset Id") datasetIds: Seq[String],
           @arg(name = "number-of-versions", short = 'n', doc = "Number of Versions") numberOfVersions: Int): Unit = {
     OptimizeDeltaTables(rc, datasetIds, numberOfVersions).run()
   }
