@@ -21,9 +21,8 @@ trait DeltaTableOptimization {
       val maxPartitions = ds.partitionby.map(p => {
         df.select(max(col(p))).collect().head.get(0)
       }).zip(ds.partitionby)
-      val partitionFilters = maxPartitions.map(m => s"${m._2}='${m._1.toString}'")
-      val finalPartitionFilter = partitionFilters.mkString(" AND ")
-      compact(ds, Some(finalPartitionFilter))
+      val partitionFilter = maxPartitions.map(m => s"${m._2}='${m._1.toString}'").reduce((x, y) => s"${x} AND ${y}")
+      compact(ds, Some(partitionFilter))
     }
 
     vacuum(ds, numberOfVersions)
