@@ -13,7 +13,7 @@ package bio.ferlab.datalake.commons.config
  * @param writeoptions      OPTIONAL - write options to pass to spark in order to write the data into files
  * @param documentationpath OPTIONAL - where the documentation is located.
  * @param view              OPTIONAL - schema of the view pointing to the concrete table
- * @param repartition       OPTIONAL - if nad how the data is repartitions
+ * @param repartition       OPTIONAL - how the data is repartitioned
  * @param numversions       OPTIONAL - number of versions to be kept during vacuum
  */
 case class DatasetConf(id: String,
