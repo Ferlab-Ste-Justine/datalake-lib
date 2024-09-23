@@ -1,5 +1,6 @@
 package bio.ferlab.datalake.testutils
 
+import bio.ferlab.datalake.commons.config.SimpleConfiguration
 import org.apache.commons.io.FileUtils
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.sql.SparkSession
@@ -40,6 +41,19 @@ trait WithSparkSession {
     } finally {
       FileUtils.deleteDirectory(output.toFile)
     }
+  }
+
+  /**
+   * Change configuration storages paths. Can be used in association with `withOutputFolder` to replace all
+   * Configuration root paths with the temporary folder.
+   *
+   * @param conf ETL Configuration
+   * @param newPath Path used to replace storages paths
+   * @return Updated Configuration with new storages paths
+   */
+  def updateConfStorages(conf: SimpleConfiguration, newPath: String): SimpleConfiguration = {
+    val updatedStorages = conf.storages.map { s => s.copy(path = newPath) }
+    conf.copy(datalake = conf.datalake.copy(storages = updatedStorages))
   }
 }
 
