@@ -20,20 +20,20 @@ jobs:
         id: import_gpg
         uses: crazy-max/ghaction-import-gpg@v5
         with:
-          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
-          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+          gpg_private_key: ${{ secrets.OSS_SONATYPE_GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.OSS_SONATYPE_GPG_PASSPHRASE }}
           git_user_signingkey: false
 
       - name: Publish Artifact
         shell: bash
         env:
           tag: ${{ github.ref_name }}
-          SONATYPE_REALM: ${{ secrets.SONATYPE_REALM }}
-          SONATYPE_HOST: ${{ secrets.SONATYPE_HOST }}
-          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
-          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+          SONATYPE_REALM: ${{ vars.OSS_SONATYPE_REALM }}
+          SONATYPE_HOST: ${{ vars.OSS_SONATYPE_HOST }}
+          SONATYPE_USERNAME: ${{ secrets.OSS_SONATYPE_USERNAME }}
+          SONATYPE_PASSWORD: ${{ secrets.OSS_SONATYPE_PASSWORD }}
         run: |
-          export PGP_PASSPHRASE=${{ secrets.GPG_PASSPHRASE }}
+          export PGP_PASSPHRASE=${{ secrets.OSS_SONATYPE_GPG_PASSPHRASE }}
           # Remove the leading 'v' from the tag string
           export VERSION=${tag#v}
           sbt 'publishSigned; sonatypeRelease'
