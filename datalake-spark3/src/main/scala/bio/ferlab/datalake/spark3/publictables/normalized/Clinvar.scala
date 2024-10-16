@@ -30,6 +30,7 @@ case class Clinvar(rc: RuntimeETLContext) extends SimpleETLP(rc) {
 
     val df = data(clinvar_vcf.id)
     spark.udf.register("inheritance", inheritance_udf)
+    spark.udf.register("mc", fusion_udf)
 
     val intermediateDf =
       df
@@ -69,7 +70,7 @@ case class Clinvar(rc: RuntimeETLContext) extends SimpleETLP(rc) {
       )
       .withColumn("clndisdbincl", split(concat_ws("", col("clndisdbincl")), "\\|"))
       .withColumn("clndnincl", split(concat_ws("", col("clndnincl")), "\\|"))
-      .withColumn("mc", split(concat_ws("|", col("mc")), "\\|"))
+      .withColumn("mc", fusion_udf(col("mc")))
       .withColumn("inheritance", inheritance_udf(col("origin")))
       .drop("clin_sig_original", "clndn")
 
@@ -112,6 +113,10 @@ case class Clinvar(rc: RuntimeETLContext) extends SimpleETLP(rc) {
           }
           .distinct
     }
+  }
+
+  val fusion_udf: UserDefinedFunction = udf { array: mutable.WrappedArray[String] =>
+    array.mkString("|").split("\\|")
   }
 
   implicit class DataFrameOps(df: DataFrame) {
