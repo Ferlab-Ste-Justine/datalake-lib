@@ -15,6 +15,7 @@ jobs:
         distribution: 'adopt'
         java-version: '11'
         cache: 'sbt'
+    - uses: sbt/setup-sbt@v1
     - name: Run datalake-commons tests
       run: sbt 'project datalake-commons' 'test'
     - name: Run datalake-spark3 tests

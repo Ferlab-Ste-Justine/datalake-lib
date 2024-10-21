@@ -69,7 +69,7 @@ case class Clinvar(rc: RuntimeETLContext) extends SimpleETLP(rc) {
       )
       .withColumn("clndisdbincl", split(concat_ws("", col("clndisdbincl")), "\\|"))
       .withColumn("clndnincl", split(concat_ws("", col("clndnincl")), "\\|"))
-      .withColumn("mc", split(concat_ws("|", col("mc")), "\\|"))
+      .withColumn("mc", split(array_join(col("mc"), "|"), "\\|"))
       .withColumn("inheritance", inheritance_udf(col("origin")))
       .drop("clin_sig_original", "clndn")
 
