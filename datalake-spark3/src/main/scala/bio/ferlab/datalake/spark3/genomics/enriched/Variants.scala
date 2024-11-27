@@ -32,8 +32,8 @@ import java.time.LocalDateTime
 case class Variants(rc: RuntimeETLContext, participantId: Column = col("participant_id"),
                     affectedStatus: Column = col("affected_status"), filterSnv: Option[Column] = Some(col("has_alt")),
                     snvDatasetId: String, splits: Seq[OccurrenceSplit], extraAggregations: Seq[Column] = Nil,
-                    checkpoint: Boolean = false, spliceAi: Boolean = true) extends SimpleSingleETL(rc) {
-  override val mainDestination: DatasetConf = conf.getDataset("enriched_variants")
+                    checkpoint: Boolean = false, spliceAi: Boolean = true, destinationDataSetId: String = "enriched_variants") extends SimpleSingleETL(rc) {
+  override val mainDestination: DatasetConf = conf.getDataset(destinationDataSetId)
   if (checkpoint) {
     spark.sparkContext.setCheckpointDir(s"${mainDestination.rootPath}/checkpoints")
   }
