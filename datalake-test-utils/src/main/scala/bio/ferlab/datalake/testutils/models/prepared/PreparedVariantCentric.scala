@@ -27,7 +27,7 @@ case class PreparedVariantCentric(`chromosome`: String = "1",
                                     noGene(Seq(CONSEQUENCES(`ensembl_transcript_id` = "transcript2")))
                                   ),
                                   `cmc`: CMC = CMC(),
-                                  `variant_external_reference`: Seq[String] = Seq("DBSNP", "Clinvar", "Cosmic"),
+                                  `variant_external_reference`: Seq[String] = Seq("DBSNP", "Clinvar", "Cosmic", "gnomADv4"),
                                   `gene_external_reference`: Seq[String] = Seq("HPO", "Orphanet", "OMIM", "DDD", "Cosmic", "gnomAD", "SpliceAI"))
 
 object PreparedVariantCentric {
@@ -43,7 +43,8 @@ object PreparedVariantCentric {
                                   `topmed_bravo`: TOPMED_BRAVO = TOPMED_BRAVO(),
                                   `gnomad_genomes_2_1_1`: GNOMAD_GENOMES_2_1_1 = GNOMAD_GENOMES_2_1_1(),
                                   `gnomad_exomes_2_1_1`: GNOMAD_EXOMES_2_1_1 = GNOMAD_EXOMES_2_1_1(),
-                                  `gnomad_genomes_3`: GNOMAD_GENOMES_3 = GNOMAD_GENOMES_3())
+                                  `gnomad_genomes_3`: GNOMAD_GENOMES_3 = GNOMAD_GENOMES_3(),
+                                  `gnomad_genomes_4`: GNOMAD_GENOMES_4 = GNOMAD_GENOMES_4())
 
   case class DDD(`disease_name`: String = "OCULOAURICULAR SYNDROME")
 
@@ -118,6 +119,11 @@ object PreparedVariantCentric {
                               `an`: Long = 20,
                               `af`: Double = 0.5,
                               `hom`: Long = 10)
+
+  case class GNOMAD_GENOMES_4(`ac`: Long = 0,
+                              `an`: Long = 6022,
+                              `af`: Double = 0.0,
+                              `hom`: Long = 0)
 
   case class COSMIC(`tumour_types_germline`: Seq[String] = Seq("breast", "colon", "endometrial cancer under age 50"))
 

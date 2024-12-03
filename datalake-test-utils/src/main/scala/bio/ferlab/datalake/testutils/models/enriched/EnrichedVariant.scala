@@ -28,7 +28,7 @@ case class EnrichedVariant(chromosome: String = "1",
                            dna_change: String = "T>C",
                            genes: List[GENES] = List(GENES()),
                            cmc: CMC = CMC(),
-                           variant_external_reference: List[String] = List("DBSNP", "Clinvar", "Cosmic"),
+                           variant_external_reference: List[String] = List("DBSNP", "Clinvar", "Cosmic", "gnomADv4"),
                            gene_external_reference: List[String] = List("HPO", "Orphanet", "OMIM", "DDD", "Cosmic", "gnomAD", "SpliceAI"),
                           )
 
@@ -38,7 +38,8 @@ object EnrichedVariant {
                          topmed_bravo: TopmedFreq = TopmedFreq(2, 125568, 0.0000159276, 0, 2),
                          gnomad_genomes_2_1_1: GnomadFreqOutput = GnomadFreqOutput(1, 26342, 0.000037962189659099535, 0),
                          gnomad_exomes_2_1_1: GnomadFreqOutput = GnomadFreqOutput(0, 2, 0.0, 0),
-                         gnomad_genomes_3: GnomadFreqOutput = GnomadFreqOutput(10, 20, 0.5, 10))
+                         gnomad_genomes_3: GnomadFreqOutput = GnomadFreqOutput(10, 20, 0.5, 10),
+                         gnomad_genomes_4: GnomadFreqOutput = GnomadFreqOutput(0, 6022, 0.0, 0))
 
 
   case class ThousandGenomesFreq(ac: Long = 10,
