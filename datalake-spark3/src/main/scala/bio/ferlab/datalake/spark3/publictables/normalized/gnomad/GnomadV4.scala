@@ -5,16 +5,14 @@ import bio.ferlab.datalake.spark3.etl.v4.SimpleETLP
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns._
 import mainargs.{ParserForMethods, main}
-import org.apache.spark.sql.functions.col
-import org.apache.spark.sql.types.ArrayType
-import org.apache.spark.sql.{Column, DataFrame}
+import org.apache.spark.sql.DataFrame
 
 import java.time.LocalDateTime
 
-case class GnomadV3(rc: RuntimeETLContext) extends SimpleETLP(rc) {
+case class GnomadV4(rc: RuntimeETLContext) extends SimpleETLP(rc) {
 
-  override val mainDestination: DatasetConf = conf.getDataset("normalized_gnomad_genomes_v3")
-  val gnomad_vcf: DatasetConf = conf.getDataset("raw_gnomad_genomes_v3")
+  override val mainDestination: DatasetConf = conf.getDataset("normalized_gnomad_genomes_v4")
+  val gnomad_vcf: DatasetConf = conf.getDataset("raw_gnomad_genomes_v4")
 
   override def extract(lastRunValue: LocalDateTime = minValue,
                        currentRunValue: LocalDateTime = LocalDateTime.now()): Map[String, DataFrame] = {
@@ -28,7 +26,7 @@ case class GnomadV3(rc: RuntimeETLContext) extends SimpleETLP(rc) {
 
     val df = data(gnomad_vcf.id)
 
-    df
+    val intermediate = df
       .select(
         chromosome +:
           start +:
@@ -39,35 +37,30 @@ case class GnomadV3(rc: RuntimeETLContext) extends SimpleETLP(rc) {
           name +:
           flattenInfo(df): _*
       )
+
+    intermediate.select(
+      $"chromosome",
+      $"start",
+      $"end",
+      $"reference",
+      $"alternate",
+      $"qual",
+      $"name",
+      $"ac".cast("long"),
+      $"af",
+      $"an".cast("long"),
+      $"nhomalt".cast("long") as "hom"
+    )
   }
 
   override val defaultRepartition: DataFrame => DataFrame = RepartitionByRange(columnNames = Seq("chromosome", "start"), n = Some(1000))
 
-
-  /* in case we decide to load the files one at a time
-   *
-  override def run(runType: RunType)(implicit spark: SparkSession): DataFrame = {
-    //clears the existing data
-    HadoopFileSystem.remove(destination.location)
-    //for each file found in /raw/gnomad/r3.1.1/
-    HadoopFileSystem
-      .list(Raw.gnomad_genomes_3_1_1.location, recursive = true)
-      .filter(_.name.endsWith(".vcf.gz"))
-      .foreach { f =>
-        println(s"processing ${f.path}")
-        val input = Map(Raw.gnomad_genomes_3_1_1.id -> vcf(f.path))
-        load(transform(input))
-        println(s"Done")
-      }
-    spark.emptyDataFrame
-  }
-   */
 }
 
-object GnomadV3 {
+object GnomadV4 {
   @main
   def run(rc: RuntimeETLContext): Unit = {
-    GnomadV3(rc).run()
+    GnomadV4(rc).run()
   }
 
   def main(args: Array[String]): Unit = ParserForMethods(this).runOrThrow(args)
