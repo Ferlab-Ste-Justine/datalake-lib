@@ -14,9 +14,9 @@ import java.sql.Timestamp
 import java.time.LocalDateTime
 
 case class Consequences(rc: RuntimeETLContext, consequencesDatasetId: String = "normalized_consequences",
-                        destinationDataSetId: String = "enriched_consequences") extends SimpleSingleETL(rc) {
+                        destinationDatasetId: String = "enriched_consequences") extends SimpleSingleETL(rc) {
 
-  override val mainDestination: DatasetConf = conf.getDataset(destinationDataSetId)
+  override val mainDestination: DatasetConf = conf.getDataset(destinationDatasetId)
   val normalized_consequences: DatasetConf = conf.getDataset(consequencesDatasetId)
   val dbnsfp_original: DatasetConf = conf.getDataset("enriched_dbnsfp")
   val normalized_ensembl_mapping: DatasetConf = conf.getDataset("normalized_ensembl_mapping")
