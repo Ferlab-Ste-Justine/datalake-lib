@@ -141,6 +141,18 @@ object DeltaUtils {
       .agg(statAggregations.head, statAggregations.tail: _*)
   }
 
+  def getMap[T](df: DataFrame, statsColumns: Array[Column]): Map[String, T] = {
+    val statsDf = df
+      .select(statsColumns: _*)
+      .limit(1)
+
+    val statsRow = statsDf.head()
+    val nonNullColumns = statsDf.columns.filterNot(c => statsRow.isNullAt(statsRow.fieldIndex(c)))
+
+    statsRow
+      .getValuesMap[T](nonNullColumns)
+  }
+
   /**
    * Extracts partition column names and their distinct sorted values from the Delta table's metadata.
    *
@@ -231,12 +243,9 @@ object DeltaUtils {
   def getMinValues(path: String)(implicit spark: SparkSession): Map[String, Any] = {
     val statsDf = getTableStats(path).select("stats.minValues.*")
     val columnNames = statsDf.columns
-    val minValues = columnNames.map(c => min(c) as c)
+    val minValues = statsDf.columns.map(c => min(c) as c)
 
-    statsDf
-      .select(minValues: _*)
-      .head()
-      .getValuesMap[Any](columnNames)
+    getMap[String](statsDf, minValues)
   }
 
   /**
@@ -298,10 +307,7 @@ object DeltaUtils {
     val columnNames = statsDf.columns
     val maxValues = columnNames.map(c => max(c) as c)
 
-    statsDf
-      .select(maxValues: _*)
-      .head()
-      .getValuesMap[Any](columnNames)
+    getMap[Any](statsDf, maxValues)
   }
 
   /**
@@ -364,10 +370,7 @@ object DeltaUtils {
     val columnNames = statsDf.columns
     val nullCounts = columnNames.map(c => sum(c) as c)
 
-    statsDf
-      .select(nullCounts: _*)
-      .head()
-      .getValuesMap[Long](columnNames)
+    getMap[Long](statsDf, nullCounts)
   }
 
   /**
