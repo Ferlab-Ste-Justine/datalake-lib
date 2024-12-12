@@ -127,7 +127,6 @@ object DeltaUtils {
    * }}}
    */
   def getTableStats(path: String)(implicit spark: SparkSession): DataFrame = {
-    require(DeltaTable.isDeltaTable(path), "Table must be a Delta table.")
     val (_, snapshot) = DeltaLog.forTableWithSnapshot(spark, path)
     snapshot.withStats
   }
