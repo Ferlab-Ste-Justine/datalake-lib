@@ -8,7 +8,7 @@ on:
 jobs:
   release:
 
-    runs-on: ubuntu-latest
+    runs-on: sbt/setup-sbt@v1
 
     steps:
       - uses: actions/checkout@v3
@@ -46,4 +46,4 @@ jobs:
           gh release create "$tag" \
               --repo="$GITHUB_REPOSITORY" \
               --title="${GITHUB_REPOSITORY#*/} ${tag#v}" \
-              --generate-notes          
+              --generate-notes
