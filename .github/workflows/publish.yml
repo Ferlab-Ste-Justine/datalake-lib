@@ -8,7 +8,7 @@ on:
 jobs:
   release:
 
-    runs-on: sbt/setup-sbt@v1
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
@@ -25,6 +25,7 @@ jobs:
           git_user_signingkey: false
 
       - name: Publish Artifact
+        uses: sbt/setup-sbt@v1
         shell: bash
         env:
           tag: ${{ github.ref_name }}
