@@ -24,8 +24,8 @@ jobs:
           passphrase: ${{ secrets.OSS_SONATYPE_GPG_PASSPHRASE }}
           git_user_signingkey: false
 
+      - uses: sbt/setup-sbt@v1
       - name: Publish Artifact
-        uses: sbt/setup-sbt@v1
         shell: bash
         env:
           tag: ${{ github.ref_name }}
