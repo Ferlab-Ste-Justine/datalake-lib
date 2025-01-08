@@ -85,11 +85,17 @@ import java.time.LocalDateTime
  *    }
  * }}}
  * @param rc the etl context
+ * @param destinationDatasetId custom destination dataset id
+ * @param enrichedVariantsDatasetId custom enrich_variants dataset id
+ * @param enrichedConsequencesDatasetId custom enrich_consequences dataset id
  */
-case class VariantCentric(rc: RuntimeETLContext) extends SimpleSingleETL(rc) {
-  override val mainDestination: DatasetConf = conf.getDataset("es_index_variant_centric")
-  private val enriched_variants: DatasetConf = conf.getDataset("enriched_variants")
-  private val enriched_consequences: DatasetConf = conf.getDataset("enriched_consequences")
+case class VariantCentric(rc: RuntimeETLContext,
+                          destinationDatasetId: String = "es_index_variant_centric",
+                          enrichedVariantsDatasetId: String = "enriched_variants",
+                          enrichedConsequencesDatasetId: String = "enriched_consequences") extends SimpleSingleETL(rc) {
+  override val mainDestination: DatasetConf = conf.getDataset(destinationDatasetId)
+  private val enriched_variants: DatasetConf = conf.getDataset(enrichedVariantsDatasetId)
+  private val enriched_consequences: DatasetConf = conf.getDataset(enrichedConsequencesDatasetId)
 
   override def extract(lastRunValue: LocalDateTime = minValue,
                        currentRunValue: LocalDateTime = LocalDateTime.now()): Map[String, DataFrame] = {
