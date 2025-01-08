@@ -4,6 +4,7 @@ import bio.ferlab.datalake.commons.config.{DatasetConf, RepartitionByRange, Runt
 import bio.ferlab.datalake.spark3.etl.v4.SimpleETLP
 import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns._
+import io.projectglow.Glow
 import mainargs.{ParserForMethods, main}
 import org.apache.spark.sql.DataFrame
 
@@ -16,7 +17,8 @@ case class GnomadV4(rc: RuntimeETLContext) extends SimpleETLP(rc) {
 
   override def extract(lastRunValue: LocalDateTime = minValue,
                        currentRunValue: LocalDateTime = LocalDateTime.now()): Map[String, DataFrame] = {
-    Map(gnomad_vcf.id -> gnomad_vcf.read)
+    val sess = Glow.register(spark)
+    Map(gnomad_vcf.id -> sess.read.format("vcf").load(gnomad_vcf.location))
   }
 
   override def transformSingle(data: Map[String, DataFrame],
