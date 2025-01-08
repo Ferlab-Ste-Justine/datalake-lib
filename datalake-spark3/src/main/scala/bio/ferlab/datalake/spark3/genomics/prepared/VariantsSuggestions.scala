@@ -12,11 +12,14 @@ import org.apache.spark.sql.functions._
 
 import java.time.LocalDateTime
 
-case class VariantsSuggestions(rc: RuntimeETLContext) extends SimpleSingleETL(rc) {
+case class VariantsSuggestions(rc: RuntimeETLContext,
+                               destinationDataSetId: String = "es_index_variant_suggestions",
+                               enrichVariantsDataSetId: String = "enriched_variants",
+                               enrichConsequencesDataSetId: String = "enriched_consequences") extends SimpleSingleETL(rc) {
 
-  override val mainDestination: DatasetConf = conf.getDataset("es_index_variant_suggestions")
-  private val enriched_variants: DatasetConf = conf.getDataset("enriched_variants")
-  private val enriched_consequences: DatasetConf = conf.getDataset("enriched_consequences")
+  override val mainDestination: DatasetConf = conf.getDataset(destinationDataSetId)
+  private val enriched_variants: DatasetConf = conf.getDataset(enrichVariantsDataSetId)
+  private val enriched_consequences: DatasetConf = conf.getDataset(enrichConsequencesDataSetId)
 
   final val variantSymbolAaChangeWeight = 4
   final val variantSymbolWeight = 2
