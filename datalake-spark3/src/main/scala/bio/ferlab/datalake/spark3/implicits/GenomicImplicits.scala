@@ -812,7 +812,8 @@ object GenomicImplicits {
   def vcf(input: String, referenceGenomePath: Option[String], optional: Boolean, split: Boolean)(implicit spark: SparkSession): DataFrame = {
     try {
       val inputs = input.split(",")
-      val df = spark.read
+      val sess = Glow.register(spark)
+      val df = sess.read
         .format("vcf")
         .option("flattenInfoFields", "true")
         .load(inputs: _*)
