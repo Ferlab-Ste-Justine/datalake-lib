@@ -6,7 +6,7 @@ import bio.ferlab.datalake.spark3.implicits.SparkUtils.isNestedFieldExists
 import io.projectglow.Glow
 import org.apache.spark.sql.expressions.{Window, WindowSpec}
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.types.{DoubleType, StringType}
+import org.apache.spark.sql.types.{ArrayType, DoubleType, StringType}
 import org.apache.spark.sql._
 import org.slf4j
 
@@ -646,10 +646,12 @@ object GenomicImplicits {
 
     val dp: Column = col("INFO_DP") as "dp"
 
-    def flattenInfo(df: DataFrame, except: String*): Seq[Column] =
+    def flattenInfo(df: DataFrame, except: String*): Seq[Column] = {
       df.columns.filterNot(except.contains(_)).collect {
-        case c if c.startsWith("INFO_") => col(c)(0) as c.replace("INFO_", "").toLowerCase
+        case c if c.startsWith("INFO_") && df.schema(c).dataType.isInstanceOf[ArrayType] => col(c)(0) as c.replace("INFO_", "").toLowerCase
+        case c if c.startsWith("INFO_") => col(c) as c.replace("INFO_", "").toLowerCase
       }
+    }
 
 
     def familyInfo(cols: Seq[Column] = Seq(col("calls"), col("affected_status"), col("gq")),
