@@ -647,9 +647,12 @@ object GenomicImplicits {
     val dp: Column = col("INFO_DP") as "dp"
 
     def flattenInfo(df: DataFrame, except: String*): Seq[Column] = {
-      df.columns.filterNot(except.contains(_)).collect {
-        case c if c.startsWith("INFO_") && df.schema(c).dataType.isInstanceOf[ArrayType] => col(c)(0) as c.replace("INFO_", "").toLowerCase
-        case c if c.startsWith("INFO_") => col(c) as c.replace("INFO_", "").toLowerCase
+      df.columns.collect { case c if !except.contains(c) && c.startsWith("INFO_") =>
+        val newName = c.stripPrefix("INFO_").toLowerCase
+        df.schema(c).dataType match {
+          case _: ArrayType => col(c)(0).as(newName)
+          case _ => col(c).as(newName)
+        }
       }
     }
 
