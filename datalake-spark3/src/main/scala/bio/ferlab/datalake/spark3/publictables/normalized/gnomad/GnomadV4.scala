@@ -6,7 +6,9 @@ import bio.ferlab.datalake.spark3.implicits.DatasetConfImplicits._
 import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns._
 import io.projectglow.Glow
 import mainargs.{ParserForMethods, main}
-import org.apache.spark.sql.DataFrame
+import org.apache.spark.sql.{Column, DataFrame}
+import org.apache.spark.sql.functions.col
+import org.apache.spark.sql.types.ArrayType
 
 import java.time.LocalDateTime
 
@@ -31,13 +33,13 @@ case class GnomadV4(rc: RuntimeETLContext) extends SimpleETLP(rc) {
     val intermediate = df
       .select(
         chromosome +:
-          start +:
-          end +:
-          reference +:
-          alternate +:
-          $"qual" +:
-          name +:
-          flattenInfo(df): _*
+        start +:
+        end +:
+        reference +:
+        alternate +:
+        $"qual" +:
+        name +:
+        flattenInfo(df): _*
       )
 
     intermediate.select(
@@ -53,6 +55,16 @@ case class GnomadV4(rc: RuntimeETLContext) extends SimpleETLP(rc) {
       $"an".cast("long"),
       $"nhomalt".cast("long") as "hom"
     )
+  }
+
+  private def flattenInfo(df: DataFrame): Seq[Column] = {
+    val replaceColumnName: String => String = name => name.replace("INFO_", "").toLowerCase
+    df.schema.toList.collect {
+      case c
+        if c.name.startsWith("INFO_") && c.dataType.isInstanceOf[ArrayType] => col(c.name)(0) as replaceColumnName(c.name)
+      case c if c.name.startsWith("INFO_") =>
+        col(c.name) as replaceColumnName(c.name)
+    }
   }
 
   override val defaultRepartition: DataFrame => DataFrame = RepartitionByRange(columnNames = Seq("chromosome", "start"), n = Some(1000))
