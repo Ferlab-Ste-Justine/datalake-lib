@@ -19,7 +19,7 @@ import java.time.LocalDateTime
 
 /**
  * This ETL create an aggregated table on occurrences of SNV variants. Occurrences are aggregated by calculating the frequencies specified in parameter frequencies.
- * The table is enriched with information from other datasets such as genes, dbsnp, clinvar, 1000 genomes, topmed_bravo, gnomad_genomes_v2, gnomad_exomes_v2, gnomad_genomes_v3.
+ * The table is enriched with information from other datasets such as genes, dbsnp, clinvar, 1000 genomes, topmed_bravo, gnomad_genomes_v2, gnomad_exomes_v2, gnomad_genomes_v3, gnomad_genomes_v4.
  *
  * @param participantId     column used to distinct participants in order to calculate total number of participants (pn) and total allele number (an)
  * @param affectedStatus    column used to calculate frequencies for affected / unaffected participants
@@ -132,6 +132,7 @@ object Variants {
       val conditionValueMap: List[(Column, String)] = List(
         $"clinvar".isNotNull -> "Clinvar",
         $"cmc".isNotNull -> "Cosmic",
+        $"external_frequencies".isNotNull -> "gnomADv4",
       )
       val dfWithVariantExternalReference = conditionValueMap.foldLeft {
         df.withColumn(outputColumn, when($"rsnumber".isNotNull, array(lit("DBSNP"))).otherwise(array()))
