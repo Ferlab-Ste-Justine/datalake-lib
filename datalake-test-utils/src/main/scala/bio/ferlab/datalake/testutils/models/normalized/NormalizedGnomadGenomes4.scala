@@ -1,7 +1,7 @@
 package bio.ferlab.datalake.testutils.models.normalized
 
 case class NormalizedGnomadGenomes4(
-  chromosome: String = "chrY",
+  chromosome: String = "1",
   start: Long = 69897,
   end: Long = 69899,
   reference: String = "T",
