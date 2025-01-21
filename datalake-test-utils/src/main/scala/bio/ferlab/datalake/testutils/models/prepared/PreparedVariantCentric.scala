@@ -27,7 +27,7 @@ case class PreparedVariantCentric(`chromosome`: String = "1",
                                     noGene(Seq(CONSEQUENCES(`ensembl_transcript_id` = "transcript2")))
                                   ),
                                   `cmc`: CMC = CMC(),
-                                  `variant_external_reference`: Seq[String] = Seq("DBSNP", "Clinvar", "Cosmic", "gnomADv4"),
+                                  `variant_external_reference`: Seq[String] = Seq("DBSNP", "Clinvar", "Cosmic", "gnomAD"),
                                   `gene_external_reference`: Seq[String] = Seq("HPO", "Orphanet", "OMIM", "DDD", "Cosmic", "gnomAD", "SpliceAI"))
 
 object PreparedVariantCentric {
