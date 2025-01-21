@@ -132,7 +132,7 @@ object Variants {
       val conditionValueMap: List[(Column, String)] = List(
         $"clinvar".isNotNull -> "Clinvar",
         $"cmc".isNotNull -> "Cosmic",
-        $"external_frequencies.gnomad_genomes_4".isNotNull -> "gnomADv4",
+        $"external_frequencies.gnomad_genomes_4".isNotNull -> "gnomAD",
       )
       val dfWithVariantExternalReference = conditionValueMap.foldLeft {
         df.withColumn(outputColumn, when($"rsnumber".isNotNull, array(lit("DBSNP"))).otherwise(array()))
