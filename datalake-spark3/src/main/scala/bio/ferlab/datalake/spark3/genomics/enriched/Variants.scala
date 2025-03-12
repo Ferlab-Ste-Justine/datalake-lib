@@ -42,7 +42,7 @@ case class Variants(rc: RuntimeETLContext, participantId: Column = col("particip
   protected val gnomad_genomes_v2: DatasetConf = conf.getDataset("normalized_gnomad_genomes_v2_1_1")
   protected val gnomad_exomes_v2: DatasetConf = conf.getDataset("normalized_gnomad_exomes_v2_1_1")
   protected val gnomad_genomes_v3: DatasetConf = conf.getDataset("normalized_gnomad_genomes_v3")
-  protected val gnomad_genomes_v4: DatasetConf = conf.getDataset("normalized_gnomad_genomes_v4")
+  protected val gnomad_joint_v4: DatasetConf = conf.getDataset("normalized_gnomad_joint_v4")
   protected val dbsnp: DatasetConf = conf.getDataset("normalized_dbsnp")
   protected val clinvar: DatasetConf = conf.getDataset("normalized_clinvar")
   protected val genes: DatasetConf = conf.getDataset("enriched_genes")
@@ -89,7 +89,7 @@ case class Variants(rc: RuntimeETLContext, participantId: Column = col("particip
 
     variantsCheckpoint
       .withFrequencies(participantId, affectedStatus, snv, splits, checkpoint)
-      .withPopulations(data(thousand_genomes.id), data(topmed_bravo.id), data(gnomad_genomes_v2.id), data(gnomad_exomes_v2.id), data(gnomad_genomes_v3.id), data(gnomad_genomes_v4.id))
+      .withPopulations(data(thousand_genomes.id), data(topmed_bravo.id), data(gnomad_genomes_v2.id), data(gnomad_exomes_v2.id), data(gnomad_genomes_v3.id), data(gnomad_joint_v4.id))
       .withDbSNP(data(dbsnp.id))
       .withClinvar(data(clinvar.id))
       .withGenes(data(genes.id))
@@ -132,7 +132,9 @@ object Variants {
       val conditionValueMap: List[(Column, String)] = List(
         $"clinvar".isNotNull -> "Clinvar",
         $"cmc".isNotNull -> "Cosmic",
-        $"external_frequencies.gnomad_genomes_4".isNotNull -> "gnomAD",
+        ($"external_frequencies.gnomad_genomes_4".isNotNull or
+          $"external_frequencies.gnomad_exomes_4".isNotNull or
+          $"external_frequencies.gnomad_joint_4".isNotNull) -> "gnomAD",
       )
       val dfWithVariantExternalReference = conditionValueMap.foldLeft {
         df.withColumn(outputColumn, when($"rsnumber".isNotNull, array(lit("DBSNP"))).otherwise(array()))
@@ -154,7 +156,7 @@ object Variants {
                          gnomadGenomesV2: DataFrame,
                          gnomadExomesV2: DataFrame,
                          gnomadGenomesV3: DataFrame,
-                         gnomadGenomesV4: DataFrame)(implicit spark: SparkSession): DataFrame = {
+                         gnomadJointV4: DataFrame)(implicit spark: SparkSession): DataFrame = {
       import spark.implicits._
       val shapedThousandGenomes = thousandGenomes
         .selectLocus($"ac".cast("long"), $"af", $"an".cast("long"))
@@ -169,7 +171,9 @@ object Variants {
       val shapedGnomadGenomesV2 = gnomadGenomesV2.selectLocus($"ac".cast("long"), $"af", $"an".cast("long"), $"hom".cast("long"))
       val shapedGnomadExomesV2 = gnomadExomesV2.selectLocus($"ac".cast("long"), $"af", $"an".cast("long"), $"hom".cast("long"))
       val shapedGnomadGenomesV3 = gnomadGenomesV3.selectLocus($"ac".cast("long"), $"af", $"an".cast("long"), $"nhomalt".cast("long") as "hom")
-      val shapedGnomadGenomesV4 = gnomadGenomesV4.selectLocus($"ac", $"af", $"an", $"hom")
+      val shapedGnomadGenomesV4 = gnomadJointV4.selectLocus($"ac_genomes" as "ac", $"af_genomes" as "af", $"an_genomes" as "an", $"hom_genomes" as "hom")
+      val shapedGnomadExomesV4 = gnomadJointV4.selectLocus($"ac_exomes" as "ac", $"af_exomes" as "af", $"an_exomes" as "an", $"hom_exomes" as "hom")
+      val shapedGnomadJointV4 = gnomadJointV4.selectLocus($"ac_joint" as "ac", $"af_joint" as "af", $"an_joint" as "an", $"hom_joint" as "hom")
 
       df
         .joinAndMerge(shapedThousandGenomes, "thousand_genomes", "left")
@@ -178,6 +182,8 @@ object Variants {
         .joinAndMerge(shapedGnomadExomesV2, "gnomad_exomes_2_1_1", "left")
         .joinAndMerge(shapedGnomadGenomesV3, "gnomad_genomes_3", "left")
         .joinAndMerge(shapedGnomadGenomesV4, "gnomad_genomes_4", "left")
+        .joinAndMerge(shapedGnomadExomesV4, "gnomad_exomes_4", "left")
+        .joinAndMerge(shapedGnomadJointV4, "gnomad_joint_4", "left")
         .select(df("*"),
           struct(
             col("thousand_genomes"),
@@ -185,7 +191,9 @@ object Variants {
             col("gnomad_genomes_2_1_1"),
             col("gnomad_exomes_2_1_1"),
             col("gnomad_genomes_3"),
-            col("gnomad_genomes_4")) as "external_frequencies")
+            col("gnomad_genomes_4"),
+            col("gnomad_exomes_4"),
+            col("gnomad_joint_4")) as "external_frequencies")
     }
 
     def withDbSNP(dbsnp: DataFrame): DataFrame = {

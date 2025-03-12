@@ -1,0 +1,300 @@
+##fileformat=VCFv4.2
+##hailversion=0.2.130-bea04d9c79b5
+##FILTER=<ID=BOTH_FILTERED,Description="Failed variant filters in both exomes and genomes datasets. Refer to 'exomes_filters' and 'genomes_filters' within INFO for more information">
+##FILTER=<ID=EXOMES_FILTERED,Description="Failed variant filters in the exomes dataset and either passed all variant filters in the genomes dataset or the variant was not present in the genomes dataset. Refer to 'exomes_filters' within INFO for more information">
+##FILTER=<ID=GENOMES_FILTERED,Description="Failed variant filters in the genomes dataset and either passed all variant filters in the exomes dataset or the variant was not present in the exomes dataset. Refer to 'genomes_filters' within INFO for more information">
+##FILTER=<ID=PASS,Description="Either passed all variant filters in both exomes and genomes, or passed all variant filters in either exomes or genomes while being absent from the other dataset">
+##INFO=<ID=AC_joint,Number=A,Type=Integer,Description="Alternate allele count in joint dataset">
+##INFO=<ID=AN_joint,Number=1,Type=Integer,Description="Total number of alleles in joint dataset">
+##INFO=<ID=AF_joint,Number=A,Type=Float,Description="Alternate allele frequency in joint dataset">
+##INFO=<ID=grpmax_joint,Number=A,Type=String,Description="Genetic ancestry group with the maximum allele frequency in joint dataset">
+##INFO=<ID=fafmax_faf95_max_joint,Number=A,Type=Float,Description="Maximum filtering allele frequency (using Poisson 95% CI) across genetic ancestry groups in joint dataset">
+##INFO=<ID=fafmax_faf95_max_gen_anc_joint,Number=A,Type=String,Description="Genetic ancestry group with maximum filtering allele frequency (using Poisson 95% CI) in joint dataset">
+##INFO=<ID=AC_exomes,Number=A,Type=Integer,Description="Alternate allele count in exomes dataset">
+##INFO=<ID=AN_exomes,Number=1,Type=Integer,Description="Total number of alleles in exomes dataset">
+##INFO=<ID=AF_exomes,Number=A,Type=Float,Description="Alternate allele frequency in exomes dataset">
+##INFO=<ID=grpmax_exomes,Number=A,Type=String,Description="Genetic ancestry group with the maximum allele frequency in exomes dataset">
+##INFO=<ID=fafmax_faf95_max_exomes,Number=A,Type=Float,Description="Maximum filtering allele frequency (using Poisson 95% CI) across genetic ancestry groups in exomes dataset">
+##INFO=<ID=fafmax_faf95_max_gen_anc_exomes,Number=A,Type=String,Description="Genetic ancestry group with maximum filtering allele frequency (using Poisson 95% CI) in exomes dataset">
+##INFO=<ID=exomes_filters,Number=.,Type=String,Description="Filters' values from the exomes dataset.">
+##INFO=<ID=AC_genomes,Number=A,Type=Integer,Description="Alternate allele count in genomes dataset">
+##INFO=<ID=AN_genomes,Number=1,Type=Integer,Description="Total number of alleles in genomes dataset">
+##INFO=<ID=AF_genomes,Number=A,Type=Float,Description="Alternate allele frequency in genomes dataset">
+##INFO=<ID=grpmax_genomes,Number=A,Type=String,Description="Genetic ancestry group with the maximum allele frequency in genomes dataset">
+##INFO=<ID=fafmax_faf95_max_genomes,Number=A,Type=Float,Description="Maximum filtering allele frequency (using Poisson 95% CI) across genetic ancestry groups in genomes dataset">
+##INFO=<ID=fafmax_faf95_max_gen_anc_genomes,Number=A,Type=String,Description="Genetic ancestry group with maximum filtering allele frequency (using Poisson 95% CI) in genomes dataset">
+##INFO=<ID=genomes_filters,Number=.,Type=String,Description="Filters' values from the genomes dataset.">
+##INFO=<ID=AC_joint_XX,Number=A,Type=Integer,Description="Alternate allele count for XX samples in joint dataset">
+##INFO=<ID=AF_joint_XX,Number=A,Type=Float,Description="Alternate allele frequency in XX samples in joint dataset">
+##INFO=<ID=AN_joint_XX,Number=1,Type=Integer,Description="Total number of alleles in XX samples in joint dataset">
+##INFO=<ID=nhomalt_joint_XX,Number=A,Type=Integer,Description="Count of homozygous individuals in XX samples in joint dataset">
+##INFO=<ID=AC_joint_XY,Number=A,Type=Integer,Description="Alternate allele count for XY samples in joint dataset">
+##INFO=<ID=AF_joint_XY,Number=A,Type=Float,Description="Alternate allele frequency in XY samples in joint dataset">
+##INFO=<ID=AN_joint_XY,Number=1,Type=Integer,Description="Total number of alleles in XY samples in joint dataset">
+##INFO=<ID=nhomalt_joint_XY,Number=A,Type=Integer,Description="Count of homozygous individuals in XY samples in joint dataset">
+##INFO=<ID=nhomalt_joint,Number=A,Type=Integer,Description="Count of homozygous individuals in joint dataset">
+##INFO=<ID=AC_joint_afr_XX,Number=A,Type=Integer,Description="Alternate allele count for XX samples in the African/African-American genetic ancestry group in joint dataset">
+##INFO=<ID=AF_joint_afr_XX,Number=A,Type=Float,Description="Alternate allele frequency in XX samples in the African/African-American genetic ancestry group in joint dataset">
+##INFO=<ID=AN_joint_afr_XX,Number=1,Type=Integer,Description="Total number of alleles in XX samples in the African/African-American genetic ancestry group in joint dataset">
+##INFO=<ID=nhomalt_joint_afr_XX,Number=A,Type=Integer,Description="Count of homozygous individuals in XX samples in the African/African-American genetic ancestry group in joint dataset">
+##INFO=<ID=AC_joint_afr_XY,Number=A,Type=Integer,Description="Alternate allele count for XY samples in the African/African-American genetic ancestry group in joint dataset">
+##INFO=<ID=AF_joint_afr_XY,Number=A,Type=Float,Description="Alternate allele frequency in XY samples in the African/African-American genetic ancestry group in joint dataset">
+##INFO=<ID=AN_joint_afr_XY,Number=1,Type=Integer,Description="Total number of alleles in XY samples in the African/African-American genetic ancestry group in joint dataset">
+##INFO=<ID=nhomalt_joint_afr_XY,Number=A,Type=Integer,Description="Count of homozygous individuals in XY samples in the African/African-American genetic ancestry group in joint dataset">
+##INFO=<ID=AC_joint_afr,Number=A,Type=Integer,Description="Alternate allele count for samples in the African/African-American genetic ancestry group in joint dataset">
+##INFO=<ID=AF_joint_afr,Number=A,Type=Float,Description="Alternate allele frequency in samples in the African/African-American genetic ancestry group in joint dataset">
+##INFO=<ID=AN_joint_afr,Number=1,Type=Integer,Description="Total number of alleles in samples in the African/African-American genetic ancestry group in joint dataset">
+##INFO=<ID=nhomalt_joint_afr,Number=A,Type=Integer,Description="Count of homozygous individuals in samples in the African/African-American genetic ancestry group in joint dataset">
+##INFO=<ID=AC_joint_ami_XX,Number=A,Type=Integer,Description="Alternate allele count for XX samples in the Amish genetic ancestry group in joint dataset">
+##INFO=<ID=AF_joint_ami_XX,Number=A,Type=Float,Description="Alternate allele frequency in XX samples in the Amish genetic ancestry group in joint dataset">
+##INFO=<ID=AN_joint_ami_XX,Number=1,Type=Integer,Description="Total number of alleles in XX samples in the Amish genetic ancestry group in joint dataset">
+##INFO=<ID=nhomalt_joint_ami_XX,Number=A,Type=Integer,Description="Count of homozygous individuals in XX samples in the Amish genetic ancestry group in joint dataset">
+##INFO=<ID=AC_joint_ami_XY,Number=A,Type=Integer,Description="Alternate allele count for XY samples in the Amish genetic ancestry group in joint dataset">
+##INFO=<ID=AF_joint_ami_XY,Number=A,Type=Float,Description="Alternate allele frequency in XY samples in the Amish genetic ancestry group in joint dataset">
+##INFO=<ID=AN_joint_ami_XY,Number=1,Type=Integer,Description="Total number of alleles in XY samples in the Amish genetic ancestry group in joint dataset">
+##INFO=<ID=nhomalt_joint_ami_XY,Number=A,Type=Integer,Description="Count of homozygous individuals in XY samples in the Amish genetic ancestry group in joint dataset">
+##INFO=<ID=AC_joint_ami,Number=A,Type=Integer,Description="Alternate allele count for samples in the Amish genetic ancestry group in joint dataset">
+##INFO=<ID=AF_joint_ami,Number=A,Type=Float,Description="Alternate allele frequency in samples in the Amish genetic ancestry group in joint dataset">
+##INFO=<ID=AN_joint_ami,Number=1,Type=Integer,Description="Total number of alleles in samples in the Amish genetic ancestry group in joint dataset">
+##INFO=<ID=nhomalt_joint_ami,Number=A,Type=Integer,Description="Count of homozygous individuals in samples in the Amish genetic ancestry group in joint dataset">
+##INFO=<ID=AC_joint_amr_XX,Number=A,Type=Integer,Description="Alternate allele count for XX samples in the Admixed American genetic ancestry group in joint dataset">
+##INFO=<ID=AF_joint_amr_XX,Number=A,Type=Float,Description="Alternate allele frequency in XX samples in the Admixed American genetic ancestry group in joint dataset">
+##INFO=<ID=AN_joint_amr_XX,Number=1,Type=Integer,Description="Total number of alleles in XX samples in the Admixed American genetic ancestry group in joint dataset">
+##INFO=<ID=nhomalt_joint_amr_XX,Number=A,Type=Integer,Description="Count of homozygous individuals in XX samples in the Admixed American genetic ancestry group in joint dataset">
+##INFO=<ID=AC_joint_amr_XY,Number=A,Type=Integer,Description="Alternate allele count for XY samples in the Admixed American genetic ancestry group in joint dataset">
+##INFO=<ID=AF_joint_amr_XY,Number=A,Type=Float,Description="Alternate allele frequency in XY samples in the Admixed American genetic ancestry group in joint dataset">
+##INFO=<ID=AN_joint_amr_XY,Number=1,Type=Integer,Description="Total number of alleles in XY samples in the Admixed American genetic ancestry group in joint dataset">
+##INFO=<ID=nhomalt_joint_amr_XY,Number=A,Type=Integer,Description="Count of homozygous individuals in XY samples in the Admixed American genetic ancestry group in joint dataset">
+##INFO=<ID=AC_joint_amr,Number=A,Type=Integer,Description="Alternate allele count for samples in the Admixed American genetic ancestry group in joint dataset">
+##INFO=<ID=AF_joint_amr,Number=A,Type=Float,Description="Alternate allele frequency in samples in the Admixed American genetic ancestry group in joint dataset">
+##INFO=<ID=AN_joint_amr,Number=1,Type=Integer,Description="Total number of alleles in samples in the Admixed American genetic ancestry group in joint dataset">
+##INFO=<ID=nhomalt_joint_amr,Number=A,Type=Integer,Description="Count of homozygous individuals in samples in the Admixed American genetic ancestry group in joint dataset">
+##INFO=<ID=AC_joint_asj_XX,Number=A,Type=Integer,Description="Alternate allele count for XX samples in the Ashkenazi Jewish genetic ancestry group in joint dataset">
+##INFO=<ID=AF_joint_asj_XX,Number=A,Type=Float,Description="Alternate allele frequency in XX samples in the Ashkenazi Jewish genetic ancestry group in joint dataset">
+##INFO=<ID=AN_joint_asj_XX,Number=1,Type=Integer,Description="Total number of alleles in XX samples in the Ashkenazi Jewish genetic ancestry group in joint dataset">
+##INFO=<ID=nhomalt_joint_asj_XX,Number=A,Type=Integer,Description="Count of homozygous individuals in XX samples in the Ashkenazi Jewish genetic ancestry group in joint dataset">
+##INFO=<ID=AC_joint_asj_XY,Number=A,Type=Integer,Description="Alternate allele count for XY samples in the Ashkenazi Jewish genetic ancestry group in joint dataset">
+##INFO=<ID=AF_joint_asj_XY,Number=A,Type=Float,Description="Alternate allele frequency in XY samples in the Ashkenazi Jewish genetic ancestry group in joint dataset">
+##INFO=<ID=AN_joint_asj_XY,Number=1,Type=Integer,Description="Total number of alleles in XY samples in the Ashkenazi Jewish genetic ancestry group in joint dataset">
+##INFO=<ID=nhomalt_joint_asj_XY,Number=A,Type=Integer,Description="Count of homozygous individuals in XY samples in the Ashkenazi Jewish genetic ancestry group in joint dataset">
+##INFO=<ID=AC_joint_asj,Number=A,Type=Integer,Description="Alternate allele count for samples in the Ashkenazi Jewish genetic ancestry group in joint dataset">
+##INFO=<ID=AF_joint_asj,Number=A,Type=Float,Description="Alternate allele frequency in samples in the Ashkenazi Jewish genetic ancestry group in joint dataset">
+##INFO=<ID=AN_joint_asj,Number=1,Type=Integer,Description="Total number of alleles in samples in the Ashkenazi Jewish genetic ancestry group in joint dataset">
+##INFO=<ID=nhomalt_joint_asj,Number=A,Type=Integer,Description="Count of homozygous individuals in samples in the Ashkenazi Jewish genetic ancestry group in joint dataset">
+##INFO=<ID=AC_joint_eas_XX,Number=A,Type=Integer,Description="Alternate allele count for XX samples in the East Asian genetic ancestry group in joint dataset">
+##INFO=<ID=AF_joint_eas_XX,Number=A,Type=Float,Description="Alternate allele frequency in XX samples in the East Asian genetic ancestry group in joint dataset">
+##INFO=<ID=AN_joint_eas_XX,Number=1,Type=Integer,Description="Total number of alleles in XX samples in the East Asian genetic ancestry group in joint dataset">
+##INFO=<ID=nhomalt_joint_eas_XX,Number=A,Type=Integer,Description="Count of homozygous individuals in XX samples in the East Asian genetic ancestry group in joint dataset">
+##INFO=<ID=AC_joint_eas_XY,Number=A,Type=Integer,Description="Alternate allele count for XY samples in the East Asian genetic ancestry group in joint dataset">
+##INFO=<ID=AF_joint_eas_XY,Number=A,Type=Float,Description="Alternate allele frequency in XY samples in the East Asian genetic ancestry group in joint dataset">
+##INFO=<ID=AN_joint_eas_XY,Number=1,Type=Integer,Description="Total number of alleles in XY samples in the East Asian genetic ancestry group in joint dataset">
+##INFO=<ID=nhomalt_joint_eas_XY,Number=A,Type=Integer,Description="Count of homozygous individuals in XY samples in the East Asian genetic ancestry group in joint dataset">
+##INFO=<ID=AC_joint_eas,Number=A,Type=Integer,Description="Alternate allele count for samples in the East Asian genetic ancestry group in joint dataset">
+##INFO=<ID=AF_joint_eas,Number=A,Type=Float,Description="Alternate allele frequency in samples in the East Asian genetic ancestry group in joint dataset">
+##INFO=<ID=AN_joint_eas,Number=1,Type=Integer,Description="Total number of alleles in samples in the East Asian genetic ancestry group in joint dataset">
+##INFO=<ID=nhomalt_joint_eas,Number=A,Type=Integer,Description="Count of homozygous individuals in samples in the East Asian genetic ancestry group in joint dataset">
+##INFO=<ID=AC_joint_fin_XX,Number=A,Type=Integer,Description="Alternate allele count for XX samples in the Finnish genetic ancestry group in joint dataset">
+##INFO=<ID=AF_joint_fin_XX,Number=A,Type=Float,Description="Alternate allele frequency in XX samples in the Finnish genetic ancestry group in joint dataset">
+##INFO=<ID=AN_joint_fin_XX,Number=1,Type=Integer,Description="Total number of alleles in XX samples in the Finnish genetic ancestry group in joint dataset">
+##INFO=<ID=nhomalt_joint_fin_XX,Number=A,Type=Integer,Description="Count of homozygous individuals in XX samples in the Finnish genetic ancestry group in joint dataset">
+##INFO=<ID=AC_joint_fin_XY,Number=A,Type=Integer,Description="Alternate allele count for XY samples in the Finnish genetic ancestry group in joint dataset">
+##INFO=<ID=AF_joint_fin_XY,Number=A,Type=Float,Description="Alternate allele frequency in XY samples in the Finnish genetic ancestry group in joint dataset">
+##INFO=<ID=AN_joint_fin_XY,Number=1,Type=Integer,Description="Total number of alleles in XY samples in the Finnish genetic ancestry group in joint dataset">
+##INFO=<ID=nhomalt_joint_fin_XY,Number=A,Type=Integer,Description="Count of homozygous individuals in XY samples in the Finnish genetic ancestry group in joint dataset">
+##INFO=<ID=AC_joint_fin,Number=A,Type=Integer,Description="Alternate allele count for samples in the Finnish genetic ancestry group in joint dataset">
+##INFO=<ID=AF_joint_fin,Number=A,Type=Float,Description="Alternate allele frequency in samples in the Finnish genetic ancestry group in joint dataset">
+##INFO=<ID=AN_joint_fin,Number=1,Type=Integer,Description="Total number of alleles in samples in the Finnish genetic ancestry group in joint dataset">
+##INFO=<ID=nhomalt_joint_fin,Number=A,Type=Integer,Description="Count of homozygous individuals in samples in the Finnish genetic ancestry group in joint dataset">
+##INFO=<ID=AC_joint_mid_XX,Number=A,Type=Integer,Description="Alternate allele count for XX samples in the Middle Eastern genetic ancestry group in joint dataset">
+##INFO=<ID=AF_joint_mid_XX,Number=A,Type=Float,Description="Alternate allele frequency in XX samples in the Middle Eastern genetic ancestry group in joint dataset">
+##INFO=<ID=AN_joint_mid_XX,Number=1,Type=Integer,Description="Total number of alleles in XX samples in the Middle Eastern genetic ancestry group in joint dataset">
+##INFO=<ID=nhomalt_joint_mid_XX,Number=A,Type=Integer,Description="Count of homozygous individuals in XX samples in the Middle Eastern genetic ancestry group in joint dataset">
+##INFO=<ID=AC_joint_mid_XY,Number=A,Type=Integer,Description="Alternate allele count for XY samples in the Middle Eastern genetic ancestry group in joint dataset">
+##INFO=<ID=AF_joint_mid_XY,Number=A,Type=Float,Description="Alternate allele frequency in XY samples in the Middle Eastern genetic ancestry group in joint dataset">
+##INFO=<ID=AN_joint_mid_XY,Number=1,Type=Integer,Description="Total number of alleles in XY samples in the Middle Eastern genetic ancestry group in joint dataset">
+##INFO=<ID=nhomalt_joint_mid_XY,Number=A,Type=Integer,Description="Count of homozygous individuals in XY samples in the Middle Eastern genetic ancestry group in joint dataset">
+##INFO=<ID=AC_joint_mid,Number=A,Type=Integer,Description="Alternate allele count for samples in the Middle Eastern genetic ancestry group in joint dataset">
+##INFO=<ID=AF_joint_mid,Number=A,Type=Float,Description="Alternate allele frequency in samples in the Middle Eastern genetic ancestry group in joint dataset">
+##INFO=<ID=AN_joint_mid,Number=1,Type=Integer,Description="Total number of alleles in samples in the Middle Eastern genetic ancestry group in joint dataset">
+##INFO=<ID=nhomalt_joint_mid,Number=A,Type=Integer,Description="Count of homozygous individuals in samples in the Middle Eastern genetic ancestry group in joint dataset">
+##INFO=<ID=AC_joint_nfe_XX,Number=A,Type=Integer,Description="Alternate allele count for XX samples in the Non-Finnish European genetic ancestry group in joint dataset">
+##INFO=<ID=AF_joint_nfe_XX,Number=A,Type=Float,Description="Alternate allele frequency in XX samples in the Non-Finnish European genetic ancestry group in joint dataset">
+##INFO=<ID=AN_joint_nfe_XX,Number=1,Type=Integer,Description="Total number of alleles in XX samples in the Non-Finnish European genetic ancestry group in joint dataset">
+##INFO=<ID=nhomalt_joint_nfe_XX,Number=A,Type=Integer,Description="Count of homozygous individuals in XX samples in the Non-Finnish European genetic ancestry group in joint dataset">
+##INFO=<ID=AC_joint_nfe_XY,Number=A,Type=Integer,Description="Alternate allele count for XY samples in the Non-Finnish European genetic ancestry group in joint dataset">
+##INFO=<ID=AF_joint_nfe_XY,Number=A,Type=Float,Description="Alternate allele frequency in XY samples in the Non-Finnish European genetic ancestry group in joint dataset">
+##INFO=<ID=AN_joint_nfe_XY,Number=1,Type=Integer,Description="Total number of alleles in XY samples in the Non-Finnish European genetic ancestry group in joint dataset">
+##INFO=<ID=nhomalt_joint_nfe_XY,Number=A,Type=Integer,Description="Count of homozygous individuals in XY samples in the Non-Finnish European genetic ancestry group in joint dataset">
+##INFO=<ID=AC_joint_nfe,Number=A,Type=Integer,Description="Alternate allele count for samples in the Non-Finnish European genetic ancestry group in joint dataset">
+##INFO=<ID=AF_joint_nfe,Number=A,Type=Float,Description="Alternate allele frequency in samples in the Non-Finnish European genetic ancestry group in joint dataset">
+##INFO=<ID=AN_joint_nfe,Number=1,Type=Integer,Description="Total number of alleles in samples in the Non-Finnish European genetic ancestry group in joint dataset">
+##INFO=<ID=nhomalt_joint_nfe,Number=A,Type=Integer,Description="Count of homozygous individuals in samples in the Non-Finnish European genetic ancestry group in joint dataset">
+##INFO=<ID=AC_joint_raw,Number=A,Type=Integer,Description="Alternate allele count for samples, before removing low-confidence genotypes in joint dataset">
+##INFO=<ID=AF_joint_raw,Number=A,Type=Float,Description="Alternate allele frequency in samples, before removing low-confidence genotypes in joint dataset">
+##INFO=<ID=AN_joint_raw,Number=1,Type=Integer,Description="Total number of alleles in samples, before removing low-confidence genotypes in joint dataset">
+##INFO=<ID=nhomalt_joint_raw,Number=A,Type=Integer,Description="Count of homozygous individuals in samples, before removing low-confidence genotypes in joint dataset">
+##INFO=<ID=AC_joint_remaining_XX,Number=A,Type=Integer,Description="Alternate allele count for XX samples in the Remaining individuals genetic ancestry group in joint dataset">
+##INFO=<ID=AF_joint_remaining_XX,Number=A,Type=Float,Description="Alternate allele frequency in XX samples in the Remaining individuals genetic ancestry group in joint dataset">
+##INFO=<ID=AN_joint_remaining_XX,Number=1,Type=Integer,Description="Total number of alleles in XX samples in the Remaining individuals genetic ancestry group in joint dataset">
+##INFO=<ID=nhomalt_joint_remaining_XX,Number=A,Type=Integer,Description="Count of homozygous individuals in XX samples in the Remaining individuals genetic ancestry group in joint dataset">
+##INFO=<ID=AC_joint_remaining_XY,Number=A,Type=Integer,Description="Alternate allele count for XY samples in the Remaining individuals genetic ancestry group in joint dataset">
+##INFO=<ID=AF_joint_remaining_XY,Number=A,Type=Float,Description="Alternate allele frequency in XY samples in the Remaining individuals genetic ancestry group in joint dataset">
+##INFO=<ID=AN_joint_remaining_XY,Number=1,Type=Integer,Description="Total number of alleles in XY samples in the Remaining individuals genetic ancestry group in joint dataset">
+##INFO=<ID=nhomalt_joint_remaining_XY,Number=A,Type=Integer,Description="Count of homozygous individuals in XY samples in the Remaining individuals genetic ancestry group in joint dataset">
+##INFO=<ID=AC_joint_remaining,Number=A,Type=Integer,Description="Alternate allele count for samples in the Remaining individuals genetic ancestry group in joint dataset">
+##INFO=<ID=AF_joint_remaining,Number=A,Type=Float,Description="Alternate allele frequency in samples in the Remaining individuals genetic ancestry group in joint dataset">
+##INFO=<ID=AN_joint_remaining,Number=1,Type=Integer,Description="Total number of alleles in samples in the Remaining individuals genetic ancestry group in joint dataset">
+##INFO=<ID=nhomalt_joint_remaining,Number=A,Type=Integer,Description="Count of homozygous individuals in samples in the Remaining individuals genetic ancestry group in joint dataset">
+##INFO=<ID=AC_joint_sas_XX,Number=A,Type=Integer,Description="Alternate allele count for XX samples in the South Asian genetic ancestry group in joint dataset">
+##INFO=<ID=AF_joint_sas_XX,Number=A,Type=Float,Description="Alternate allele frequency in XX samples in the South Asian genetic ancestry group in joint dataset">
+##INFO=<ID=AN_joint_sas_XX,Number=1,Type=Integer,Description="Total number of alleles in XX samples in the South Asian genetic ancestry group in joint dataset">
+##INFO=<ID=nhomalt_joint_sas_XX,Number=A,Type=Integer,Description="Count of homozygous individuals in XX samples in the South Asian genetic ancestry group in joint dataset">
+##INFO=<ID=AC_joint_sas_XY,Number=A,Type=Integer,Description="Alternate allele count for XY samples in the South Asian genetic ancestry group in joint dataset">
+##INFO=<ID=AF_joint_sas_XY,Number=A,Type=Float,Description="Alternate allele frequency in XY samples in the South Asian genetic ancestry group in joint dataset">
+##INFO=<ID=AN_joint_sas_XY,Number=1,Type=Integer,Description="Total number of alleles in XY samples in the South Asian genetic ancestry group in joint dataset">
+##INFO=<ID=nhomalt_joint_sas_XY,Number=A,Type=Integer,Description="Count of homozygous individuals in XY samples in the South Asian genetic ancestry group in joint dataset">
+##INFO=<ID=AC_joint_sas,Number=A,Type=Integer,Description="Alternate allele count for samples in the South Asian genetic ancestry group in joint dataset">
+##INFO=<ID=AF_joint_sas,Number=A,Type=Float,Description="Alternate allele frequency in samples in the South Asian genetic ancestry group in joint dataset">
+##INFO=<ID=AN_joint_sas,Number=1,Type=Integer,Description="Total number of alleles in samples in the South Asian genetic ancestry group in joint dataset">
+##INFO=<ID=nhomalt_joint_sas,Number=A,Type=Integer,Description="Count of homozygous individuals in samples in the South Asian genetic ancestry group in joint dataset">
+##INFO=<ID=AC_grpmax_joint,Number=A,Type=Integer,Description="Allele count in the genetic ancestry group with the maximum allele frequency in joint dataset">
+##INFO=<ID=AF_grpmax_joint,Number=A,Type=Float,Description="Maximum allele frequency across genetic ancestry groups in joint dataset">
+##INFO=<ID=AN_grpmax_joint,Number=A,Type=Integer,Description="Total number of alleles in the genetic ancestry group with the maximum allele frequency in joint dataset">
+##INFO=<ID=nhomalt_grpmax_joint,Number=A,Type=Integer,Description="Count of homozygous individuals in the genetic ancestry group with the maximum allele frequency in joint dataset">
+##INFO=<ID=faf95_joint_XX,Number=A,Type=Float,Description="Filtering allele frequency (using Poisson 95% CI) for XX samples in joint dataset in non-PAR regions of sex chromosomes only">
+##INFO=<ID=faf99_joint_XX,Number=A,Type=Float,Description="Filtering allele frequency (using Poisson 99% CI) for XX samples in joint dataset in non-PAR regions of sex chromosomes only">
+##INFO=<ID=faf95_joint_XY,Number=A,Type=Float,Description="Filtering allele frequency (using Poisson 95% CI) for XY samples in joint dataset in non-PAR regions of sex chromosomes only">
+##INFO=<ID=faf99_joint_XY,Number=A,Type=Float,Description="Filtering allele frequency (using Poisson 99% CI) for XY samples in joint dataset in non-PAR regions of sex chromosomes only">
+##INFO=<ID=faf95_joint,Number=A,Type=Float,Description="Filtering allele frequency (using Poisson 95% CI) in joint dataset">
+##INFO=<ID=faf99_joint,Number=A,Type=Float,Description="Filtering allele frequency (using Poisson 99% CI) in joint dataset">
+##INFO=<ID=faf95_joint_afr_XX,Number=A,Type=Float,Description="Filtering allele frequency (using Poisson 95% CI) for XX samples in the African/African-American genetic ancestry group in joint dataset in non-PAR regions of sex chromosomes only">
+##INFO=<ID=faf99_joint_afr_XX,Number=A,Type=Float,Description="Filtering allele frequency (using Poisson 99% CI) for XX samples in the African/African-American genetic ancestry group in joint dataset in non-PAR regions of sex chromosomes only">
+##INFO=<ID=faf95_joint_afr_XY,Number=A,Type=Float,Description="Filtering allele frequency (using Poisson 95% CI) for XY samples in the African/African-American genetic ancestry group in joint dataset in non-PAR regions of sex chromosomes only">
+##INFO=<ID=faf99_joint_afr_XY,Number=A,Type=Float,Description="Filtering allele frequency (using Poisson 99% CI) for XY samples in the African/African-American genetic ancestry group in joint dataset in non-PAR regions of sex chromosomes only">
+##INFO=<ID=faf95_joint_afr,Number=A,Type=Float,Description="Filtering allele frequency (using Poisson 95% CI) for samples in the African/African-American genetic ancestry group in joint dataset">
+##INFO=<ID=faf99_joint_afr,Number=A,Type=Float,Description="Filtering allele frequency (using Poisson 99% CI) for samples in the African/African-American genetic ancestry group in joint dataset">
+##INFO=<ID=faf95_joint_amr_XX,Number=A,Type=Float,Description="Filtering allele frequency (using Poisson 95% CI) for XX samples in the Admixed American genetic ancestry group in joint dataset in non-PAR regions of sex chromosomes only">
+##INFO=<ID=faf99_joint_amr_XX,Number=A,Type=Float,Description="Filtering allele frequency (using Poisson 99% CI) for XX samples in the Admixed American genetic ancestry group in joint dataset in non-PAR regions of sex chromosomes only">
+##INFO=<ID=faf95_joint_amr_XY,Number=A,Type=Float,Description="Filtering allele frequency (using Poisson 95% CI) for XY samples in the Admixed American genetic ancestry group in joint dataset in non-PAR regions of sex chromosomes only">
+##INFO=<ID=faf99_joint_amr_XY,Number=A,Type=Float,Description="Filtering allele frequency (using Poisson 99% CI) for XY samples in the Admixed American genetic ancestry group in joint dataset in non-PAR regions of sex chromosomes only">
+##INFO=<ID=faf95_joint_amr,Number=A,Type=Float,Description="Filtering allele frequency (using Poisson 95% CI) for samples in the Admixed American genetic ancestry group in joint dataset">
+##INFO=<ID=faf99_joint_amr,Number=A,Type=Float,Description="Filtering allele frequency (using Poisson 99% CI) for samples in the Admixed American genetic ancestry group in joint dataset">
+##INFO=<ID=faf95_joint_eas_XX,Number=A,Type=Float,Description="Filtering allele frequency (using Poisson 95% CI) for XX samples in the East Asian genetic ancestry group in joint dataset in non-PAR regions of sex chromosomes only">
+##INFO=<ID=faf99_joint_eas_XX,Number=A,Type=Float,Description="Filtering allele frequency (using Poisson 99% CI) for XX samples in the East Asian genetic ancestry group in joint dataset in non-PAR regions of sex chromosomes only">
+##INFO=<ID=faf95_joint_eas_XY,Number=A,Type=Float,Description="Filtering allele frequency (using Poisson 95% CI) for XY samples in the East Asian genetic ancestry group in joint dataset in non-PAR regions of sex chromosomes only">
+##INFO=<ID=faf99_joint_eas_XY,Number=A,Type=Float,Description="Filtering allele frequency (using Poisson 99% CI) for XY samples in the East Asian genetic ancestry group in joint dataset in non-PAR regions of sex chromosomes only">
+##INFO=<ID=faf95_joint_eas,Number=A,Type=Float,Description="Filtering allele frequency (using Poisson 95% CI) for samples in the East Asian genetic ancestry group in joint dataset">
+##INFO=<ID=faf99_joint_eas,Number=A,Type=Float,Description="Filtering allele frequency (using Poisson 99% CI) for samples in the East Asian genetic ancestry group in joint dataset">
+##INFO=<ID=faf95_joint_mid_XX,Number=A,Type=Float,Description="Filtering allele frequency (using Poisson 95% CI) for XX samples in the Middle Eastern genetic ancestry group in joint dataset in non-PAR regions of sex chromosomes only">
+##INFO=<ID=faf99_joint_mid_XX,Number=A,Type=Float,Description="Filtering allele frequency (using Poisson 99% CI) for XX samples in the Middle Eastern genetic ancestry group in joint dataset in non-PAR regions of sex chromosomes only">
+##INFO=<ID=faf95_joint_mid_XY,Number=A,Type=Float,Description="Filtering allele frequency (using Poisson 95% CI) for XY samples in the Middle Eastern genetic ancestry group in joint dataset in non-PAR regions of sex chromosomes only">
+##INFO=<ID=faf99_joint_mid_XY,Number=A,Type=Float,Description="Filtering allele frequency (using Poisson 99% CI) for XY samples in the Middle Eastern genetic ancestry group in joint dataset in non-PAR regions of sex chromosomes only">
+##INFO=<ID=faf95_joint_mid,Number=A,Type=Float,Description="Filtering allele frequency (using Poisson 95% CI) for samples in the Middle Eastern genetic ancestry group in joint dataset">
+##INFO=<ID=faf99_joint_mid,Number=A,Type=Float,Description="Filtering allele frequency (using Poisson 99% CI) for samples in the Middle Eastern genetic ancestry group in joint dataset">
+##INFO=<ID=faf95_joint_nfe_XX,Number=A,Type=Float,Description="Filtering allele frequency (using Poisson 95% CI) for XX samples in the Non-Finnish European genetic ancestry group in joint dataset in non-PAR regions of sex chromosomes only">
+##INFO=<ID=faf99_joint_nfe_XX,Number=A,Type=Float,Description="Filtering allele frequency (using Poisson 99% CI) for XX samples in the Non-Finnish European genetic ancestry group in joint dataset in non-PAR regions of sex chromosomes only">
+##INFO=<ID=faf95_joint_nfe_XY,Number=A,Type=Float,Description="Filtering allele frequency (using Poisson 95% CI) for XY samples in the Non-Finnish European genetic ancestry group in joint dataset in non-PAR regions of sex chromosomes only">
+##INFO=<ID=faf99_joint_nfe_XY,Number=A,Type=Float,Description="Filtering allele frequency (using Poisson 99% CI) for XY samples in the Non-Finnish European genetic ancestry group in joint dataset in non-PAR regions of sex chromosomes only">
+##INFO=<ID=faf95_joint_nfe,Number=A,Type=Float,Description="Filtering allele frequency (using Poisson 95% CI) for samples in the Non-Finnish European genetic ancestry group in joint dataset">
+##INFO=<ID=faf99_joint_nfe,Number=A,Type=Float,Description="Filtering allele frequency (using Poisson 99% CI) for samples in the Non-Finnish European genetic ancestry group in joint dataset">
+##INFO=<ID=faf95_joint_sas_XX,Number=A,Type=Float,Description="Filtering allele frequency (using Poisson 95% CI) for XX samples in the South Asian genetic ancestry group in joint dataset in non-PAR regions of sex chromosomes only">
+##INFO=<ID=faf99_joint_sas_XX,Number=A,Type=Float,Description="Filtering allele frequency (using Poisson 99% CI) for XX samples in the South Asian genetic ancestry group in joint dataset in non-PAR regions of sex chromosomes only">
+##INFO=<ID=faf95_joint_sas_XY,Number=A,Type=Float,Description="Filtering allele frequency (using Poisson 95% CI) for XY samples in the South Asian genetic ancestry group in joint dataset in non-PAR regions of sex chromosomes only">
+##INFO=<ID=faf99_joint_sas_XY,Number=A,Type=Float,Description="Filtering allele frequency (using Poisson 99% CI) for XY samples in the South Asian genetic ancestry group in joint dataset in non-PAR regions of sex chromosomes only">
+##INFO=<ID=faf95_joint_sas,Number=A,Type=Float,Description="Filtering allele frequency (using Poisson 95% CI) for samples in the South Asian genetic ancestry group in joint dataset">
+##INFO=<ID=faf99_joint_sas,Number=A,Type=Float,Description="Filtering allele frequency (using Poisson 99% CI) for samples in the South Asian genetic ancestry group in joint dataset">
+##INFO=<ID=fafmax_faf99_max_joint,Number=A,Type=Float,Description="Maximum filtering allele frequency (using Poisson 99% CI) across genetic ancestry groups in joint dataset">
+##INFO=<ID=fafmax_faf99_max_gen_anc_joint,Number=A,Type=String,Description="Genetic ancestry group with maximum filtering allele frequency (using Poisson 99% CI) in joint dataset">
+##INFO=<ID=age_hist_het_bin_freq_joint,Number=A,Type=String,Description="Histogram of ages of heterozygous individuals in joint dataset; bin edges are: 30.0|35.0|40.0|45.0|50.0|55.0|60.0|65.0|70.0|75.0|80.0; total number of individuals of any genotype bin: 4669|5207|48016|63811|75306|86629|111640|86238|8247|4016">
+##INFO=<ID=age_hist_het_n_smaller_joint,Number=A,Type=Integer,Description="Count of age values falling below lowest histogram bin edge for heterozygous individuals in joint dataset">
+##INFO=<ID=age_hist_het_n_larger_joint,Number=A,Type=Integer,Description="Count of age values falling above highest histogram bin edge for heterozygous individuals in joint dataset">
+##INFO=<ID=age_hist_hom_bin_freq_joint,Number=A,Type=String,Description="Histogram of ages of homozygous alternate individuals in joint dataset; bin edges are: 30.0|35.0|40.0|45.0|50.0|55.0|60.0|65.0|70.0|75.0|80.0; total number of individuals of any genotype bin: 4669|5207|48016|63811|75306|86629|111640|86238|8247|4016">
+##INFO=<ID=age_hist_hom_n_smaller_joint,Number=A,Type=Integer,Description="Count of age values falling below lowest histogram bin edge for homozygous alternate individuals in joint dataset">
+##INFO=<ID=age_hist_hom_n_larger_joint,Number=A,Type=Integer,Description="Count of age values falling above highest histogram bin edge for homozygous alternate individuals in joint dataset">
+##INFO=<ID=gq_hist_alt_bin_freq_joint,Number=A,Type=String,Description="Histogram for GQ in heterozygous individuals calculated on high quality genotypes in joint dataset; bin edges are: 0|5|10|15|20|25|30|35|40|45|50|55|60|65|70|75|80|85|90|95|100">
+##INFO=<ID=gq_hist_all_bin_freq_joint,Number=A,Type=String,Description="Histogram for GQ calculated on high quality genotypes in joint dataset; bin edges are: 0|5|10|15|20|25|30|35|40|45|50|55|60|65|70|75|80|85|90|95|100">
+##INFO=<ID=dp_hist_alt_bin_freq_joint,Number=A,Type=String,Description="Histogram for DP in heterozygous individuals calculated on high quality genotypes in joint dataset; bin edges are: 0|5|10|15|20|25|30|35|40|45|50|55|60|65|70|75|80|85|90|95|100">
+##INFO=<ID=dp_hist_alt_n_larger_joint,Number=A,Type=Integer,Description="Count of DP values falling above highest histogram bin edge DP in heterozygous individuals calculated on high quality genotypes in joint dataset">
+##INFO=<ID=dp_hist_all_bin_freq_joint,Number=A,Type=String,Description="Histogram for DP calculated on high quality genotypes in joint dataset; bin edges are: 0|5|10|15|20|25|30|35|40|45|50|55|60|65|70|75|80|85|90|95|100">
+##INFO=<ID=dp_hist_all_n_larger_joint,Number=A,Type=Integer,Description="Count of DP values falling above highest histogram bin edge DP calculated on high quality genotypes in joint dataset">
+##INFO=<ID=ab_hist_alt_bin_freq_joint,Number=A,Type=String,Description="Histogram for AB in heterozygous individuals calculated on high quality genotypes in joint dataset; bin edges are: 0.00|0.05|0.10|0.15|0.20|0.25|0.30|0.35|0.40|0.45|0.50|0.55|0.60|0.65|0.70|0.75|0.80|0.85|0.90|0.95|1.00">
+##INFO=<ID=CTT_p_value_XX,Number=A,Type=Float,Description="P-value from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for XX samples">
+##INFO=<ID=CTT_odds_ratio_XX,Number=A,Type=Float,Description="Odds ratio from from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for XX samples">
+##INFO=<ID=CTT_p_value_XY,Number=A,Type=Float,Description="P-value from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for XY samples">
+##INFO=<ID=CTT_odds_ratio_XY,Number=A,Type=Float,Description="Odds ratio from from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for XY samples">
+##INFO=<ID=CTT_p_value,Number=A,Type=Float,Description="P-value from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes">
+##INFO=<ID=CTT_odds_ratio,Number=A,Type=Float,Description="Odds ratio from from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes">
+##INFO=<ID=CTT_p_value_afr_XX,Number=A,Type=Float,Description="P-value from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for XX samples in the African/African-American genetic ancestry group">
+##INFO=<ID=CTT_odds_ratio_afr_XX,Number=A,Type=Float,Description="Odds ratio from from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for XX samples in the African/African-American genetic ancestry group">
+##INFO=<ID=CTT_p_value_afr_XY,Number=A,Type=Float,Description="P-value from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for XY samples in the African/African-American genetic ancestry group">
+##INFO=<ID=CTT_odds_ratio_afr_XY,Number=A,Type=Float,Description="Odds ratio from from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for XY samples in the African/African-American genetic ancestry group">
+##INFO=<ID=CTT_p_value_afr,Number=A,Type=Float,Description="P-value from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for samples in the African/African-American genetic ancestry group">
+##INFO=<ID=CTT_odds_ratio_afr,Number=A,Type=Float,Description="Odds ratio from from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for samples in the African/African-American genetic ancestry group">
+##INFO=<ID=CTT_p_value_ami_XX,Number=A,Type=Float,Description="P-value from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for XX samples in the Amish genetic ancestry group">
+##INFO=<ID=CTT_odds_ratio_ami_XX,Number=A,Type=Float,Description="Odds ratio from from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for XX samples in the Amish genetic ancestry group">
+##INFO=<ID=CTT_p_value_ami_XY,Number=A,Type=Float,Description="P-value from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for XY samples in the Amish genetic ancestry group">
+##INFO=<ID=CTT_odds_ratio_ami_XY,Number=A,Type=Float,Description="Odds ratio from from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for XY samples in the Amish genetic ancestry group">
+##INFO=<ID=CTT_p_value_ami,Number=A,Type=Float,Description="P-value from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for samples in the Amish genetic ancestry group">
+##INFO=<ID=CTT_odds_ratio_ami,Number=A,Type=Float,Description="Odds ratio from from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for samples in the Amish genetic ancestry group">
+##INFO=<ID=CTT_p_value_amr_XX,Number=A,Type=Float,Description="P-value from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for XX samples in the Admixed American genetic ancestry group">
+##INFO=<ID=CTT_odds_ratio_amr_XX,Number=A,Type=Float,Description="Odds ratio from from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for XX samples in the Admixed American genetic ancestry group">
+##INFO=<ID=CTT_p_value_amr_XY,Number=A,Type=Float,Description="P-value from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for XY samples in the Admixed American genetic ancestry group">
+##INFO=<ID=CTT_odds_ratio_amr_XY,Number=A,Type=Float,Description="Odds ratio from from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for XY samples in the Admixed American genetic ancestry group">
+##INFO=<ID=CTT_p_value_amr,Number=A,Type=Float,Description="P-value from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for samples in the Admixed American genetic ancestry group">
+##INFO=<ID=CTT_odds_ratio_amr,Number=A,Type=Float,Description="Odds ratio from from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for samples in the Admixed American genetic ancestry group">
+##INFO=<ID=CTT_p_value_asj_XX,Number=A,Type=Float,Description="P-value from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for XX samples in the Ashkenazi Jewish genetic ancestry group">
+##INFO=<ID=CTT_odds_ratio_asj_XX,Number=A,Type=Float,Description="Odds ratio from from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for XX samples in the Ashkenazi Jewish genetic ancestry group">
+##INFO=<ID=CTT_p_value_asj_XY,Number=A,Type=Float,Description="P-value from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for XY samples in the Ashkenazi Jewish genetic ancestry group">
+##INFO=<ID=CTT_odds_ratio_asj_XY,Number=A,Type=Float,Description="Odds ratio from from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for XY samples in the Ashkenazi Jewish genetic ancestry group">
+##INFO=<ID=CTT_p_value_asj,Number=A,Type=Float,Description="P-value from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for samples in the Ashkenazi Jewish genetic ancestry group">
+##INFO=<ID=CTT_odds_ratio_asj,Number=A,Type=Float,Description="Odds ratio from from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for samples in the Ashkenazi Jewish genetic ancestry group">
+##INFO=<ID=CTT_p_value_eas_XX,Number=A,Type=Float,Description="P-value from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for XX samples in the East Asian genetic ancestry group">
+##INFO=<ID=CTT_odds_ratio_eas_XX,Number=A,Type=Float,Description="Odds ratio from from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for XX samples in the East Asian genetic ancestry group">
+##INFO=<ID=CTT_p_value_eas_XY,Number=A,Type=Float,Description="P-value from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for XY samples in the East Asian genetic ancestry group">
+##INFO=<ID=CTT_odds_ratio_eas_XY,Number=A,Type=Float,Description="Odds ratio from from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for XY samples in the East Asian genetic ancestry group">
+##INFO=<ID=CTT_p_value_eas,Number=A,Type=Float,Description="P-value from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for samples in the East Asian genetic ancestry group">
+##INFO=<ID=CTT_odds_ratio_eas,Number=A,Type=Float,Description="Odds ratio from from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for samples in the East Asian genetic ancestry group">
+##INFO=<ID=CTT_p_value_fin_XX,Number=A,Type=Float,Description="P-value from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for XX samples in the Finnish genetic ancestry group">
+##INFO=<ID=CTT_odds_ratio_fin_XX,Number=A,Type=Float,Description="Odds ratio from from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for XX samples in the Finnish genetic ancestry group">
+##INFO=<ID=CTT_p_value_fin_XY,Number=A,Type=Float,Description="P-value from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for XY samples in the Finnish genetic ancestry group">
+##INFO=<ID=CTT_odds_ratio_fin_XY,Number=A,Type=Float,Description="Odds ratio from from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for XY samples in the Finnish genetic ancestry group">
+##INFO=<ID=CTT_p_value_fin,Number=A,Type=Float,Description="P-value from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for samples in the Finnish genetic ancestry group">
+##INFO=<ID=CTT_odds_ratio_fin,Number=A,Type=Float,Description="Odds ratio from from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for samples in the Finnish genetic ancestry group">
+##INFO=<ID=CTT_p_value_mid_XX,Number=A,Type=Float,Description="P-value from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for XX samples in the Middle Eastern genetic ancestry group">
+##INFO=<ID=CTT_odds_ratio_mid_XX,Number=A,Type=Float,Description="Odds ratio from from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for XX samples in the Middle Eastern genetic ancestry group">
+##INFO=<ID=CTT_p_value_mid_XY,Number=A,Type=Float,Description="P-value from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for XY samples in the Middle Eastern genetic ancestry group">
+##INFO=<ID=CTT_odds_ratio_mid_XY,Number=A,Type=Float,Description="Odds ratio from from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for XY samples in the Middle Eastern genetic ancestry group">
+##INFO=<ID=CTT_p_value_mid,Number=A,Type=Float,Description="P-value from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for samples in the Middle Eastern genetic ancestry group">
+##INFO=<ID=CTT_odds_ratio_mid,Number=A,Type=Float,Description="Odds ratio from from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for samples in the Middle Eastern genetic ancestry group">
+##INFO=<ID=CTT_p_value_nfe_XX,Number=A,Type=Float,Description="P-value from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for XX samples in the Non-Finnish European genetic ancestry group">
+##INFO=<ID=CTT_odds_ratio_nfe_XX,Number=A,Type=Float,Description="Odds ratio from from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for XX samples in the Non-Finnish European genetic ancestry group">
+##INFO=<ID=CTT_p_value_nfe_XY,Number=A,Type=Float,Description="P-value from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for XY samples in the Non-Finnish European genetic ancestry group">
+##INFO=<ID=CTT_odds_ratio_nfe_XY,Number=A,Type=Float,Description="Odds ratio from from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for XY samples in the Non-Finnish European genetic ancestry group">
+##INFO=<ID=CTT_p_value_nfe,Number=A,Type=Float,Description="P-value from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for samples in the Non-Finnish European genetic ancestry group">
+##INFO=<ID=CTT_odds_ratio_nfe,Number=A,Type=Float,Description="Odds ratio from from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for samples in the Non-Finnish European genetic ancestry group">
+##INFO=<ID=CTT_p_value_raw,Number=A,Type=Float,Description="P-value from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for samples, before removing low-confidence genotypes">
+##INFO=<ID=CTT_odds_ratio_raw,Number=A,Type=Float,Description="Odds ratio from from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for samples, before removing low-confidence genotypes">
+##INFO=<ID=CTT_p_value_remaining_XX,Number=A,Type=Float,Description="P-value from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for XX samples in the Remaining individuals genetic ancestry group">
+##INFO=<ID=CTT_odds_ratio_remaining_XX,Number=A,Type=Float,Description="Odds ratio from from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for XX samples in the Remaining individuals genetic ancestry group">
+##INFO=<ID=CTT_p_value_remaining_XY,Number=A,Type=Float,Description="P-value from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for XY samples in the Remaining individuals genetic ancestry group">
+##INFO=<ID=CTT_odds_ratio_remaining_XY,Number=A,Type=Float,Description="Odds ratio from from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for XY samples in the Remaining individuals genetic ancestry group">
+##INFO=<ID=CTT_p_value_remaining,Number=A,Type=Float,Description="P-value from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for samples in the Remaining individuals genetic ancestry group">
+##INFO=<ID=CTT_odds_ratio_remaining,Number=A,Type=Float,Description="Odds ratio from from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for samples in the Remaining individuals genetic ancestry group">
+##INFO=<ID=CTT_p_value_sas_XX,Number=A,Type=Float,Description="P-value from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for XX samples in the South Asian genetic ancestry group">
+##INFO=<ID=CTT_odds_ratio_sas_XX,Number=A,Type=Float,Description="Odds ratio from from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for XX samples in the South Asian genetic ancestry group">
+##INFO=<ID=CTT_p_value_sas_XY,Number=A,Type=Float,Description="P-value from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for XY samples in the South Asian genetic ancestry group">
+##INFO=<ID=CTT_odds_ratio_sas_XY,Number=A,Type=Float,Description="Odds ratio from from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for XY samples in the South Asian genetic ancestry group">
+##INFO=<ID=CTT_p_value_sas,Number=A,Type=Float,Description="P-value from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for samples in the South Asian genetic ancestry group">
+##INFO=<ID=CTT_odds_ratio_sas,Number=A,Type=Float,Description="Odds ratio from from Hail's contingency_table_test with `min_cell_count=100` comparing allele frequencies between exomes and genomes for samples in the South Asian genetic ancestry group">
+##INFO=<ID=CMH_chisq,Number=A,Type=Float,Description="Chi-squared test statistic from the Cochran-Mantel-Haenszel test comparing allele frequencies between exomes and genomes stratified by genetic ancestry group">
+##INFO=<ID=CMH_p_value,Number=A,Type=Float,Description="Odds ratio from Cochran-Mantel-Haenszel test comparing allele frequencies between exomes and genomes stratified by genetic ancestry group">
+##INFO=<ID=stat_union_p_value,Number=A,Type=Float,Description="p-value from the contingency table or Cochran-Mantel-Haenszel tests">
+##INFO=<ID=stat_union_test_name,Number=A,Type=String,Description="Name of the test, either contingency_table_test or cochran_mantel_haenszel_test, used to compare allele frequencies between exomes and genomes">
+##INFO=<ID=stat_union_gen_ancs,Number=.,Type=String,Description="List of genetic ancestry groups included in the test. If stat_union_test_name is contingency_table_test, the length of gen_ancs is one and if stat_union_test_name is 'cochran_mantel_haenszel_test', the length of 'gen_ancs' is greater than one">
+##INFO=<ID=fail_interval_qc,Number=0,Type=Flag,Description="Less than 85 percent of samples meet 20X coverage if variant is in autosomal or PAR regions or 10X coverage for non-PAR regions of chromosomes X and Y.">
+##INFO=<ID=outside_broad_capture_region,Number=0,Type=Flag,Description="Variant falls outside of the Broad exome capture regions.">
+##INFO=<ID=outside_ukb_capture_region,Number=0,Type=Flag,Description="Variant falls outside of the UK Biobank exome capture regions.">
+##INFO=<ID=outside_broad_calling_region,Number=0,Type=Flag,Description="Variant falls outside of the Broad exome capture regions plus 150 bp padding.">
+##INFO=<ID=outside_ukb_calling_region,Number=0,Type=Flag,Description="Variant falls outside of the UK Biobank exome capture regions plus 150 bp padding.">
+##INFO=<ID=not_called_in_exomes,Number=0,Type=Flag,Description="Variant was not called in the gnomAD exomes.">
+##INFO=<ID=not_called_in_genomes,Number=0,Type=Flag,Description="Variant was not called in the gnomAD genomes.">

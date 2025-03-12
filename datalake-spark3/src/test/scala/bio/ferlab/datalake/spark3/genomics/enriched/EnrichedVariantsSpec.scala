@@ -23,7 +23,7 @@ class EnrichedVariantsSpec extends SparkSpec with WithTestConfig {
   val gnomad_genomes_v2_1_1: DatasetConf = conf.getDataset("normalized_gnomad_genomes_v2_1_1")
   val gnomad_exomes_v2_1_1: DatasetConf = conf.getDataset("normalized_gnomad_exomes_v2_1_1")
   val gnomad_genomes_v3: DatasetConf = conf.getDataset("normalized_gnomad_genomes_v3")
-  val gnomad_genomes_v4: DatasetConf = conf.getDataset("normalized_gnomad_genomes_v4")
+  val gnomad_joint_v4: DatasetConf = conf.getDataset("normalized_gnomad_joint_v4")
   val dbsnp: DatasetConf = conf.getDataset("normalized_dbsnp")
   val clinvar: DatasetConf = conf.getDataset("normalized_clinvar")
   val genes: DatasetConf = conf.getDataset("enriched_genes")
@@ -41,7 +41,7 @@ class EnrichedVariantsSpec extends SparkSpec with WithTestConfig {
   val gnomad_genomes_2_1_1Df: DataFrame = Seq(NormalizedGnomadGenomes211()).toDF
   val gnomad_exomes_2_1_1Df: DataFrame = Seq(NormalizedGnomadExomes211()).toDF
   val gnomad_genomes_3Df: DataFrame = Seq(NormalizedGnomadGenomes3()).toDF
-  val gnomad_genomes_4Df: DataFrame = Seq(NormalizedGnomadGenomes4()).toDF
+  val gnomad_joint_4Df: DataFrame = Seq(NormalizedGnomadJoint4()).toDF
   val dbsnpDf: DataFrame = Seq(NormalizedDbsnp()).toDF
   val clinvarDf: DataFrame = Seq(NormalizedClinvar(chromosome = "1", start = 69897, reference = "T", alternate = "C")).toDF
   val genesDf: DataFrame = Seq(EnrichedGenes()).toDF()
@@ -58,7 +58,7 @@ class EnrichedVariantsSpec extends SparkSpec with WithTestConfig {
     gnomad_genomes_v2_1_1.id -> gnomad_genomes_2_1_1Df,
     gnomad_exomes_v2_1_1.id -> gnomad_exomes_2_1_1Df,
     gnomad_genomes_v3.id -> gnomad_genomes_3Df,
-    gnomad_genomes_v4.id -> gnomad_genomes_4Df,
+    gnomad_joint_v4.id -> gnomad_joint_4Df,
     dbsnp.id -> dbsnpDf,
     clinvar.id -> clinvarDf,
     genes.id -> genesDf,

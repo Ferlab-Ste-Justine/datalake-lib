@@ -44,7 +44,9 @@ object PreparedVariantCentric {
                                   `gnomad_genomes_2_1_1`: GNOMAD_GENOMES_2_1_1 = GNOMAD_GENOMES_2_1_1(),
                                   `gnomad_exomes_2_1_1`: GNOMAD_EXOMES_2_1_1 = GNOMAD_EXOMES_2_1_1(),
                                   `gnomad_genomes_3`: GNOMAD_GENOMES_3 = GNOMAD_GENOMES_3(),
-                                  `gnomad_genomes_4`: GNOMAD_GENOMES_4 = GNOMAD_GENOMES_4())
+                                  `gnomad_genomes_4`: GNOMAD_GENOMES_4 = GNOMAD_GENOMES_4(),
+                                  `gnomad_exomes_4`: GNOMAD_EXOMES_4 = GNOMAD_EXOMES_4(),
+                                  `gnomad_joint_4`: GNOMAD_JOINT_4 = GNOMAD_JOINT_4())
 
   case class DDD(`disease_name`: String = "OCULOAURICULAR SYNDROME")
 
@@ -120,7 +122,9 @@ object PreparedVariantCentric {
                               `af`: Double = 0.5,
                               `hom`: Long = 10)
 
-  case class GNOMAD_GENOMES_4(`ac`: Long = 2, `an`: Long = 20, `af`: Double = 2.0, `hom`: Long = 10)
+  case class GNOMAD_GENOMES_4(`ac`: Long = 1, `an`: Long = 10, `af`: Double = 1.0, `hom`: Long = 20)
+  case class GNOMAD_EXOMES_4(`ac`: Long = 2, `an`: Long = 20, `af`: Double = 2.0, `hom`: Long = 10)
+  case class GNOMAD_JOINT_4(`ac`: Long = 3, `an`: Long = 40, `af`: Double = 4.0, `hom`: Long = 15)
 
   case class COSMIC(`tumour_types_germline`: Seq[String] = Seq("breast", "colon", "endometrial cancer under age 50"))
 

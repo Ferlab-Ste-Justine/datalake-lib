@@ -39,7 +39,9 @@ object EnrichedVariant {
                          gnomad_genomes_2_1_1: GnomadFreqOutput = GnomadFreqOutput(1, 26342, 0.000037962189659099535, 0),
                          gnomad_exomes_2_1_1: GnomadFreqOutput = GnomadFreqOutput(0, 2, 0.0, 0),
                          gnomad_genomes_3: GnomadFreqOutput = GnomadFreqOutput(10, 20, 0.5, 10),
-                         gnomad_genomes_4: GnomadFreqOutput = GnomadFreqOutput(2, 20, 2.0, 10))
+                         gnomad_joint_4: GnomadFreqOutput = GnomadFreqOutput(3, 40, 4.0, 15),
+                         gnomad_genomes_4: GnomadFreqOutput = GnomadFreqOutput(1, 10, 1.0, 20),
+                         gnomad_exomes_4: GnomadFreqOutput = GnomadFreqOutput(2, 20, 2.0, 10))
 
 
   case class ThousandGenomesFreq(ac: Long = 10,

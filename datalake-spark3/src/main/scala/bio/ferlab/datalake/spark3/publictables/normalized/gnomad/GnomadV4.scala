@@ -11,8 +11,8 @@ import java.time.LocalDateTime
 
 case class GnomadV4(rc: RuntimeETLContext) extends SimpleETLP(rc) {
 
-  override val mainDestination: DatasetConf = conf.getDataset("normalized_gnomad_genomes_v4")
-  val gnomad_vcf: DatasetConf = conf.getDataset("raw_gnomad_genomes_v4")
+  override val mainDestination: DatasetConf = conf.getDataset("normalized_gnomad_joint_v4")
+  val gnomad_vcf: DatasetConf = conf.getDataset("raw_gnomad_joint_v4")
 
   override def extract(lastRunValue: LocalDateTime = minValue,
                        currentRunValue: LocalDateTime = LocalDateTime.now()): Map[String, DataFrame] = {
@@ -47,10 +47,18 @@ case class GnomadV4(rc: RuntimeETLContext) extends SimpleETLP(rc) {
       $"alternate",
       $"qual",
       $"name",
-      $"ac".cast("long"),
-      $"af",
-      $"an".cast("long"),
-      $"nhomalt".cast("long") as "hom"
+      $"ac_joint".cast("long"),
+      $"af_joint",
+      $"an_joint".cast("long"),
+      $"nhomalt_joint".cast("long") as "hom_joint",
+      $"ac_genomes".cast("long"),
+      $"af_genomes",
+      $"an_genomes".cast("long"),
+      $"nhomalt_genomes".cast("long") as "hom_genomes",
+      $"ac_exomes".cast("long"),
+      $"af_exomes",
+      $"an_exomes".cast("long"),
+      $"nhomalt_exomes".cast("long") as "hom_exomes",
     )
   }
 
