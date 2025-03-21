@@ -13,14 +13,14 @@ class RareVariantSpec extends SparkSpec with WithTestConfig {
 
   val gnomad_df: DatasetConf = job.gnomad
 
-  "transformSingle" should "transform Gnomad v2 to rare variant" in {
+  "transformSingle" should "transform Gnomad v4 to rare variant" in {
     val inputData = Map(
       gnomad_df.id -> Seq(
-        EnrichedRareVariantInput(chromosome = "1", start = 1000, reference = "A", alternate = "T", af = 0.005),
-        EnrichedRareVariantInput(chromosome = "1", start = 1000, reference = "A", alternate = "T", af = 0.03),
-        EnrichedRareVariantInput(chromosome = "1", start = 2000, reference = "A", alternate = "T", af = 0.011),
-        EnrichedRareVariantInput(chromosome = "2", start = 1000, reference = "A", alternate = "T", af = 0.005),
-        EnrichedRareVariantInput(chromosome = "2", start = 1000, reference = "A", alternate = "T", af = 0.01)
+        EnrichedRareVariantInput(chromosome = "1", start = 1000, reference = "A", alternate = "T", af_joint = 0.005),
+        EnrichedRareVariantInput(chromosome = "1", start = 1000, reference = "A", alternate = "T", af_joint = 0.03),
+        EnrichedRareVariantInput(chromosome = "1", start = 2000, reference = "A", alternate = "T", af_joint = 0.011),
+        EnrichedRareVariantInput(chromosome = "2", start = 1000, reference = "A", alternate = "T", af_joint = 0.005),
+        EnrichedRareVariantInput(chromosome = "2", start = 1000, reference = "A", alternate = "T", af_joint = 0.01)
 
       )
         .toDF()
