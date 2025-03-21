@@ -1,8 +1,9 @@
 package bio.ferlab.datalake.spark3.publictables.enriched
 
 import bio.ferlab.datalake.commons.config.DatasetConf
-import bio.ferlab.datalake.testutils.models.enriched.{EnrichedRareVariantInput, EnrichedRareVariantOutput}
+import bio.ferlab.datalake.testutils.models.enriched.EnrichedRareVariantOutput
 import bio.ferlab.datalake.spark3.testutils.WithTestConfig
+import bio.ferlab.datalake.testutils.models.normalized.NormalizedGnomadJoint4
 import bio.ferlab.datalake.testutils.{SparkSpec, TestETLContext}
 
 class RareVariantSpec extends SparkSpec with WithTestConfig {
@@ -16,11 +17,11 @@ class RareVariantSpec extends SparkSpec with WithTestConfig {
   "transformSingle" should "transform Gnomad v4 to rare variant" in {
     val inputData = Map(
       gnomad_df.id -> Seq(
-        EnrichedRareVariantInput(chromosome = "1", start = 1000, reference = "A", alternate = "T", af_joint = 0.005),
-        EnrichedRareVariantInput(chromosome = "1", start = 1000, reference = "A", alternate = "T", af_joint = 0.03),
-        EnrichedRareVariantInput(chromosome = "1", start = 2000, reference = "A", alternate = "T", af_joint = 0.011),
-        EnrichedRareVariantInput(chromosome = "2", start = 1000, reference = "A", alternate = "T", af_joint = 0.005),
-        EnrichedRareVariantInput(chromosome = "2", start = 1000, reference = "A", alternate = "T", af_joint = 0.01)
+        NormalizedGnomadJoint4(chromosome = "1", start = 1000, reference = "A", alternate = "T", af_joint = 0.005),
+        NormalizedGnomadJoint4(chromosome = "1", start = 1000, reference = "A", alternate = "T", af_joint = 0.03),
+        NormalizedGnomadJoint4(chromosome = "1", start = 2000, reference = "A", alternate = "T", af_joint = 0.011),
+        NormalizedGnomadJoint4(chromosome = "2", start = 1000, reference = "A", alternate = "T", af_joint = 0.005),
+        NormalizedGnomadJoint4(chromosome = "2", start = 1000, reference = "A", alternate = "T", af_joint = 0.01)
 
       )
         .toDF()
