@@ -13,7 +13,7 @@ import java.time.LocalDateTime
 case class RareVariant(rc: RuntimeETLContext) extends SimpleSingleETL(rc) {
 
   override val mainDestination: DatasetConf = conf.getDataset("enriched_rare_variant")
-  val gnomad: DatasetConf = conf.getDataset("normalized_gnomad_genomes_v3")
+  val gnomad: DatasetConf = conf.getDataset("normalized_gnomad_joint_v4")
 
   override def extract(lastRunValue: LocalDateTime,
                        currentRunValue: LocalDateTime): Map[String, DataFrame] = {
@@ -25,9 +25,9 @@ case class RareVariant(rc: RuntimeETLContext) extends SimpleSingleETL(rc) {
                                lastRunValue: LocalDateTime,
                                currentRunValue: LocalDateTime): DataFrame = {
     data(gnomad.id)
-      .select(columns.locus :+ col("af"): _*)
+      .select(columns.locus :+ col("af_joint"): _*)
       .groupByLocus()
-      .agg(max("af") as "af")
+      .agg(max("af_joint") as "af")
       .withColumn("is_rare", col("af") <= 0.01)
   }
 
