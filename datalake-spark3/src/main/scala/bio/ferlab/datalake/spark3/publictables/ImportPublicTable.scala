@@ -46,6 +46,9 @@ object ImportPublicTable {
   def gnomadv4(rc: RuntimeETLContext): Unit = GnomadV4.run(rc)
 
   @main
+  def gnomadv4cnv(rc: RuntimeETLContext): Unit = GnomadV4CNV.run(rc)
+
+  @main
   def gnomad_constraint(rc: RuntimeETLContext): Unit = GnomadConstraint.run(rc)
 
   @main
