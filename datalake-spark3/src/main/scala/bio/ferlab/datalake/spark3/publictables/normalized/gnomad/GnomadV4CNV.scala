@@ -25,6 +25,11 @@ case class GnomadV4CNV(rc: RuntimeETLContext) extends SimpleETLP(rc) {
                                currentRunValue: LocalDateTime = LocalDateTime.now()): DataFrame = {
     import spark.implicits._
 
+    /*
+    * We drop INFO_END because once we use flattenInfo, two columns will be named `end`
+    * After reviewing the original VCF, it seems that INFO_END is always null
+    * */
+
     val df = data(gnomad_vcf.id)
       .drop("INFO_END")
 
