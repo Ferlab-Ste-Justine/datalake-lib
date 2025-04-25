@@ -28,8 +28,7 @@ case class GnomadV4CNV(rc: RuntimeETLContext) extends SimpleETLP(rc) {
     val df = data(gnomad_vcf.id)
       .drop("INFO_END")
 
-    val intermediate = df
-      .select(
+    df.select(
         chromosome +:
         start +:
         end +:
@@ -39,31 +38,6 @@ case class GnomadV4CNV(rc: RuntimeETLContext) extends SimpleETLP(rc) {
         name +:
         flattenInfo(df): _*
       )
-
-    intermediate.show(10, false)
-
-   /* intermediate.select(
-      $"chromosome",
-      $"start",
-      $"end",
-      $"reference",
-      $"alternate",
-      $"qual",
-      $"name",
-      $"ac_joint".cast("long"),
-      $"af_joint",
-      $"an_joint".cast("long"),
-      $"nhomalt_joint".cast("long") as "hom_joint",
-      $"ac_genomes".cast("long"),
-      $"af_genomes",
-      $"an_genomes".cast("long"),
-      $"nhomalt_genomes".cast("long") as "hom_genomes",
-      $"ac_exomes".cast("long"),
-      $"af_exomes",
-      $"an_exomes".cast("long"),
-      $"nhomalt_exomes".cast("long") as "hom_exomes",
-    )*/
-    intermediate
   }
 
   override val defaultRepartition: DataFrame => DataFrame = RepartitionByRange(columnNames = Seq("chromosome", "start"), n = Some(1000))
