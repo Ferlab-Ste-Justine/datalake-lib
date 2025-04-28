@@ -1,0 +1,139 @@
+##fileformat=VCFv4.2
+##contig=<ID=chr1,length=248956422,assembly=hg38>
+##contig=<ID=chr2,length=242193529,assembly=hg38>
+##contig=<ID=chr3,length=198295559,assembly=hg38>
+##contig=<ID=chr4,length=190214555,assembly=hg38>
+##contig=<ID=chr5,length=181538259,assembly=hg38>
+##contig=<ID=chr6,length=170805979,assembly=hg38>
+##contig=<ID=chr7,length=159345973,assembly=hg38>
+##contig=<ID=chr8,length=145138636,assembly=hg38>
+##contig=<ID=chr9,length=138394717,assembly=hg38>
+##contig=<ID=chr10,length=133797422,assembly=hg38>
+##contig=<ID=chr11,length=135086622,assembly=hg38>
+##contig=<ID=chr12,length=133275309,assembly=hg38>
+##contig=<ID=chr13,length=114364328,assembly=hg38>
+##contig=<ID=chr14,length=107043718,assembly=hg38>
+##contig=<ID=chr15,length=101991189,assembly=hg38>
+##contig=<ID=chr16,length=90338345,assembly=hg38>
+##contig=<ID=chr17,length=83257441,assembly=hg38>
+##contig=<ID=chr18,length=80373285,assembly=hg38>
+##contig=<ID=chr19,length=58617616,assembly=hg38>
+##contig=<ID=chr20,length=64444167,assembly=hg38>
+##contig=<ID=chr21,length=46709983,assembly=hg38>
+##contig=<ID=chr22,length=50818468,assembly=hg38>
+##FILTER=<ID=PASS,Description="Variant passes overall rarity filter of site frequency<1%">
+##ALT=<ID=DEL,Description="Deletion">
+##ALT=<ID=DUP,Description="Duplication">
+##INFO=<ID=END,Number=1,Type=Integer,Description="End of CNV">
+##INFO=<ID=SVLEN,Number=1,Type=Integer,Description="Length of CNV">
+##INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of CNV (DEL|DUP)">
+##INFO=<ID=POSMIN,Number=1,Type=Integer,Description="Minimum start observed in samples carrying this variant">
+##INFO=<ID=POSMAX,Number=1,Type=Integer,Description="Maximum start observed in samples carrying this variant">
+##INFO=<ID=ENDMIN,Number=1,Type=Integer,Description="Minimum end observed in samples carrying this variant">
+##INFO=<ID=ENDMAX,Number=1,Type=Integer,Description="Maximum end observed in samples carrying this variant">
+##INFO=<ID=Genes,Number=1,Type=String,Description="Genes predicted to be impacted by varian">
+##INFO=<ID=N_EXN_VAR,Number=1,Type=Integer,Description="Median number of callable exons spanned by variant passing QS threshold">
+##INFO=<ID=N_INT_VAR,Number=1,Type=Integer,Description="Median number of callable intervals spanned by variant passing QS threshold">
+##INFO=<ID=SC,Number=1,Type=Float,Description="Number of releasable samples with a variant at this site">
+##INFO=<ID=SC_afr,Number=1,Type=Float,Description="Number of releasable AFR samples with a variant at this site">
+##INFO=<ID=SC_amr,Number=1,Type=Float,Description="Number of releasable AMR samples with a variant at this site">
+##INFO=<ID=SC_asj,Number=1,Type=Float,Description="Number of releasable ASJ samples with a variant at this site">
+##INFO=<ID=SC_eas,Number=1,Type=Float,Description="Number of releasable EAS samples with a variant at this site">
+##INFO=<ID=SC_fin,Number=1,Type=Float,Description="Number of releasable FIN samples with a variant at this site">
+##INFO=<ID=SC_mid,Number=1,Type=Float,Description="Number of releasable MID samples with a variant at this site">
+##INFO=<ID=SC_nfe,Number=1,Type=Float,Description="Number of releasable NFE samples with a variant at this site">
+##INFO=<ID=SC_sas,Number=1,Type=Float,Description="Number of releasable SAS samples with a variant at this site">
+##INFO=<ID=SC_remaining,Number=1,Type=Float,Description="Number of releasable remaining samples with a variant at this site">
+##INFO=<ID=SN,Number=1,Type=Float,Description="Total number of releasable samples considered at this site">
+##INFO=<ID=SN_afr,Number=1,Type=Float,Description="Total number of releasable AFR samples considered at this site">
+##INFO=<ID=SN_amr,Number=1,Type=Float,Description="Total number of releasable AMR samples considered at this site">
+##INFO=<ID=SN_asj,Number=1,Type=Float,Description="Total number of releasable ASJ samples considered at this site">
+##INFO=<ID=SN_eas,Number=1,Type=Float,Description="Total number of releasable EAS samples considered at this site">
+##INFO=<ID=SN_fin,Number=1,Type=Float,Description="Total number of releasable FIN samples considered at this site">
+##INFO=<ID=SN_mid,Number=1,Type=Float,Description="Total number of releasable MID samples considered at this site">
+##INFO=<ID=SN_nfe,Number=1,Type=Float,Description="Total number of releasable NFE samples considered at this site">
+##INFO=<ID=SN_sas,Number=1,Type=Float,Description="Total number of releasable SAS samples considered at this site">
+##INFO=<ID=SN_remaining,Number=1,Type=Float,Description="Total number of releasable remaining samples considered at this site">
+##INFO=<ID=SF,Number=1,Type=Float,Description="Proportion of releasable samples (site frequency) with a variant at this site">
+##INFO=<ID=SF_afr,Number=1,Type=Float,Description="Proportion of releasable AFR samples with a variant at this site">
+##INFO=<ID=SF_amr,Number=1,Type=Float,Description="Proportion of releasable AMR samples with a variant at this site">
+##INFO=<ID=SF_asj,Number=1,Type=Float,Description="Proportion of releasable ASJ samples with a variant at this site">
+##INFO=<ID=SF_eas,Number=1,Type=Float,Description="Proportion of releasable EAS samples with a variant at this site">
+##INFO=<ID=SF_fin,Number=1,Type=Float,Description="Proportion of releasable FIN samples with a variant at this site">
+##INFO=<ID=SF_mid,Number=1,Type=Float,Description="Proportion of releasable MID samples with a variant at this site">
+##INFO=<ID=SF_nfe,Number=1,Type=Float,Description="Proportion of releasable NFE samples with a variant at this site">
+##INFO=<ID=SF_sas,Number=1,Type=Float,Description="Proportion of releasable SAS samples with a variant at this site">
+##INFO=<ID=SF_remaining,Number=1,Type=Float,Description="Proportion of releasable remaining samples with a variant at this site">
+##INFO=<ID=SC_XX,Number=1,Type=Float,Description="Number of releasable XX samples with a variant at this site">
+##INFO=<ID=SC_afr_XX,Number=1,Type=Float,Description="Number of releasable XX AFR samples with a variant at this site">
+##INFO=<ID=SC_amr_XX,Number=1,Type=Float,Description="Number of releasable XX AMR samples with a variant at this site">
+##INFO=<ID=SC_asj_XX,Number=1,Type=Float,Description="Number of releasable XX ASJ samples with a variant at this site">
+##INFO=<ID=SC_eas_XX,Number=1,Type=Float,Description="Number of releasable XX EAS samples with a variant at this site">
+##INFO=<ID=SC_fin_XX,Number=1,Type=Float,Description="Number of releasable XX FIN samples with a variant at this site">
+##INFO=<ID=SC_mid_XX,Number=1,Type=Float,Description="Number of releasable XX MID samples with a variant at this site">
+##INFO=<ID=SC_nfe_XX,Number=1,Type=Float,Description="Number of releasable XX NFE samples with a variant at this site">
+##INFO=<ID=SC_sas_XX,Number=1,Type=Float,Description="Number of releasable XX SAS samples with a variant at this site">
+##INFO=<ID=SC_remaining_XX,Number=1,Type=Float,Description="Number of releasable XX remaining samples with a variant at this site">
+##INFO=<ID=SN_XX,Number=1,Type=Float,Description="Total number of releasable XX samples considered at this site">
+##INFO=<ID=SN_afr_XX,Number=1,Type=Float,Description="Total number of releasable XX AFR samples considered at this site">
+##INFO=<ID=SN_amr_XX,Number=1,Type=Float,Description="Total number of releasable XX AMR samples considered at this site">
+##INFO=<ID=SN_asj_XX,Number=1,Type=Float,Description="Total number of releasable XX ASJ samples considered at this site">
+##INFO=<ID=SN_eas_XX,Number=1,Type=Float,Description="Total number of releasable XX EAS samples considered at this site">
+##INFO=<ID=SN_fin_XX,Number=1,Type=Float,Description="Total number of releasable XX FIN samples considered at this site">
+##INFO=<ID=SN_mid_XX,Number=1,Type=Float,Description="Total number of releasable XX MID samples considered at this site">
+##INFO=<ID=SN_nfe_XX,Number=1,Type=Float,Description="Total number of releasable XX NFE samples considered at this site">
+##INFO=<ID=SN_sas_XX,Number=1,Type=Float,Description="Total number of releasable XX SAS samples considered at this site">
+##INFO=<ID=SN_remaining_XX,Number=1,Type=Float,Description="Total number of releasable XX remaining samples considered at this site">
+##INFO=<ID=SF_XX,Number=1,Type=Float,Description="Proportion of releasable XX samples (site frequency) with a variant at this site">
+##INFO=<ID=SF_afr_XX,Number=1,Type=Float,Description="Proportion of releasable XX AFR samples with a variant at this site">
+##INFO=<ID=SF_amr_XX,Number=1,Type=Float,Description="Proportion of releasable XX AMR samples with a variant at this site">
+##INFO=<ID=SF_asj_XX,Number=1,Type=Float,Description="Proportion of releasable XX ASJ samples with a variant at this site">
+##INFO=<ID=SF_eas_XX,Number=1,Type=Float,Description="Proportion of releasable XX EAS samples with a variant at this site">
+##INFO=<ID=SF_fin_XX,Number=1,Type=Float,Description="Proportion of releasable XX FIN samples with a variant at this site">
+##INFO=<ID=SF_mid_XX,Number=1,Type=Float,Description="Proportion of releasable XX MID samples with a variant at this site">
+##INFO=<ID=SF_nfe_XX,Number=1,Type=Float,Description="Proportion of releasable XX NFE samples with a variant at this site">
+##INFO=<ID=SF_sas_XX,Number=1,Type=Float,Description="Proportion of releasable XX SAS samples with a variant at this site">
+##INFO=<ID=SF_remaining_XX,Number=1,Type=Float,Description="Proportion of releasable XX remaining samples with a variant at this site">
+##INFO=<ID=SC_XY,Number=1,Type=Float,Description="Number of releasable XY samples with a variant at this site">
+##INFO=<ID=SC_afr_XY,Number=1,Type=Float,Description="Number of releasable XY AFR samples with a variant at this site">
+##INFO=<ID=SC_amr_XY,Number=1,Type=Float,Description="Number of releasable XY AMR samples with a variant at this site">
+##INFO=<ID=SC_asj_XY,Number=1,Type=Float,Description="Number of releasable XY ASJ samples with a variant at this site">
+##INFO=<ID=SC_eas_XY,Number=1,Type=Float,Description="Number of releasable XY EAS samples with a variant at this site">
+##INFO=<ID=SC_fin_XY,Number=1,Type=Float,Description="Number of releasable XY FIN samples with a variant at this site">
+##INFO=<ID=SC_mid_XY,Number=1,Type=Float,Description="Number of releasable XY MID samples with a variant at this site">
+##INFO=<ID=SC_nfe_XY,Number=1,Type=Float,Description="Number of releasable XY NFE samples with a variant at this site">
+##INFO=<ID=SC_sas_XY,Number=1,Type=Float,Description="Number of releasable XY SAS samples with a variant at this site">
+##INFO=<ID=SC_remaining_XY,Number=1,Type=Float,Description="Number of releasable XY remaining samples with a variant at this site">
+##INFO=<ID=SN_XY,Number=1,Type=Float,Description="Total number of releasable XY samples considered at this site">
+##INFO=<ID=SN_afr_XY,Number=1,Type=Float,Description="Total number of releasable XY AFR samples considered at this site">
+##INFO=<ID=SN_amr_XY,Number=1,Type=Float,Description="Total number of releasable XY AMR samples considered at this site">
+##INFO=<ID=SN_asj_XY,Number=1,Type=Float,Description="Total number of releasable XY ASJ samples considered at this site">
+##INFO=<ID=SN_eas_XY,Number=1,Type=Float,Description="Total number of releasable XY EAS samples considered at this site">
+##INFO=<ID=SN_fin_XY,Number=1,Type=Float,Description="Total number of releasable XY FIN samples considered at this site">
+##INFO=<ID=SN_mid_XY,Number=1,Type=Float,Description="Total number of releasable XY MID samples considered at this site">
+##INFO=<ID=SN_nfe_XY,Number=1,Type=Float,Description="Total number of releasable XY NFE samples considered at this site">
+##INFO=<ID=SN_sas_XY,Number=1,Type=Float,Description="Total number of releasable XY SAS samples considered at this site">
+##INFO=<ID=SN_remaining_XY,Number=1,Type=Float,Description="Total number of releasable XY remaining samples considered at this site">
+##INFO=<ID=SF_XY,Number=1,Type=Float,Description="Proportion of releasable XY samples (site frequency) with a variant at this site">
+##INFO=<ID=SF_afr_XY,Number=1,Type=Float,Description="Proportion of releasable XY AFR samples with a variant at this site">
+##INFO=<ID=SF_amr_XY,Number=1,Type=Float,Description="Proportion of releasable XY AMR samples with a variant at this site">
+##INFO=<ID=SF_asj_XY,Number=1,Type=Float,Description="Proportion of releasable XY ASJ samples with a variant at this site">
+##INFO=<ID=SF_eas_XY,Number=1,Type=Float,Description="Proportion of releasable XY EAS samples with a variant at this site">
+##INFO=<ID=SF_fin_XY,Number=1,Type=Float,Description="Proportion of releasable XY FIN samples with a variant at this site">
+##INFO=<ID=SF_mid_XY,Number=1,Type=Float,Description="Proportion of releasable XY MID samples with a variant at this site">
+##INFO=<ID=SF_nfe_XY,Number=1,Type=Float,Description="Proportion of releasable XY NFE samples with a variant at this site">
+##INFO=<ID=SF_sas_XY,Number=1,Type=Float,Description="Proportion of releasable XY SAS samples with a variant at this site">
+##INFO=<ID=SF_remaining_XY,Number=1,Type=Float,Description="Proportion of releasable XY remaining samples with a variant at this site">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=QS,Number=1,Type=Integer,Description="QS score output by GATK-gCNV">
+##FORMAT=<ID=CN,Number=1,Type=Integer,Description="Predicted copy number">
+##FORMAT=<ID=dCR,Number=1,Type=Integer,Description="Denoised copy ratio estimate in sample">
+##FORMAT=<ID=dCR_mad,Number=1,Type=Integer,Description="Median absolute deviation of denoised copy ratio estimate in sample">
+##FORMAT=<ID=SAMP_POS,Number=1,Type=Integer,Description="Start position of variant in sample">
+##FORMAT=<ID=SAMP_END,Number=1,Type=Integer,Description="End position of variant in sample">
+##FORMAT=<ID=BATCH,Number=1,Type=Integer,Description="Batch sample was processed in">
+##FORMAT=<ID=N_EXN,Number=1,Type=Integer,Description="Number of callable exons spanned by variant in sample">
+##FORMAT=<ID=N_INT,Number=1,Type=Integer,Description="Number of callable intervals spanned by variant in sample">
+##FORMAT=<ID=MOSAIC,Number=1,Type=String,Description="Call is mosaic based on dCR/dCR_mad>5">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+chr1	925634	variant_is_80_2__DEL	N	<DEL>	.	PASS	END=931187;SVLEN=5553;SVTYPE=DEL;POSMIN=925634;POSMAX=925634;ENDMIN=930434;ENDMAX=931187;Genes=SAMD11;N_EXN_VAR=3;N_INT_VAR=4;SC=3;SC_afr=0;SC_amr=0;SC_asj=0;SC_eas=1;SC_fin=0;SC_mid=0;SC_nfe=2;SC_remaining=0;SC_sas=0;SN=464277;SN_afr=11330;SN_amr=20800;SN_asj=10397;SN_eas=15938;SN_fin=22688;SN_mid=1414;SN_nfe=326255;SN_remaining=20975;SN_sas=34480;SF=6.46165974192131e-06;SF_afr=0;SF_amr=0;SF_asj=0;SF_eas=6.27431296273058e-05;SF_fin=0;SF_mid=0;SF_nfe=6.13017425020306e-06;SF_remaining=0;SF_sas=0;SC_XY=1;SC_afr_XY=0;SC_amr_XY=0;SC_asj_XY=0;SC_eas_XY=0;SC_fin_XY=0;SC_mid_XY=0;SC_nfe_XY=1;SC_remaining_XY=0;SC_sas_XY=0;SN_XY=236827;SN_afr_XY=4678;SN_amr_XY=8824;SN_asj_XY=5441;SN_eas_XY=7994;SN_fin_XY=10861;SN_mid_XY=825;SN_nfe_XY=161713;SN_remaining_XY=9970;SN_sas_XY=26521;SF_XY=4.22249152334827e-06;SF_afr_XY=0;SF_amr_XY=0;SF_asj_XY=0;SF_eas_XY=0;SF_fin_XY=0;SF_mid_XY=0;SF_nfe_XY=6.18379474748474e-06;SF_remaining_XY=0;SF_sas_XY=0;SC_XX=2;SC_afr_XX=0;SC_amr_XX=0;SC_asj_XX=0;SC_eas_XX=1;SC_fin_XX=0;SC_mid_XX=0;SC_nfe_XX=1;SC_remaining_XX=0;SC_sas_XX=0;SN_XX=227450;SN_afr_XX=6652;SN_amr_XX=11976;SN_asj_XX=4956;SN_eas_XX=7944;SN_fin_XX=11827;SN_mid_XX=589;SN_nfe_XX=164542;SN_remaining_XX=11005;SN_sas_XX=7959;SF_XX=8.7931413497472e-06;SF_afr_XX=0;SF_amr_XX=0;SF_asj_XX=0;SF_eas_XX=0.000125881168177241;SF_fin_XX=0;SF_mid_XX=0;SF_nfe_XX=6.07747565970998e-06;SF_remaining_XX=0;SF_sas_XX=0
