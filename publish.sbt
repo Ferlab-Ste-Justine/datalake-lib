@@ -1,4 +1,4 @@
-ThisBuild / sonatypeCredentialHost := sys.env.getOrElse("SONATYPE_HOST", "s01.oss.sonatype.org")
+ThisBuild / sonatypeCredentialHost := sys.env.getOrElse("SONATYPE_HOST", "central.sonatype.com")
 ThisBuild / credentials += sys.env.get("SONATYPE_USERNAME").map(username => Credentials(sys.env("SONATYPE_REALM"), sys.env("SONATYPE_HOST"), username, sys.env("SONATYPE_PASSWORD"))).getOrElse(Credentials(Path.userHome / ".sbt" / "sonatype_credentials"))
 ThisBuild / releasePublishArtifactsAction := PgpKeys.publishSigned.value
 ThisBuild / fork := true
@@ -38,7 +38,7 @@ ThisBuild / sonatypeProjectHosting := Some(GitHubHosting("Ferlab Ste-Justine", "
 // Remove all additional repository other than Maven Central from POM
 ThisBuild / pomIncludeRepository := { _ => false }
 ThisBuild / publishTo := {
-  val nexus = "https://s01.oss.sonatype.org/"
+  val nexus = "https://central.sonatype.com/"
   if (isSnapshot.value) Some("snapshots" at nexus + "content/repositories/snapshots")
   else Some("releases" at nexus + "service/local/staging/deploy/maven2")
 }
