@@ -27,6 +27,7 @@ case class DBSNP(rc: RuntimeETLContext) extends SimpleETLP(rc)  {
     import spark.implicits._
     data(raw_dbsnp.id)
       .where($"contigName" like "NC_%")
+      .withColumn("alternate", explode($"alternateAlleles"))
       .withColumn("chromosome", regexp_extract($"contigName", "NC_(\\d+).(\\d+)", 1).cast("int"))
       .select(
         when($"chromosome" === 23, "X")
@@ -37,7 +38,7 @@ case class DBSNP(rc: RuntimeETLContext) extends SimpleETLP(rc)  {
         end,
         name,
         reference,
-        alternate,
+        $"alternate",
         $"contigName" as "original_contig_name"
       )
   }
