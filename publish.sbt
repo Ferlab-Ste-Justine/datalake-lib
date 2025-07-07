@@ -1,5 +1,26 @@
-ThisBuild / sonatypeCredentialHost := sys.env.getOrElse("SONATYPE_HOST", "ossrh-staging-api.central.sonatype.com")
-ThisBuild / credentials += sys.env.get("SONATYPE_USERNAME").map(username => Credentials(sys.env("SONATYPE_REALM"), sys.env("SONATYPE_HOST"), username, sys.env("SONATYPE_PASSWORD"))).getOrElse(Credentials(Path.userHome / ".sbt" / "sonatype_credentials"))
+ThisBuild / sonatypeCredentialHost := {
+  val resolvedHost = sys.env.getOrElse("SONATYPE_HOST", "ossrh-staging-api.central.sonatype.com")
+  println(s"[DEBUG] sonatypeCredentialHost = $resolvedHost")
+  resolvedHost
+}
+ThisBuild / credentials += sys.env.get("SONATYPE_USERNAME").map { username =>
+  val realm = sys.env("SONATYPE_REALM")
+  val host = sys.env("SONATYPE_HOST")
+  val password = sys.env("SONATYPE_PASSWORD")
+  println(s"[DEBUG] Using env credentials: $realm @ $host for user $username")
+  Credentials(realm, host, username, password)
+}.getOrElse {
+  val credentialsFile = Path.userHome / ".sbt" / "sonatype_credentials"
+  println("[DEBUG] Falling back to ~/.sbt/sonatype_credentials")
+
+  if (credentialsFile.exists()) {
+    println("[DEBUG] Contents (excluding password):")
+    IO.readLines(Path.userHome / ".sbt" / "sonatype_credentials")
+      .filterNot(_.toLowerCase.startsWith("password"))
+      .foreach(line => println(s"  $line"))
+  }
+  Credentials(Path.userHome / ".sbt" / "sonatype_credentials")
+}
 ThisBuild / releasePublishArtifactsAction := PgpKeys.publishSigned.value
 ThisBuild / fork := true
 ThisBuild / versionScheme := Some("semver-spec")
