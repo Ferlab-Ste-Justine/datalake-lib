@@ -1,8 +1,9 @@
-ThisBuild / sonatypeCredentialHost := {
-  val resolvedHost = sys.env.getOrElse("SONATYPE_HOST", "ossrh-staging-api.central.sonatype.com")
-  println(s"[DEBUG] sonatypeCredentialHost = $resolvedHost")
-  resolvedHost
-}
+//ThisBuild / sonatypeCredentialHost := {
+//  val resolvedHost = sys.env.getOrElse("SONATYPE_HOST", "ossrh-staging-api.central.sonatype.com")
+//  println(s"[DEBUG] sonatypeCredentialHost = $resolvedHost")
+//  resolvedHost
+//}
+//ThisBuild / sonatypeCredentialHost := sonatypeCentralHost
 ThisBuild / credentials += sys.env.get("SONATYPE_USERNAME").map { username =>
   val realm = sys.env("SONATYPE_REALM")
   val host = sys.env("SONATYPE_HOST")
@@ -54,14 +55,14 @@ ThisBuild / licenses := List("Apache 2" -> new URL("http://www.apache.org/licens
 ThisBuild / homepage := Some(url("https://github.com/Ferlab-Ste-Justine/datalake-lib"))
 
 import sbt.url
-import xerial.sbt.Sonatype._
+//import xerial.sbt.Sonatype._
 
-ThisBuild / sonatypeProjectHosting := Some(GitHubHosting("Ferlab Ste-Justine", "datalake-lib", "cbotek@ferlab.bio"))
+//ThisBuild / sonatypeProjectHosting := Some(GitHubHosting("Ferlab Ste-Justine", "datalake-lib", "cbotek@ferlab.bio"))
 // Remove all additional repository other than Maven Central from POM
 ThisBuild / pomIncludeRepository := { _ => false }
 ThisBuild / publishTo := {
-  val nexus = "https://ossrh-staging-api.central.sonatype.com/"
-  if (isSnapshot.value) Some("snapshots" at nexus + "content/repositories/snapshots")
-  else Some("releases" at nexus + "service/local/staging/deploy/maven2")
+  val centralSnapshots = "https://central.sonatype.com/repository/maven-snapshots/"
+  if (isSnapshot.value) Some("central-snapshots" at centralSnapshots)
+  else localStaging.value
 }
 ThisBuild / publishMavenStyle := true

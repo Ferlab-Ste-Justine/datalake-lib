@@ -40,7 +40,7 @@ jobs:
           echo "Using realm: $SONATYPE_REALM"
           echo "Using host: $SONATYPE_HOST"
           echo "Using username: $SONATYPE_USERNAME" | sed 's/./& /g'
-          sbt 'publishSigned; sonatypeRelease'
+          sbt 'publishSigned; sonaRelease'
 
       - name: Create release
         env:
