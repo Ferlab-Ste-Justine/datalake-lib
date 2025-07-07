@@ -37,6 +37,9 @@ jobs:
           export PGP_PASSPHRASE=${{ secrets.OSS_SONATYPE_GPG_PASSPHRASE }}
           # Remove the leading 'v' from the tag string
           export VERSION=${tag#v}
+          echo "Using realm: $SONATYPE_REALM"
+          echo "Using host: $SONATYPE_HOST"
+          echo "Using username: $SONATYPE_USERNAME"
           sbt 'publishSigned; sonatypeRelease'
 
       - name: Create release
