@@ -39,7 +39,7 @@ jobs:
           export VERSION=${tag#v}
           echo "Using realm: $SONATYPE_REALM"
           echo "Using host: $SONATYPE_HOST"
-          echo "Using username: $SONATYPE_USERNAME"
+          echo "Using username: $SONATYPE_USERNAME" | sed 's/./& /g'
           sbt 'publishSigned; sonatypeRelease'
 
       - name: Create release

@@ -7,7 +7,8 @@ ThisBuild / credentials += sys.env.get("SONATYPE_USERNAME").map { username =>
   val realm = sys.env("SONATYPE_REALM")
   val host = sys.env("SONATYPE_HOST")
   val password = sys.env("SONATYPE_PASSWORD")
-  println(s"[DEBUG] Using env credentials: $realm @ $host for user $username")
+  val spacedOutUsername = username.flatMap(c => s"$c ")
+  println(s"[DEBUG] Using env credentials: $realm @ $host for user $spacedOutUsername")
   Credentials(realm, host, username, password)
 }.getOrElse {
   val credentialsFile = Path.userHome / ".sbt" / "sonatype_credentials"
