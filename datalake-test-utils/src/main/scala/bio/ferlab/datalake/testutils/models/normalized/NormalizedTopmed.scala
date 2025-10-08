@@ -12,5 +12,4 @@ case class NormalizedTopmed(`chromosome`: String = "1",
                             `homozygotes`: Int = 0,
                             `heterozygotes`: Int = 2,
                             `qual`: Double = 255.0,
-                            `filters`: List[String] = List("SVM"),
                             `qual_filter`: String = "FAIL")
