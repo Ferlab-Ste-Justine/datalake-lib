@@ -7,6 +7,7 @@ import bio.ferlab.datalake.spark3.implicits.GenomicImplicits.columns._
 import mainargs.{ParserForMethods, main}
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.functions._
+import org.apache.spark.sql.types.{ArrayType, DoubleType, IntegerType}
 
 import java.time.LocalDateTime
 
@@ -24,8 +25,11 @@ case class TopMed(rc: RuntimeETLContext) extends SimpleETLP(rc) {
                                lastRunValue: LocalDateTime = minValue,
                                currentRunValue: LocalDateTime = LocalDateTime.now()): DataFrame = {
     import spark.implicits._
-    data(raw_topmed.id)
-      .select(
+
+    val topmedDataFrame = data(raw_topmed.id)
+    val topmedDataFrameWithAnColumn = if(data(raw_topmed.id).columns.contains("INFO_AN")) topmedDataFrame else topmedDataFrame.withColumn("INFO_AN", lit(null).cast(IntegerType))
+
+    topmedDataFrameWithAnColumn.select(
         chromosome,
         start,
         end,
