@@ -4,7 +4,7 @@ case class RawTopMedFreeze10(
                               contigName: String = "chr1",
                               start: Long = 69896,
                               end: Long = 69897,
-                              names: List[String] = null,
+                              names: Option[List[String]] = None,
                               referenceAllele: String = "T",
                               alternateAlleles: List[String] = List("C"),
                               qual: Double = 255.0,
@@ -14,7 +14,7 @@ case class RawTopMedFreeze10(
                               INFO_AC: List[Int] = List(2),
                               INFO_Het: List[Int] = List(2),
                               INFO_Hom: List[Int] = List(0),
-                              genotypes: List[GENOTYPES] = null
+                              genotypes: Option[List[GENOTYPES]] = None
                             )
 
 

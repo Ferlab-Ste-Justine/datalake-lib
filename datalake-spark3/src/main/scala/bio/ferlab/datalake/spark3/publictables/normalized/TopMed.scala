@@ -27,7 +27,7 @@ case class TopMed(rc: RuntimeETLContext) extends SimpleETLP(rc) {
     import spark.implicits._
 
     val topmedDataFrame = data(raw_topmed.id)
-    val topmedDataFrameWithAnColumn = if(data(raw_topmed.id).columns.contains("INFO_AN")) topmedDataFrame else topmedDataFrame.withColumn("INFO_AN", lit(0).cast(IntegerType))
+    val topmedDataFrameWithAnColumn = if(data(raw_topmed.id).columns.contains("INFO_AN")) topmedDataFrame else topmedDataFrame.withColumn("INFO_AN", lit(null).cast(IntegerType))
 
     topmedDataFrameWithAnColumn.select(
         chromosome,

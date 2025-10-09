@@ -17,7 +17,7 @@ case class RawTopMedFreeze8(
                               INFO_NS: Int = 132345,
                               INFO_VRT: Int = 1 ,
                               INFO_AN: Int = 125568,
-                              genotypes: List[GENOTYPES] = null
+                              genotypes: Option[List[GENOTYPES]] = None
                             )
 
 
