@@ -30,11 +30,10 @@ case class DDDGeneSet(rc: RuntimeETLContext) extends SimpleETLP(rc) {
         $"gene mim" as "omim_gene_id",
         $"disease name" as "disease_name",
         $"disease mim" as "disease_omim_id",
-        $"confidence category" as "confidence_category",
-        $"mutation consequence" as "mutation_consequence",
-        split($"variant consequence", ";") as "variant_consequence",
-        split($"phenotypes", ";") as "phenotypes",
-        split($"organ specificity list", ";") as "organ_specificity",
+        $"confidence" as "confidence_category",
+        $"variant consequence" as "mutation_consequence",
+        split($"variant types", "; ") as "variant_consequence",
+        split($"phenotypes", "; ") as "phenotypes",
         $"panel",
         $"hgnc id" as "hgnc_id"
       )
