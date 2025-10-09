@@ -8,6 +8,5 @@ case class NormalizedDddGeneCensus(`symbol`: String = "HMX1",
                                    `mutation_consequence`: String = "loss of function",
                                    `variant_consequence`: List[String] = List("missense_variant", "inframe_deletion", "inframe_insertion"),
                                    `phenotypes`: List[String] = List("HP:0000007", "HP:0000482", "HP:0000647", "HP:0007906", "HP:0000568", "HP:0000589", "HP:0000639", "HP:0000518", "HP:0001104"),
-                                   `organ_specificity`: List[String] = List("Eye", "Ear"),
                                    `panel`: String = "DD",
                                    `hgnc_id`: String = "5017")
