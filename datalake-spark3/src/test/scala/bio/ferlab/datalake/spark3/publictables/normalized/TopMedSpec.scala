@@ -26,7 +26,7 @@ class TopMedSpec extends SparkSpec with WithTestConfig {
 
     val result = TopMed(TestETLContext()).transformSingle(Map(source.id -> df))
 
-    result.as[NormalizedTopmed].collect() should contain theSameElementsAs Seq(NormalizedTopmed(name=None, an=None))
+    result.as[NormalizedTopmed].collect() should contain theSameElementsAs Seq(NormalizedTopmed(name=None))
   }
 }
 
