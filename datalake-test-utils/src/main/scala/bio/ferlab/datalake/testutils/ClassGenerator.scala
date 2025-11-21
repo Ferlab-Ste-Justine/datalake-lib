@@ -71,8 +71,13 @@ object ClassGenerator {
         case structField: StructField => structField.toString()
       }
     } else {
-      val countNulls: Column = df.schema.fieldNames.map(c => functions.when(col(c).isNull, 1).otherwise(0)).reduce((a, b) => a + b)
-      val values: Row = df.withColumn("countNulls", countNulls).orderBy(asc("countNulls")).drop("countNulls").head()
+      val values: Row = (
+        if (df.count() == 1) {
+          df.head()
+        } else {
+          val countNulls: Column = df.schema.fieldNames.map(c => functions.when(col(c).isNull, 1).otherwise(0)).reduce((a, b) => a + b)
+          df.withColumn("countNulls", countNulls).orderBy(asc("countNulls")).drop("countNulls").head()
+        })
       df.schema.fields.map {
         case StructField(name, dataType, _, _) if getValue.isDefinedAt(name, values, dataType) && getType.isDefinedAt(dataType)=>
           if(values.getAs(name) == null)

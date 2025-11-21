@@ -6,7 +6,6 @@ import bio.ferlab.datalake.commons.config._
 import bio.ferlab.datalake.commons.file.FileSystemType.S3
 import bio.ferlab.datalake.spark3.publictables.PublicDatasets.gnomadStorageId
 
-
 case class PublicDatasets(alias: String, tableDatabase: Option[String], viewDatabase: Option[String]) extends BaseDatasets {
   val sources: List[DatasetConf] = List(
           //raw
@@ -15,6 +14,7 @@ case class PublicDatasets(alias: String, tableDatabase: Option[String], viewData
           DatasetConf("raw_gnomad_genomes_v3"        , alias, "/release/3.1/vcf/genomes/gnomad.genomes.v3.1.sites.chr[^M]*.vcf.bgz", VCF  , OverWrite , readoptions = Map("flattenInfoFields" -> "true", "split_multiallelics" -> "true")).copy(storageid = gnomadStorageId),
           DatasetConf("raw_gnomad_joint_v4"          , alias, "/raw/landing/gnomad_v4/release/4.1/vcf/joint/gnomad.joint.v4.1.sites.chr[^M]*.vcf.bgz",  VCF  , OverWrite , readoptions = Map("flattenInfoFields" -> "true", "split_multiallelics" -> "true")),
           DatasetConf("raw_gnomad_cnv_v4"            , alias, "/raw/landing/gnomad_v4/release/4.1/exome_cnv/gnomad.v4.1.cnv.all.vcf.gz",                VCF  , OverWrite , readoptions = Map("flattenInfoFields" -> "true", "split_multiallelics" -> "true")),
+          DatasetConf("raw_gnomad_sv_v4"             , alias, "/raw/landing/gnomad_v4/release/4.1/genome_sv/gnomad.v4.1.sv.sites.vcf.gz",               VCF  , OverWrite , readoptions = Map("flattenInfoFields" -> "true", "split_multiallelics" -> "true")),
           DatasetConf("raw_gnomad_constraint_v2_1_1" , alias, "/raw/landing/gnomad_v2_1_1/gnomad.v2.1.1.lof_metrics.by_gene.txt.gz", CSV  , OverWrite , readoptions = Map("header" -> "true", "sep" -> "\t")),
           DatasetConf("raw_topmed_bravo"             , alias, "/raw/landing/topmed/bravo-dbsnp-*.vcf.gz"                           , VCF  , OverWrite , readoptions = Map("flattenInfoFields" -> "true", "split_multiallelics" -> "true")),
           DatasetConf("raw_1000_genomes"             , alias, "/raw/landing/1000Genomes/ALL.*.sites.vcf.gz"                        , VCF  , OverWrite , readoptions = Map("flattenInfoFields" -> "true", "split_multiallelics" -> "true")),
@@ -54,6 +54,7 @@ case class PublicDatasets(alias: String, tableDatabase: Option[String], viewData
           DatasetConf("normalized_gnomad_genomes_v3"       , alias, "/public/gnomad_genomes_v3"                    , DELTA, OverWrite , partitionby = List("chromosome"), table = table("gnomad_genomes_v3")        , view = view("gnomad_genomes_v3")),
           DatasetConf("normalized_gnomad_joint_v4"         , alias, "/public/gnomad_joint_v4"                      , DELTA, OverWrite , partitionby = List("chromosome"), table = table("gnomad_joint_v4")          , view = view("gnomad_joint_v4")),
           DatasetConf("normalized_gnomad_cnv_v4"           , alias, "/public/gnomad_cnv_v4"                        , DELTA, OverWrite , partitionby = List("chromosome"), table = table("gnomad_cnv_v4")            , view = view("gnomad_cnv_v4")),
+          DatasetConf("normalized_gnomad_sv_v4"            , alias, "/public/gnomad_sv_v4"                         , DELTA, OverWrite , partitionby = List("chromosome"), table = table("gnomad_sv_v4")             , view = view("gnomad_sv_v4")),
           DatasetConf("normalized_human_genes"             , alias, "/public/human_genes"                          , DELTA, OverWrite , partitionby = List()            , table = table("human_genes")              , view = view("human_genes")),
           DatasetConf("normalized_hpo_gene_set"            , alias, "/public/hpo_gene_set"                         , DELTA, OverWrite , partitionby = List()            , table = table("hpo_gene_set")             , view = view("hpo_gene_set")),
           DatasetConf("normalized_omim_gene_set"           , alias, "/public/omim_gene_set"                        , DELTA, OverWrite , partitionby = List()            , table = table("omim_gene_set")            , view = view("omim_gene_set")),
