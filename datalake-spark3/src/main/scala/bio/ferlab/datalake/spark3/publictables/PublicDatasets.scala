@@ -34,6 +34,7 @@ case class PublicDatasets(alias: String, tableDatabase: Option[String], viewData
           DatasetConf("raw_ensembl_refseq"           , alias, "/raw/landing/ensembl/Homo_sapiens.GRCh38.refseq.tsv.gz"             , CSV  , OverWrite , readoptions = Map("header" -> "true", "sep" -> "\t")),
           DatasetConf("raw_ensembl_uniprot"          , alias, "/raw/landing/ensembl/Homo_sapiens.GRCh38.uniprot.tsv.gz"            , CSV  , OverWrite , readoptions = Map("header" -> "true", "sep" -> "\t")),
           DatasetConf("raw_ensembl_ena"              , alias, "/raw/landing/ensembl/Homo_sapiens.GRCh38.ena.tsv.gz"                , CSV  , OverWrite , readoptions = Map("header" -> "true", "sep" -> "\t")),
+          DatasetConf("raw_ensembl_gff"              , alias, "/raw/landing/ensembl/Homo_sapiens.GRCh38.gff.gz"                    , GFF  , OverWrite),
           DatasetConf("raw_spliceai_indel"           , alias, "/raw/landing/spliceai/spliceai_scores.raw.indel.hg38.vcf.gz"        , VCF  , OverWrite , readoptions = Map("flattenInfoFields" -> "true", "split_multiallelics" -> "true")),
           DatasetConf("raw_spliceai_snv"             , alias, "/raw/landing/spliceai/spliceai_scores.raw.snv.hg38.vcf.gz"          , VCF  , OverWrite , readoptions = Map("flattenInfoFields" -> "true", "split_multiallelics" -> "true")),
 
