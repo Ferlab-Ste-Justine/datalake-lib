@@ -45,7 +45,7 @@ case class GnomadV4CNV(rc: RuntimeETLContext) extends SimpleETLP(rc) {
       )
   }
 
-  override val defaultRepartition: DataFrame => DataFrame = RepartitionByRange(columnNames = Seq("chromosome", "start"), n = Some(1000))
+  override val defaultRepartition: DataFrame => DataFrame = RepartitionByRange(columnNames = Seq("chromosome", "start"), n = Some(100))
 
 }
 

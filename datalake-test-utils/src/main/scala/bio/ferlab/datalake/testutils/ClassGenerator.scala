@@ -73,8 +73,8 @@ object ClassGenerator {
     } else {
       val values: Row = (
         // may cause stackoverflow if the schema has to many fields
-        // little workaround by using the first row if there is only one row
-        if (df.count() == 1) {
+        // little workaround by using the first row
+        if (df.count() == 1 || df.schema.fields.length > 200) { // 200 is an arbitrary limit, to be adjusted if needed
           df.head()
         } else {
           val countNulls: Column = df.schema.fieldNames.map(c => functions.when(col(c).isNull, 1).otherwise(0)).reduce((a, b) => a + b)
