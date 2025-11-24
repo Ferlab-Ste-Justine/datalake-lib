@@ -9,10 +9,10 @@ import org.apache.spark.sql.DataFrame
 
 import java.time.LocalDateTime
 
-case class GnomadV4CNV(rc: RuntimeETLContext) extends SimpleETLP(rc) {
+case class GnomadV4SV(rc: RuntimeETLContext) extends SimpleETLP(rc) {
 
-  override val mainDestination: DatasetConf = conf.getDataset("normalized_gnomad_cnv_v4")
-  val gnomad_vcf: DatasetConf = conf.getDataset("raw_gnomad_cnv_v4")
+  override val mainDestination: DatasetConf = conf.getDataset("normalized_gnomad_sv_v4")
+  val gnomad_vcf: DatasetConf = conf.getDataset("raw_gnomad_sv_v4")
 
   override def extract(lastRunValue: LocalDateTime = minValue,
                        currentRunValue: LocalDateTime = LocalDateTime.now()): Map[String, DataFrame] = {
@@ -32,6 +32,7 @@ case class GnomadV4CNV(rc: RuntimeETLContext) extends SimpleETLP(rc) {
 
     val df = data(gnomad_vcf.id)
       .drop("INFO_END")
+      .withColumnRenamed("filters", "INFO_FILTERS") // to be taken into account in flattenInfo
 
     df.select(
         chromosome +:
@@ -49,10 +50,10 @@ case class GnomadV4CNV(rc: RuntimeETLContext) extends SimpleETLP(rc) {
 
 }
 
-object GnomadV4CNV {
+object GnomadV4SV {
   @main
   def run(rc: RuntimeETLContext): Unit = {
-    GnomadV4CNV(rc).run()
+    GnomadV4SV(rc).run()
   }
 
   def main(args: Array[String]): Unit = ParserForMethods(this).runOrThrow(args)

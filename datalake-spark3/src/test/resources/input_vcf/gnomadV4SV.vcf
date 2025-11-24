@@ -1,0 +1,695 @@
+##fileformat=VCFv4.2
+##FILTER=<ID=PASS,Description="All filters passed">
+##ALT=<ID=CNV,Description="Copy Number Polymorphism">
+##CPX_TYPE_INS_iDEL="Insertion with deletion at insertion site."
+##CPX_TYPE_INVdel="Complex inversion with 3' flanking deletion."
+##CPX_TYPE_INVdup="Complex inversion with 3' flanking duplication."
+##CPX_TYPE_dDUP="Dispersed duplication."
+##CPX_TYPE_dDUP_iDEL="Dispersed duplication with deletion at insertion site."
+##CPX_TYPE_delINV="Complex inversion with 5' flanking deletion."
+##CPX_TYPE_delINVdel="Complex inversion with 5' and 3' flanking deletions."
+##CPX_TYPE_delINVdup="Complex inversion with 5' flanking deletion and 3' flanking duplication."
+##CPX_TYPE_dupINV="Complex inversion with 5' flanking duplication."
+##CPX_TYPE_dupINVdel="Complex inversion with 5' flanking duplication and 3' flanking deletion."
+##CPX_TYPE_dupINVdup="Complex inversion with 5' and 3' flanking duplications."
+##CPX_TYPE_piDUP_FR="Palindromic inverted tandem duplication, forward-reverse orientation."
+##CPX_TYPE_piDUP_RF="Palindromic inverted tandem duplication, reverse-forward orientation."
+##FILTER=<ID=FAIL_MANUAL_REVIEW,Description="Low-quality variant that did not pass manual review of supporting evidence">
+##FILTER=<ID=HIGH_NCR,Description="Unacceptably high rate of no-call GTs">
+##FILTER=<ID=IGH_MHC_OVERLAP,Description="SVs that are overlapped by over 50% by IGH or MCH regions, these variants are of low confidence">
+##FILTER=<ID=LOWQUAL_WHAM_SR_DEL,Description="deletions under1Kb that are uniquely from wham and have SR-only support">
+##FILTER=<ID=MULTIALLELIC,Description="Multiallelic site">
+##FILTER=<ID=OUTLIER_SAMPLE_ENRICHED,Description="SVs that are enriched for non-reference genotypes in outlier samples, likely indicating noisy or unreliable genotypes">
+##FILTER=<ID=REDUNDANT_LG_CNV,Description="Multiple large CNVs called at the same locus likely indicates unreliable clustering and/or low-quality multiallelic locus">
+##FILTER=<ID=REFERENCE_ARTIFACT,Description="Likely reference artifact sites that are homozygous alternative in over 99% of the samples">
+##FILTER=<ID=UNRESOLVED,Description="Variant is unresolved">
+##FORMAT=<ID=CN,Number=1,Type=Integer,Description="Predicted copy state">
+##FORMAT=<ID=CNQ,Number=1,Type=Integer,Description="Read-depth genotype quality">
+##FORMAT=<ID=EV,Number=.,Type=String,Description="Classes of evidence supporting final genotype">
+##FORMAT=<ID=GQ,Number=1,Type=Integer,Description="Genotype Quality">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=MANUAL,Number=1,Type=String,Description="Reason for a failure from manual review">
+##FORMAT=<ID=PE_GQ,Number=1,Type=Integer,Description="Paired-end genotype quality">
+##FORMAT=<ID=PE_GT,Number=1,Type=Integer,Description="Paired-end genotype">
+##FORMAT=<ID=RD_CN,Number=1,Type=Integer,Description="Predicted copy state">
+##FORMAT=<ID=RD_GQ,Number=1,Type=Integer,Description="Read-depth genotype quality">
+##FORMAT=<ID=SR_GQ,Number=1,Type=Integer,Description="Split read genotype quality">
+##FORMAT=<ID=SR_GT,Number=1,Type=Integer,Description="Split-read genotype">
+##INFO=<ID=ALGORITHMS,Number=.,Type=String,Description="Source algorithms">
+##INFO=<ID=BOTHSIDES_SUPPORT,Number=0,Type=Flag,Description="Variant has read-level support for both sides of breakpoint.Indicates higher-confidence variants.">
+##INFO=<ID=CHR2,Number=1,Type=String,Description="Chromosome for END coordinate">
+##INFO=<ID=CPX_INTERVALS,Number=.,Type=String,Description="Genomic intervals constituting complex variant.">
+##INFO=<ID=CPX_TYPE,Number=1,Type=String,Description="Class of complex variant.">
+##INFO=<ID=END,Number=1,Type=Integer,Description="End position of the structural variant">
+##INFO=<ID=END2,Number=1,Type=Integer,Description="End position of the structural variant on CHR2">
+##INFO=<ID=EVIDENCE,Number=.,Type=String,Description="Classes of random forest support.">
+##INFO=<ID=LOW_CONFIDENCE_REPETITIVE_LARGE_DUP,Number=0,Type=Flag,Description="Duplications over 5Kb that are overlapped by segmental duplicates or simple repeats, these variants are not as high confident as others because of the affect by the repetitive sequences">
+##INFO=<ID=MEMBERS,Number=.,Type=String,Description="IDs of cluster's constituent records.">
+##INFO=<ID=MULTIALLELIC,Number=0,Type=Flag,Description="Multiallelic site">
+##INFO=<ID=NCR,Number=1,Type=Float,Description="Proportion of no-call GTs">
+##INFO=<ID=OUTLIER_SAMPLE_ENRICHED_LENIENT,Number=0,Type=Flag,Description="SVs that are enriched for non-reference genotypes in outlier samples (10%), likely indicating noisy or unreliable genotypes">
+##INFO=<ID=PAR,Number=0,Type=Flag,Description="Variant overlaps pseudoautosomal region.">
+##INFO=<ID=PCRMINUS_NCR,Number=1,Type=Float,Description="Proportion of no-call GTs in PCRMINUS samples">
+##INFO=<ID=PCRPLUS_NCR,Number=1,Type=Float,Description="Fraction of PCRPLUS sample GTs that are no-calls.">
+##INFO=<ID=PESR_GT_OVERDISPERSION,Number=0,Type=Flag,Description="PESR genotyping data is overdispersed. Flags sites where genotypes are likely noisier.">
+##INFO=<ID=POS2,Number=1,Type=Integer,Description="Start position of the structural variant on CHR2">
+##INFO=<ID=PREDICTED_BREAKEND_EXONIC,Number=.,Type=String,Description="Gene(s) for which the SV breakend is predicted to fall in an exon.">
+##INFO=<ID=PREDICTED_COPY_GAIN,Number=.,Type=String,Description="Gene(s) on which the SV is predicted to have a copy-gain effect.">
+##INFO=<ID=PREDICTED_DUP_PARTIAL,Number=.,Type=String,Description="Gene(s) which are partially overlapped by an SV's duplication, but the transcription start site is not duplicated.">
+##INFO=<ID=PREDICTED_INTERGENIC,Number=0,Type=Flag,Description="SV does not overlap any protein-coding genes.">
+##INFO=<ID=PREDICTED_INTRAGENIC_EXON_DUP,Number=.,Type=String,Description="Gene(s) on which the SV is predicted to result in intragenic exonic duplication without breaking any coding sequences.">
+##INFO=<ID=PREDICTED_INTRONIC,Number=.,Type=String,Description="Gene(s) where the SV was found to lie entirely within an intron.">
+##INFO=<ID=PREDICTED_INV_SPAN,Number=.,Type=String,Description="Gene(s) which are entirely spanned by an SV's inversion.">
+##INFO=<ID=PREDICTED_LOF,Number=.,Type=String,Description="Gene(s) on which the SV is predicted to have a loss-of-function effect.">
+##INFO=<ID=PREDICTED_MSV_EXON_OVERLAP,Number=.,Type=String,Description="Gene(s) on which the multiallelic SV would be predicted to have a LOF, INTRAGENIC_EXON_DUP, COPY_GAIN, DUP_PARTIAL, TSS_DUP, or PARTIAL_EXON_DUP annotation if the SV were biallelic.">
+##INFO=<ID=PREDICTED_NEAREST_TSS,Number=.,Type=String,Description="Nearest transcription start site to an intergenic variant.">
+##INFO=<ID=PREDICTED_NONCODING_BREAKPOINT,Number=.,Type=String,Description="Class(es) of noncoding elements disrupted by SV breakpoint.">
+##INFO=<ID=PREDICTED_NONCODING_SPAN,Number=.,Type=String,Description="Class(es) of noncoding elements spanned by SV.">
+##INFO=<ID=PREDICTED_PARTIAL_DISPERSED_DUP,Number=.,Type=String,Description="Gene(s) overlapped partially by the duplicated interval involved in a dispersed duplication event in a complex SV.">
+##INFO=<ID=PREDICTED_PARTIAL_EXON_DUP,Number=.,Type=String,Description="Gene(s) where the duplication SV has one breakpoint in the coding sequence.">
+##INFO=<ID=PREDICTED_PROMOTER,Number=.,Type=String,Description="Gene(s) for which the SV is predicted to overlap the promoter region.">
+##INFO=<ID=PREDICTED_TSS_DUP,Number=.,Type=String,Description="Gene(s) for which the SV is predicted to duplicate the transcription start site.">
+##INFO=<ID=PREDICTED_UTR,Number=.,Type=String,Description="Gene(s) for which the SV is predicted to disrupt a UTR.">
+##INFO=<ID=RESOLVED_POSTHOC,Number=0,Type=Flag,Description="SVs that are manually resolved posthoc.">
+##INFO=<ID=SOURCE,Number=1,Type=String,Description="Source of inserted sequence.">
+##INFO=<ID=SVLEN,Number=1,Type=Integer,Description="SV length">
+##INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of structural variant">
+##INFO=<ID=UNRESOLVED_TYPE,Number=1,Type=String,Description="Class of unresolved variant.">
+##bcftools_concatCommand=concat --allow-overlaps --file-list vcf_list.tsv -O z -o chr1.with_GD_cnv.vcf.gz; Date=Thu Oct 26 09:22:49 2023
+##bcftools_concatCommand=concat --allow-overlaps --file-list vcf_list.tsv -O z -o gnomAD_SV_v3.releasable.chr1.annotated.header_fix.ManualFix.sorted.ref_arti_annotated.cpx_anno_revised.mCNV_filter_cleaned.cpx_interval_revised.mCNV_format_organized.vcf.gz; Date=Thu Oct 12 00:35:44 2023
+##bcftools_concatVersion=1.15.1+htslib-1.15.1
+##bcftools_pluginCommand=scatter -o . -O z -p gnomAD_SV_v3.reannotated.chr1. --threads 1 -n 5000 /cromwell_root/talkowski-sv-gnomad-output/zero/AddGdCnvIntoVcf/750781bb-cd74-4a67-bb7f-22b18245362d/call-add_gd_cnv/shard-0/cacheCopy/chr1.with_GD_cnv.vcf.gz; Date=Sat Oct 28 04:50:31 2023
+##bcftools_pluginVersion=1.15.1+htslib-1.15.1
+##bcftools_viewCommand=view -h /cromwell_root/talkowski-sv-gnomad-cromwell-execution/FinalTouchAnnotationFixes/e9f57353-b94c-4a56-8cde-b93796997485/call-ReviseCpxIntervals/shard-0/cacheCopy/gnomAD_SV_v3.releasable.chr1.annotated.header_fix.ManualFix.sorted.ref_arti_annotated.cpx_anno_revised.mCNV_filter_cleaned.cpx_interval_revised.vcf.gz; Date=Wed Oct 11 20:42:51 2023
+##bcftools_viewCommand=view -i 'SVTYPE=="CNV" || AC>0' -O z -o gnomAD_SV_v3.reannotated.chr1.annotated.AC_examined.vcf.gz /cromwell_root/talkowski-sv-gnomad-cromwell-execution/RerunAnno/7580cffb-7306-4d52-8058-81b76bc0a591/call-RerunAnnoPerContig/shard-0/RerunAnnoPerContig/82d4f273-f5b4-4e9c-8372-86483facab92/call-ConcatVcfs_annotated/cacheCopy/gnomAD_SV_v3.reannotated.chr1.annotated.vcf.gz; Date=Sun Oct 29 04:36:04 2023
+##bcftools_viewVersion=1.15.1+htslib-1.15.1
+##bcftools_viewVersion=1.7+htslib-1.7
+##contig=<ID=chr1,length=248956422,assembly=hg38>
+##contig=<ID=chr2,length=242193529,assembly=hg38>
+##contig=<ID=chr3,length=198295559,assembly=hg38>
+##contig=<ID=chr4,length=190214555,assembly=hg38>
+##contig=<ID=chr5,length=181538259,assembly=hg38>
+##contig=<ID=chr6,length=170805979,assembly=hg38>
+##contig=<ID=chr7,length=159345973,assembly=hg38>
+##contig=<ID=chr8,length=145138636,assembly=hg38>
+##contig=<ID=chr9,length=138394717,assembly=hg38>
+##contig=<ID=chr10,length=133797422,assembly=hg38>
+##contig=<ID=chr11,length=135086622,assembly=hg38>
+##contig=<ID=chr12,length=133275309,assembly=hg38>
+##contig=<ID=chr13,length=114364328,assembly=hg38>
+##contig=<ID=chr14,length=107043718,assembly=hg38>
+##contig=<ID=chr15,length=101991189,assembly=hg38>
+##contig=<ID=chr16,length=90338345,assembly=hg38>
+##contig=<ID=chr17,length=83257441,assembly=hg38>
+##contig=<ID=chr18,length=80373285,assembly=hg38>
+##contig=<ID=chr19,length=58617616,assembly=hg38>
+##contig=<ID=chr20,length=64444167,assembly=hg38>
+##contig=<ID=chr21,length=46709983,assembly=hg38>
+##contig=<ID=chr22,length=50818468,assembly=hg38>
+##contig=<ID=chrX,length=156040895,assembly=hg38>
+##contig=<ID=chrY,length=57227415,assembly=hg38>
+##INFO=<ID=AN,Number=1,Type=Integer,Description="Total number of alleles genotyped (biallelic sites only).">
+##INFO=<ID=AC,Number=A,Type=Integer,Description="Number of non-reference alleles observed (biallelic sites only).">
+##INFO=<ID=AF,Number=A,Type=Float,Description="Allele frequency (biallelic sites only).">
+##INFO=<ID=N_BI_GENOS,Number=1,Type=Integer,Description="Total number of samples with complete genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMREF,Number=1,Type=Integer,Description="Number of samples with homozygous reference genotypes (biallelic sites only).">
+##INFO=<ID=N_HET,Number=1,Type=Integer,Description="Number of samples with heterozygous genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMALT,Number=1,Type=Integer,Description="Number of samples with homozygous alternate genotypes (biallelic sites only).">
+##INFO=<ID=FREQ_HOMREF,Number=1,Type=Float,Description="Homozygous reference genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HET,Number=1,Type=Float,Description="Heterozygous genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HOMALT,Number=1,Type=Float,Description="Homozygous alternate genotype frequency (biallelic sites only).">
+##INFO=<ID=CN_NUMBER,Number=1,Type=Integer,Description="Total number of samples with estimated copy numbers (multiallelic CNVs only).">
+##INFO=<ID=CN_COUNT,Number=.,Type=Integer,Description="Number of samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_STATUS,Number=.,Type=Integer,Description="Differnt copy states observed, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_FREQ,Number=.,Type=Float,Description="Frequency of samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_COUNT,Number=1,Type=Integer,Description="Number of samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_FREQ,Number=1,Type=Float,Description="Frequency of samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=AN_afr,Number=1,Type=Integer,Description="Total number of African-American alleles genotyped (biallelic sites only).">
+##INFO=<ID=AC_afr,Number=A,Type=Integer,Description="Number of non-reference African-American alleles observed (biallelic sites only).">
+##INFO=<ID=AF_afr,Number=A,Type=Float,Description="African-American allele frequency (biallelic sites only).">
+##INFO=<ID=N_BI_GENOS_afr,Number=1,Type=Integer,Description="Total number of African-American samples with complete genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMREF_afr,Number=1,Type=Integer,Description="Number of African-American samples with homozygous reference genotypes (biallelic sites only).">
+##INFO=<ID=N_HET_afr,Number=1,Type=Integer,Description="Number of African-American samples with heterozygous genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMALT_afr,Number=1,Type=Integer,Description="Number of African-American samples with homozygous alternate genotypes (biallelic sites only).">
+##INFO=<ID=FREQ_HOMREF_afr,Number=1,Type=Float,Description="African-American homozygous reference genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HET_afr,Number=1,Type=Float,Description="African-American heterozygous genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HOMALT_afr,Number=1,Type=Float,Description="African-American homozygous alternate genotype frequency (biallelic sites only).">
+##INFO=<ID=CN_NUMBER_afr,Number=1,Type=Integer,Description="Total number of African-American samples with estimated copy numbers (multiallelic CNVs only).">
+##INFO=<ID=CN_COUNT_afr,Number=.,Type=Integer,Description="Number of African-American samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_STATUS_afr,Number=.,Type=Integer,Description="Differnt copy states observed in African-American samples, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_FREQ_afr,Number=.,Type=Float,Description="Frequency of African-American samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_COUNT_afr,Number=1,Type=Integer,Description="Number of African-American samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_FREQ_afr,Number=1,Type=Float,Description="Frequency of African-American samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=AN_ami,Number=1,Type=Integer,Description="Total number of Amish alleles genotyped (biallelic sites only).">
+##INFO=<ID=AC_ami,Number=A,Type=Integer,Description="Number of non-reference Amish alleles observed (biallelic sites only).">
+##INFO=<ID=AF_ami,Number=A,Type=Float,Description="Amish allele frequency (biallelic sites only).">
+##INFO=<ID=N_BI_GENOS_ami,Number=1,Type=Integer,Description="Total number of Amish samples with complete genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMREF_ami,Number=1,Type=Integer,Description="Number of Amish samples with homozygous reference genotypes (biallelic sites only).">
+##INFO=<ID=N_HET_ami,Number=1,Type=Integer,Description="Number of Amish samples with heterozygous genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMALT_ami,Number=1,Type=Integer,Description="Number of Amish samples with homozygous alternate genotypes (biallelic sites only).">
+##INFO=<ID=FREQ_HOMREF_ami,Number=1,Type=Float,Description="Amish homozygous reference genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HET_ami,Number=1,Type=Float,Description="Amish heterozygous genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HOMALT_ami,Number=1,Type=Float,Description="Amish homozygous alternate genotype frequency (biallelic sites only).">
+##INFO=<ID=CN_NUMBER_ami,Number=1,Type=Integer,Description="Total number of Amish samples with estimated copy numbers (multiallelic CNVs only).">
+##INFO=<ID=CN_COUNT_ami,Number=.,Type=Integer,Description="Number of Amish samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_STATUS_ami,Number=.,Type=Integer,Description="Differnt copy states observed in Amish samples, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_FREQ_ami,Number=.,Type=Float,Description="Frequency of Amish samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_COUNT_ami,Number=1,Type=Integer,Description="Number of Amish samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_FREQ_ami,Number=1,Type=Float,Description="Frequency of Amish samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=AN_amr,Number=1,Type=Integer,Description="Total number of Latino alleles genotyped (biallelic sites only).">
+##INFO=<ID=AC_amr,Number=A,Type=Integer,Description="Number of non-reference Latino alleles observed (biallelic sites only).">
+##INFO=<ID=AF_amr,Number=A,Type=Float,Description="Latino allele frequency (biallelic sites only).">
+##INFO=<ID=N_BI_GENOS_amr,Number=1,Type=Integer,Description="Total number of Latino samples with complete genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMREF_amr,Number=1,Type=Integer,Description="Number of Latino samples with homozygous reference genotypes (biallelic sites only).">
+##INFO=<ID=N_HET_amr,Number=1,Type=Integer,Description="Number of Latino samples with heterozygous genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMALT_amr,Number=1,Type=Integer,Description="Number of Latino samples with homozygous alternate genotypes (biallelic sites only).">
+##INFO=<ID=FREQ_HOMREF_amr,Number=1,Type=Float,Description="Latino homozygous reference genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HET_amr,Number=1,Type=Float,Description="Latino heterozygous genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HOMALT_amr,Number=1,Type=Float,Description="Latino homozygous alternate genotype frequency (biallelic sites only).">
+##INFO=<ID=CN_NUMBER_amr,Number=1,Type=Integer,Description="Total number of Latino samples with estimated copy numbers (multiallelic CNVs only).">
+##INFO=<ID=CN_COUNT_amr,Number=.,Type=Integer,Description="Number of Latino samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_STATUS_amr,Number=.,Type=Integer,Description="Differnt copy states observed in Latino samples, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_FREQ_amr,Number=.,Type=Float,Description="Frequency of Latino samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_COUNT_amr,Number=1,Type=Integer,Description="Number of Latino samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_FREQ_amr,Number=1,Type=Float,Description="Frequency of Latino samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=AN_asj,Number=1,Type=Integer,Description="Total number of Ashkenazi Jewish alleles genotyped (biallelic sites only).">
+##INFO=<ID=AC_asj,Number=A,Type=Integer,Description="Number of non-reference Ashkenazi Jewish alleles observed (biallelic sites only).">
+##INFO=<ID=AF_asj,Number=A,Type=Float,Description="Ashkenazi Jewish allele frequency (biallelic sites only).">
+##INFO=<ID=N_BI_GENOS_asj,Number=1,Type=Integer,Description="Total number of Ashkenazi Jewish samples with complete genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMREF_asj,Number=1,Type=Integer,Description="Number of Ashkenazi Jewish samples with homozygous reference genotypes (biallelic sites only).">
+##INFO=<ID=N_HET_asj,Number=1,Type=Integer,Description="Number of Ashkenazi Jewish samples with heterozygous genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMALT_asj,Number=1,Type=Integer,Description="Number of Ashkenazi Jewish samples with homozygous alternate genotypes (biallelic sites only).">
+##INFO=<ID=FREQ_HOMREF_asj,Number=1,Type=Float,Description="Ashkenazi Jewish homozygous reference genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HET_asj,Number=1,Type=Float,Description="Ashkenazi Jewish heterozygous genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HOMALT_asj,Number=1,Type=Float,Description="Ashkenazi Jewish homozygous alternate genotype frequency (biallelic sites only).">
+##INFO=<ID=CN_NUMBER_asj,Number=1,Type=Integer,Description="Total number of Ashkenazi Jewish samples with estimated copy numbers (multiallelic CNVs only).">
+##INFO=<ID=CN_COUNT_asj,Number=.,Type=Integer,Description="Number of Ashkenazi Jewish samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_STATUS_asj,Number=.,Type=Integer,Description="Differnt copy states observed in Ashkenazi Jewish samples, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_FREQ_asj,Number=.,Type=Float,Description="Frequency of Ashkenazi Jewish samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_COUNT_asj,Number=1,Type=Integer,Description="Number of Ashkenazi Jewish samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_FREQ_asj,Number=1,Type=Float,Description="Frequency of Ashkenazi Jewish samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=AN_eas,Number=1,Type=Integer,Description="Total number of East Asian alleles genotyped (biallelic sites only).">
+##INFO=<ID=AC_eas,Number=A,Type=Integer,Description="Number of non-reference East Asian alleles observed (biallelic sites only).">
+##INFO=<ID=AF_eas,Number=A,Type=Float,Description="East Asian allele frequency (biallelic sites only).">
+##INFO=<ID=N_BI_GENOS_eas,Number=1,Type=Integer,Description="Total number of East Asian samples with complete genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMREF_eas,Number=1,Type=Integer,Description="Number of East Asian samples with homozygous reference genotypes (biallelic sites only).">
+##INFO=<ID=N_HET_eas,Number=1,Type=Integer,Description="Number of East Asian samples with heterozygous genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMALT_eas,Number=1,Type=Integer,Description="Number of East Asian samples with homozygous alternate genotypes (biallelic sites only).">
+##INFO=<ID=FREQ_HOMREF_eas,Number=1,Type=Float,Description="East Asian homozygous reference genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HET_eas,Number=1,Type=Float,Description="East Asian heterozygous genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HOMALT_eas,Number=1,Type=Float,Description="East Asian homozygous alternate genotype frequency (biallelic sites only).">
+##INFO=<ID=CN_NUMBER_eas,Number=1,Type=Integer,Description="Total number of East Asian samples with estimated copy numbers (multiallelic CNVs only).">
+##INFO=<ID=CN_COUNT_eas,Number=.,Type=Integer,Description="Number of East Asian samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_STATUS_eas,Number=.,Type=Integer,Description="Differnt copy states observed in East Asian samples, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_FREQ_eas,Number=.,Type=Float,Description="Frequency of East Asian samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_COUNT_eas,Number=1,Type=Integer,Description="Number of East Asian samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_FREQ_eas,Number=1,Type=Float,Description="Frequency of East Asian samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=AN_fin,Number=1,Type=Integer,Description="Total number of Finnish alleles genotyped (biallelic sites only).">
+##INFO=<ID=AC_fin,Number=A,Type=Integer,Description="Number of non-reference Finnish alleles observed (biallelic sites only).">
+##INFO=<ID=AF_fin,Number=A,Type=Float,Description="Finnish allele frequency (biallelic sites only).">
+##INFO=<ID=N_BI_GENOS_fin,Number=1,Type=Integer,Description="Total number of Finnish samples with complete genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMREF_fin,Number=1,Type=Integer,Description="Number of Finnish samples with homozygous reference genotypes (biallelic sites only).">
+##INFO=<ID=N_HET_fin,Number=1,Type=Integer,Description="Number of Finnish samples with heterozygous genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMALT_fin,Number=1,Type=Integer,Description="Number of Finnish samples with homozygous alternate genotypes (biallelic sites only).">
+##INFO=<ID=FREQ_HOMREF_fin,Number=1,Type=Float,Description="Finnish homozygous reference genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HET_fin,Number=1,Type=Float,Description="Finnish heterozygous genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HOMALT_fin,Number=1,Type=Float,Description="Finnish homozygous alternate genotype frequency (biallelic sites only).">
+##INFO=<ID=CN_NUMBER_fin,Number=1,Type=Integer,Description="Total number of Finnish samples with estimated copy numbers (multiallelic CNVs only).">
+##INFO=<ID=CN_COUNT_fin,Number=.,Type=Integer,Description="Number of Finnish samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_STATUS_fin,Number=.,Type=Integer,Description="Differnt copy states observed in Finnish samples, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_FREQ_fin,Number=.,Type=Float,Description="Frequency of Finnish samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_COUNT_fin,Number=1,Type=Integer,Description="Number of Finnish samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_FREQ_fin,Number=1,Type=Float,Description="Frequency of Finnish samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=AN_mid,Number=1,Type=Integer,Description="Total number of Middle Eastern alleles genotyped (biallelic sites only).">
+##INFO=<ID=AC_mid,Number=A,Type=Integer,Description="Number of non-reference Middle Eastern alleles observed (biallelic sites only).">
+##INFO=<ID=AF_mid,Number=A,Type=Float,Description="Middle Eastern allele frequency (biallelic sites only).">
+##INFO=<ID=N_BI_GENOS_mid,Number=1,Type=Integer,Description="Total number of Middle Eastern samples with complete genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMREF_mid,Number=1,Type=Integer,Description="Number of Middle Eastern samples with homozygous reference genotypes (biallelic sites only).">
+##INFO=<ID=N_HET_mid,Number=1,Type=Integer,Description="Number of Middle Eastern samples with heterozygous genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMALT_mid,Number=1,Type=Integer,Description="Number of Middle Eastern samples with homozygous alternate genotypes (biallelic sites only).">
+##INFO=<ID=FREQ_HOMREF_mid,Number=1,Type=Float,Description="Middle Eastern homozygous reference genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HET_mid,Number=1,Type=Float,Description="Middle Eastern heterozygous genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HOMALT_mid,Number=1,Type=Float,Description="Middle Eastern homozygous alternate genotype frequency (biallelic sites only).">
+##INFO=<ID=CN_NUMBER_mid,Number=1,Type=Integer,Description="Total number of Middle Eastern samples with estimated copy numbers (multiallelic CNVs only).">
+##INFO=<ID=CN_COUNT_mid,Number=.,Type=Integer,Description="Number of Middle Eastern samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_STATUS_mid,Number=.,Type=Integer,Description="Differnt copy states observed in Middle Eastern samples, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_FREQ_mid,Number=.,Type=Float,Description="Frequency of Middle Eastern samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_COUNT_mid,Number=1,Type=Integer,Description="Number of Middle Eastern samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_FREQ_mid,Number=1,Type=Float,Description="Frequency of Middle Eastern samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=AN_nfe,Number=1,Type=Integer,Description="Total number of Non-Finnish European alleles genotyped (biallelic sites only).">
+##INFO=<ID=AC_nfe,Number=A,Type=Integer,Description="Number of non-reference Non-Finnish European alleles observed (biallelic sites only).">
+##INFO=<ID=AF_nfe,Number=A,Type=Float,Description="Non-Finnish European allele frequency (biallelic sites only).">
+##INFO=<ID=N_BI_GENOS_nfe,Number=1,Type=Integer,Description="Total number of Non-Finnish European samples with complete genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMREF_nfe,Number=1,Type=Integer,Description="Number of Non-Finnish European samples with homozygous reference genotypes (biallelic sites only).">
+##INFO=<ID=N_HET_nfe,Number=1,Type=Integer,Description="Number of Non-Finnish European samples with heterozygous genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMALT_nfe,Number=1,Type=Integer,Description="Number of Non-Finnish European samples with homozygous alternate genotypes (biallelic sites only).">
+##INFO=<ID=FREQ_HOMREF_nfe,Number=1,Type=Float,Description="Non-Finnish European homozygous reference genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HET_nfe,Number=1,Type=Float,Description="Non-Finnish European heterozygous genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HOMALT_nfe,Number=1,Type=Float,Description="Non-Finnish European homozygous alternate genotype frequency (biallelic sites only).">
+##INFO=<ID=CN_NUMBER_nfe,Number=1,Type=Integer,Description="Total number of Non-Finnish European samples with estimated copy numbers (multiallelic CNVs only).">
+##INFO=<ID=CN_COUNT_nfe,Number=.,Type=Integer,Description="Number of Non-Finnish European samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_STATUS_nfe,Number=.,Type=Integer,Description="Differnt copy states observed in Non-Finnish European samples, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_FREQ_nfe,Number=.,Type=Float,Description="Frequency of Non-Finnish European samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_COUNT_nfe,Number=1,Type=Integer,Description="Number of Non-Finnish European samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_FREQ_nfe,Number=1,Type=Float,Description="Frequency of Non-Finnish European samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=AN_rmi,Number=1,Type=Integer,Description="Total number of Remaining individuals alleles genotyped (biallelic sites only).">
+##INFO=<ID=AC_rmi,Number=A,Type=Integer,Description="Number of non-reference Remaining individuals alleles observed (biallelic sites only).">
+##INFO=<ID=AF_rmi,Number=A,Type=Float,Description="Remaining individuals allele frequency (biallelic sites only).">
+##INFO=<ID=N_BI_GENOS_rmi,Number=1,Type=Integer,Description="Total number of Remaining individuals samples with complete genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMREF_rmi,Number=1,Type=Integer,Description="Number of Remaining individuals samples with homozygous reference genotypes (biallelic sites only).">
+##INFO=<ID=N_HET_rmi,Number=1,Type=Integer,Description="Number of Remaining individuals samples with heterozygous genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMALT_rmi,Number=1,Type=Integer,Description="Number of Remaining individuals samples with homozygous alternate genotypes (biallelic sites only).">
+##INFO=<ID=FREQ_HOMREF_rmi,Number=1,Type=Float,Description="Remaining individuals homozygous reference genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HET_rmi,Number=1,Type=Float,Description="Remaining individuals heterozygous genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HOMALT_rmi,Number=1,Type=Float,Description="Remaining individuals homozygous alternate genotype frequency (biallelic sites only).">
+##INFO=<ID=CN_NUMBER_rmi,Number=1,Type=Integer,Description="Total number of Remaining individuals samples with estimated copy numbers (multiallelic CNVs only).">
+##INFO=<ID=CN_COUNT_rmi,Number=.,Type=Integer,Description="Number of Remaining individuals samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_STATUS_rmi,Number=.,Type=Integer,Description="Differnt copy states observed in Remaining individuals samples, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_FREQ_rmi,Number=.,Type=Float,Description="Frequency of Remaining individuals samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_COUNT_rmi,Number=1,Type=Integer,Description="Number of Remaining individuals samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_FREQ_rmi,Number=1,Type=Float,Description="Frequency of Remaining individuals samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=AN_sas,Number=1,Type=Integer,Description="Total number of South Asian alleles genotyped (biallelic sites only).">
+##INFO=<ID=AC_sas,Number=A,Type=Integer,Description="Number of non-reference South Asian alleles observed (biallelic sites only).">
+##INFO=<ID=AF_sas,Number=A,Type=Float,Description="South Asian allele frequency (biallelic sites only).">
+##INFO=<ID=N_BI_GENOS_sas,Number=1,Type=Integer,Description="Total number of South Asian samples with complete genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMREF_sas,Number=1,Type=Integer,Description="Number of South Asian samples with homozygous reference genotypes (biallelic sites only).">
+##INFO=<ID=N_HET_sas,Number=1,Type=Integer,Description="Number of South Asian samples with heterozygous genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMALT_sas,Number=1,Type=Integer,Description="Number of South Asian samples with homozygous alternate genotypes (biallelic sites only).">
+##INFO=<ID=FREQ_HOMREF_sas,Number=1,Type=Float,Description="South Asian homozygous reference genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HET_sas,Number=1,Type=Float,Description="South Asian heterozygous genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HOMALT_sas,Number=1,Type=Float,Description="South Asian homozygous alternate genotype frequency (biallelic sites only).">
+##INFO=<ID=CN_NUMBER_sas,Number=1,Type=Integer,Description="Total number of South Asian samples with estimated copy numbers (multiallelic CNVs only).">
+##INFO=<ID=CN_COUNT_sas,Number=.,Type=Integer,Description="Number of South Asian samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_STATUS_sas,Number=.,Type=Integer,Description="Differnt copy states observed in South Asian samples, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_FREQ_sas,Number=.,Type=Float,Description="Frequency of South Asian samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_COUNT_sas,Number=1,Type=Integer,Description="Number of South Asian samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_FREQ_sas,Number=1,Type=Float,Description="Frequency of South Asian samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=XX_NCR,Number=1,Type=Float,Description="Proportion of no-call GTs in XX samples">
+##INFO=<ID=XX_PCRMINUS_NCR,Number=1,Type=Float,Description="Proportion of no-call GTs in XX_PCRMINUS samples">
+##INFO=<ID=XX_PCRPLUS_NCR,Number=1,Type=Float,Description="Proportion of no-call GTs in XX_PCRPLUS samples">
+##INFO=<ID=XY_NCR,Number=1,Type=Float,Description="Proportion of no-call GTs in XY samples">
+##INFO=<ID=XY_PCRMINUS_NCR,Number=1,Type=Float,Description="Proportion of no-call GTs in XY_PCRMINUS samples">
+##INFO=<ID=XY_PCRPLUS_NCR,Number=1,Type=Float,Description="Proportion of no-call GTs in XY_PCRPLUS samples">
+##INFO=<ID=AN_XY,Number=1,Type=Integer,Description="Total number of XY alleles genotyped (biallelic sites only).">
+##INFO=<ID=AC_XY,Number=A,Type=Integer,Description="Number of non-reference XY alleles observed (biallelic sites only).">
+##INFO=<ID=AF_XY,Number=A,Type=Float,Description="XY allele frequency (biallelic sites only).">
+##INFO=<ID=N_BI_GENOS_XY,Number=1,Type=Integer,Description="Total number of XY samples with complete genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMREF_XY,Number=1,Type=Integer,Description="Number of XY samples with homozygous reference genotypes (biallelic sites only).">
+##INFO=<ID=N_HET_XY,Number=1,Type=Integer,Description="Number of XY samples with heterozygous genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMALT_XY,Number=1,Type=Integer,Description="Number of XY samples with homozygous alternate genotypes (biallelic sites only).">
+##INFO=<ID=FREQ_HOMREF_XY,Number=1,Type=Float,Description="XY homozygous reference genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HET_XY,Number=1,Type=Float,Description="XY heterozygous genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HOMALT_XY,Number=1,Type=Float,Description="XY homozygous alternate genotype frequency (biallelic sites only).">
+##INFO=<ID=CN_NUMBER_XY,Number=1,Type=Integer,Description="Total number of XY samples with estimated copy numbers (multiallelic CNVs only).">
+##INFO=<ID=CN_COUNT_XY,Number=.,Type=Integer,Description="Number of XY samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_STATUS_XY,Number=.,Type=Integer,Description="Differnt copy states observed in XY samples, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_FREQ_XY,Number=.,Type=Float,Description="Frequency of XY samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_COUNT_XY,Number=1,Type=Integer,Description="Number of XY samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_FREQ_XY,Number=1,Type=Float,Description="Frequency of XY samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=N_HEMIREF_XY,Number=1,Type=Integer,Description="Number of XY samples with hemizygous reference genotypes (biallelic sites only).">
+##INFO=<ID=N_HEMIALT_XY,Number=1,Type=Integer,Description="Number of XY samples with hemizygous alternate genotypes (biallelic sites only).">
+##INFO=<ID=FREQ_HEMIREF_XY,Number=1,Type=Float,Description="XY hemizygous reference genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HEMIALT_XY,Number=1,Type=Float,Description="XY hemizygous alternate genotype frequency (biallelic sites only).">
+##INFO=<ID=AN_XX,Number=1,Type=Integer,Description="Total number of XX alleles genotyped (biallelic sites only).">
+##INFO=<ID=AC_XX,Number=A,Type=Integer,Description="Number of non-reference XX alleles observed (biallelic sites only).">
+##INFO=<ID=AF_XX,Number=A,Type=Float,Description="XX allele frequency (biallelic sites only).">
+##INFO=<ID=N_BI_GENOS_XX,Number=1,Type=Integer,Description="Total number of XX samples with complete genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMREF_XX,Number=1,Type=Integer,Description="Number of XX samples with homozygous reference genotypes (biallelic sites only).">
+##INFO=<ID=N_HET_XX,Number=1,Type=Integer,Description="Number of XX samples with heterozygous genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMALT_XX,Number=1,Type=Integer,Description="Number of XX samples with homozygous alternate genotypes (biallelic sites only).">
+##INFO=<ID=FREQ_HOMREF_XX,Number=1,Type=Float,Description="XX homozygous reference genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HET_XX,Number=1,Type=Float,Description="XX heterozygous genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HOMALT_XX,Number=1,Type=Float,Description="XX homozygous alternate genotype frequency (biallelic sites only).">
+##INFO=<ID=CN_NUMBER_XX,Number=1,Type=Integer,Description="Total number of XX samples with estimated copy numbers (multiallelic CNVs only).">
+##INFO=<ID=CN_COUNT_XX,Number=.,Type=Integer,Description="Number of XX samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_STATUS_XX,Number=.,Type=Integer,Description="Differnt copy states observed in XX samples, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_FREQ_XX,Number=.,Type=Float,Description="Frequency of XX samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_COUNT_XX,Number=1,Type=Integer,Description="Number of XX samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_FREQ_XX,Number=1,Type=Float,Description="Frequency of XX samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=AN_afr_XY,Number=1,Type=Integer,Description="Total number of African-American XY alleles genotyped (biallelic sites only).">
+##INFO=<ID=AC_afr_XY,Number=A,Type=Integer,Description="Number of non-reference African-American XY alleles observed (biallelic sites only).">
+##INFO=<ID=AF_afr_XY,Number=A,Type=Float,Description="African-American XY allele frequency (biallelic sites only).">
+##INFO=<ID=N_BI_GENOS_afr_XY,Number=1,Type=Integer,Description="Total number of African-American XY samples with complete genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMREF_afr_XY,Number=1,Type=Integer,Description="Number of African-American XY samples with homozygous reference genotypes (biallelic sites only).">
+##INFO=<ID=N_HET_afr_XY,Number=1,Type=Integer,Description="Number of African-American XY samples with heterozygous genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMALT_afr_XY,Number=1,Type=Integer,Description="Number of African-American XY samples with homozygous alternate genotypes (biallelic sites only).">
+##INFO=<ID=FREQ_HOMREF_afr_XY,Number=1,Type=Float,Description="African-American XY homozygous reference genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HET_afr_XY,Number=1,Type=Float,Description="African-American XY heterozygous genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HOMALT_afr_XY,Number=1,Type=Float,Description="African-American XY homozygous alternate genotype frequency (biallelic sites only).">
+##INFO=<ID=CN_NUMBER_afr_XY,Number=1,Type=Integer,Description="Total number of African-American XY samples with estimated copy numbers (multiallelic CNVs only).">
+##INFO=<ID=CN_COUNT_afr_XY,Number=.,Type=Integer,Description="Number of African-American XY samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_STATUS_afr_XY,Number=.,Type=Integer,Description="Differnt copy states observed in African-American XY samples, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_FREQ_afr_XY,Number=.,Type=Float,Description="Frequency of African-American XY samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_COUNT_afr_XY,Number=1,Type=Integer,Description="Number of African-American XY samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_FREQ_afr_XY,Number=1,Type=Float,Description="Frequency of African-American XY samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=N_HEMIREF_afr_XY,Number=1,Type=Integer,Description="Number of African-American XY samples with hemizygous reference genotypes (biallelic sites only).">
+##INFO=<ID=N_HEMIALT_afr_XY,Number=1,Type=Integer,Description="Number of African-American XY samples with hemizygous alternate genotypes (biallelic sites only).">
+##INFO=<ID=FREQ_HEMIREF_afr_XY,Number=1,Type=Float,Description="African-American XY hemizygous reference genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HEMIALT_afr_XY,Number=1,Type=Float,Description="African-American XY hemizygous alternate genotype frequency (biallelic sites only).">
+##INFO=<ID=AN_afr_XX,Number=1,Type=Integer,Description="Total number of African-American XX alleles genotyped (biallelic sites only).">
+##INFO=<ID=AC_afr_XX,Number=A,Type=Integer,Description="Number of non-reference African-American XX alleles observed (biallelic sites only).">
+##INFO=<ID=AF_afr_XX,Number=A,Type=Float,Description="African-American XX allele frequency (biallelic sites only).">
+##INFO=<ID=N_BI_GENOS_afr_XX,Number=1,Type=Integer,Description="Total number of African-American XX samples with complete genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMREF_afr_XX,Number=1,Type=Integer,Description="Number of African-American XX samples with homozygous reference genotypes (biallelic sites only).">
+##INFO=<ID=N_HET_afr_XX,Number=1,Type=Integer,Description="Number of African-American XX samples with heterozygous genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMALT_afr_XX,Number=1,Type=Integer,Description="Number of African-American XX samples with homozygous alternate genotypes (biallelic sites only).">
+##INFO=<ID=FREQ_HOMREF_afr_XX,Number=1,Type=Float,Description="African-American XX homozygous reference genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HET_afr_XX,Number=1,Type=Float,Description="African-American XX heterozygous genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HOMALT_afr_XX,Number=1,Type=Float,Description="African-American XX homozygous alternate genotype frequency (biallelic sites only).">
+##INFO=<ID=CN_NUMBER_afr_XX,Number=1,Type=Integer,Description="Total number of African-American XX samples with estimated copy numbers (multiallelic CNVs only).">
+##INFO=<ID=CN_COUNT_afr_XX,Number=.,Type=Integer,Description="Number of African-American XX samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_STATUS_afr_XX,Number=.,Type=Integer,Description="Differnt copy states observed in African-American XX samples, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_FREQ_afr_XX,Number=.,Type=Float,Description="Frequency of African-American XX samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_COUNT_afr_XX,Number=1,Type=Integer,Description="Number of African-American XX samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_FREQ_afr_XX,Number=1,Type=Float,Description="Frequency of African-American XX samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=AN_ami_XY,Number=1,Type=Integer,Description="Total number of Amish XY alleles genotyped (biallelic sites only).">
+##INFO=<ID=AC_ami_XY,Number=A,Type=Integer,Description="Number of non-reference Amish XY alleles observed (biallelic sites only).">
+##INFO=<ID=AF_ami_XY,Number=A,Type=Float,Description="Amish XY allele frequency (biallelic sites only).">
+##INFO=<ID=N_BI_GENOS_ami_XY,Number=1,Type=Integer,Description="Total number of Amish XY samples with complete genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMREF_ami_XY,Number=1,Type=Integer,Description="Number of Amish XY samples with homozygous reference genotypes (biallelic sites only).">
+##INFO=<ID=N_HET_ami_XY,Number=1,Type=Integer,Description="Number of Amish XY samples with heterozygous genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMALT_ami_XY,Number=1,Type=Integer,Description="Number of Amish XY samples with homozygous alternate genotypes (biallelic sites only).">
+##INFO=<ID=FREQ_HOMREF_ami_XY,Number=1,Type=Float,Description="Amish XY homozygous reference genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HET_ami_XY,Number=1,Type=Float,Description="Amish XY heterozygous genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HOMALT_ami_XY,Number=1,Type=Float,Description="Amish XY homozygous alternate genotype frequency (biallelic sites only).">
+##INFO=<ID=CN_NUMBER_ami_XY,Number=1,Type=Integer,Description="Total number of Amish XY samples with estimated copy numbers (multiallelic CNVs only).">
+##INFO=<ID=CN_COUNT_ami_XY,Number=.,Type=Integer,Description="Number of Amish XY samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_STATUS_ami_XY,Number=.,Type=Integer,Description="Differnt copy states observed in Amish XY samples, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_FREQ_ami_XY,Number=.,Type=Float,Description="Frequency of Amish XY samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_COUNT_ami_XY,Number=1,Type=Integer,Description="Number of Amish XY samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_FREQ_ami_XY,Number=1,Type=Float,Description="Frequency of Amish XY samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=N_HEMIREF_ami_XY,Number=1,Type=Integer,Description="Number of Amish XY samples with hemizygous reference genotypes (biallelic sites only).">
+##INFO=<ID=N_HEMIALT_ami_XY,Number=1,Type=Integer,Description="Number of Amish XY samples with hemizygous alternate genotypes (biallelic sites only).">
+##INFO=<ID=FREQ_HEMIREF_ami_XY,Number=1,Type=Float,Description="Amish XY hemizygous reference genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HEMIALT_ami_XY,Number=1,Type=Float,Description="Amish XY hemizygous alternate genotype frequency (biallelic sites only).">
+##INFO=<ID=AN_ami_XX,Number=1,Type=Integer,Description="Total number of Amish XX alleles genotyped (biallelic sites only).">
+##INFO=<ID=AC_ami_XX,Number=A,Type=Integer,Description="Number of non-reference Amish XX alleles observed (biallelic sites only).">
+##INFO=<ID=AF_ami_XX,Number=A,Type=Float,Description="Amish XX allele frequency (biallelic sites only).">
+##INFO=<ID=N_BI_GENOS_ami_XX,Number=1,Type=Integer,Description="Total number of Amish XX samples with complete genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMREF_ami_XX,Number=1,Type=Integer,Description="Number of Amish XX samples with homozygous reference genotypes (biallelic sites only).">
+##INFO=<ID=N_HET_ami_XX,Number=1,Type=Integer,Description="Number of Amish XX samples with heterozygous genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMALT_ami_XX,Number=1,Type=Integer,Description="Number of Amish XX samples with homozygous alternate genotypes (biallelic sites only).">
+##INFO=<ID=FREQ_HOMREF_ami_XX,Number=1,Type=Float,Description="Amish XX homozygous reference genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HET_ami_XX,Number=1,Type=Float,Description="Amish XX heterozygous genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HOMALT_ami_XX,Number=1,Type=Float,Description="Amish XX homozygous alternate genotype frequency (biallelic sites only).">
+##INFO=<ID=CN_NUMBER_ami_XX,Number=1,Type=Integer,Description="Total number of Amish XX samples with estimated copy numbers (multiallelic CNVs only).">
+##INFO=<ID=CN_COUNT_ami_XX,Number=.,Type=Integer,Description="Number of Amish XX samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_STATUS_ami_XX,Number=.,Type=Integer,Description="Differnt copy states observed in Amish XX samples, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_FREQ_ami_XX,Number=.,Type=Float,Description="Frequency of Amish XX samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_COUNT_ami_XX,Number=1,Type=Integer,Description="Number of Amish XX samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_FREQ_ami_XX,Number=1,Type=Float,Description="Frequency of Amish XX samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=AN_amr_XY,Number=1,Type=Integer,Description="Total number of Latino XY alleles genotyped (biallelic sites only).">
+##INFO=<ID=AC_amr_XY,Number=A,Type=Integer,Description="Number of non-reference Latino XY alleles observed (biallelic sites only).">
+##INFO=<ID=AF_amr_XY,Number=A,Type=Float,Description="Latino XY allele frequency (biallelic sites only).">
+##INFO=<ID=N_BI_GENOS_amr_XY,Number=1,Type=Integer,Description="Total number of Latino XY samples with complete genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMREF_amr_XY,Number=1,Type=Integer,Description="Number of Latino XY samples with homozygous reference genotypes (biallelic sites only).">
+##INFO=<ID=N_HET_amr_XY,Number=1,Type=Integer,Description="Number of Latino XY samples with heterozygous genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMALT_amr_XY,Number=1,Type=Integer,Description="Number of Latino XY samples with homozygous alternate genotypes (biallelic sites only).">
+##INFO=<ID=FREQ_HOMREF_amr_XY,Number=1,Type=Float,Description="Latino XY homozygous reference genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HET_amr_XY,Number=1,Type=Float,Description="Latino XY heterozygous genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HOMALT_amr_XY,Number=1,Type=Float,Description="Latino XY homozygous alternate genotype frequency (biallelic sites only).">
+##INFO=<ID=CN_NUMBER_amr_XY,Number=1,Type=Integer,Description="Total number of Latino XY samples with estimated copy numbers (multiallelic CNVs only).">
+##INFO=<ID=CN_COUNT_amr_XY,Number=.,Type=Integer,Description="Number of Latino XY samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_STATUS_amr_XY,Number=.,Type=Integer,Description="Differnt copy states observed in Latino XY samples, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_FREQ_amr_XY,Number=.,Type=Float,Description="Frequency of Latino XY samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_COUNT_amr_XY,Number=1,Type=Integer,Description="Number of Latino XY samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_FREQ_amr_XY,Number=1,Type=Float,Description="Frequency of Latino XY samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=N_HEMIREF_amr_XY,Number=1,Type=Integer,Description="Number of Latino XY samples with hemizygous reference genotypes (biallelic sites only).">
+##INFO=<ID=N_HEMIALT_amr_XY,Number=1,Type=Integer,Description="Number of Latino XY samples with hemizygous alternate genotypes (biallelic sites only).">
+##INFO=<ID=FREQ_HEMIREF_amr_XY,Number=1,Type=Float,Description="Latino XY hemizygous reference genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HEMIALT_amr_XY,Number=1,Type=Float,Description="Latino XY hemizygous alternate genotype frequency (biallelic sites only).">
+##INFO=<ID=AN_amr_XX,Number=1,Type=Integer,Description="Total number of Latino XX alleles genotyped (biallelic sites only).">
+##INFO=<ID=AC_amr_XX,Number=A,Type=Integer,Description="Number of non-reference Latino XX alleles observed (biallelic sites only).">
+##INFO=<ID=AF_amr_XX,Number=A,Type=Float,Description="Latino XX allele frequency (biallelic sites only).">
+##INFO=<ID=N_BI_GENOS_amr_XX,Number=1,Type=Integer,Description="Total number of Latino XX samples with complete genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMREF_amr_XX,Number=1,Type=Integer,Description="Number of Latino XX samples with homozygous reference genotypes (biallelic sites only).">
+##INFO=<ID=N_HET_amr_XX,Number=1,Type=Integer,Description="Number of Latino XX samples with heterozygous genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMALT_amr_XX,Number=1,Type=Integer,Description="Number of Latino XX samples with homozygous alternate genotypes (biallelic sites only).">
+##INFO=<ID=FREQ_HOMREF_amr_XX,Number=1,Type=Float,Description="Latino XX homozygous reference genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HET_amr_XX,Number=1,Type=Float,Description="Latino XX heterozygous genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HOMALT_amr_XX,Number=1,Type=Float,Description="Latino XX homozygous alternate genotype frequency (biallelic sites only).">
+##INFO=<ID=CN_NUMBER_amr_XX,Number=1,Type=Integer,Description="Total number of Latino XX samples with estimated copy numbers (multiallelic CNVs only).">
+##INFO=<ID=CN_COUNT_amr_XX,Number=.,Type=Integer,Description="Number of Latino XX samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_STATUS_amr_XX,Number=.,Type=Integer,Description="Differnt copy states observed in Latino XX samples, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_FREQ_amr_XX,Number=.,Type=Float,Description="Frequency of Latino XX samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_COUNT_amr_XX,Number=1,Type=Integer,Description="Number of Latino XX samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_FREQ_amr_XX,Number=1,Type=Float,Description="Frequency of Latino XX samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=AN_asj_XY,Number=1,Type=Integer,Description="Total number of Ashkenazi Jewish XY alleles genotyped (biallelic sites only).">
+##INFO=<ID=AC_asj_XY,Number=A,Type=Integer,Description="Number of non-reference Ashkenazi Jewish XY alleles observed (biallelic sites only).">
+##INFO=<ID=AF_asj_XY,Number=A,Type=Float,Description="Ashkenazi Jewish XY allele frequency (biallelic sites only).">
+##INFO=<ID=N_BI_GENOS_asj_XY,Number=1,Type=Integer,Description="Total number of Ashkenazi Jewish XY samples with complete genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMREF_asj_XY,Number=1,Type=Integer,Description="Number of Ashkenazi Jewish XY samples with homozygous reference genotypes (biallelic sites only).">
+##INFO=<ID=N_HET_asj_XY,Number=1,Type=Integer,Description="Number of Ashkenazi Jewish XY samples with heterozygous genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMALT_asj_XY,Number=1,Type=Integer,Description="Number of Ashkenazi Jewish XY samples with homozygous alternate genotypes (biallelic sites only).">
+##INFO=<ID=FREQ_HOMREF_asj_XY,Number=1,Type=Float,Description="Ashkenazi Jewish XY homozygous reference genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HET_asj_XY,Number=1,Type=Float,Description="Ashkenazi Jewish XY heterozygous genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HOMALT_asj_XY,Number=1,Type=Float,Description="Ashkenazi Jewish XY homozygous alternate genotype frequency (biallelic sites only).">
+##INFO=<ID=CN_NUMBER_asj_XY,Number=1,Type=Integer,Description="Total number of Ashkenazi Jewish XY samples with estimated copy numbers (multiallelic CNVs only).">
+##INFO=<ID=CN_COUNT_asj_XY,Number=.,Type=Integer,Description="Number of Ashkenazi Jewish XY samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_STATUS_asj_XY,Number=.,Type=Integer,Description="Differnt copy states observed in Ashkenazi Jewish XY samples, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_FREQ_asj_XY,Number=.,Type=Float,Description="Frequency of Ashkenazi Jewish XY samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_COUNT_asj_XY,Number=1,Type=Integer,Description="Number of Ashkenazi Jewish XY samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_FREQ_asj_XY,Number=1,Type=Float,Description="Frequency of Ashkenazi Jewish XY samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=N_HEMIREF_asj_XY,Number=1,Type=Integer,Description="Number of Ashkenazi Jewish XY samples with hemizygous reference genotypes (biallelic sites only).">
+##INFO=<ID=N_HEMIALT_asj_XY,Number=1,Type=Integer,Description="Number of Ashkenazi Jewish XY samples with hemizygous alternate genotypes (biallelic sites only).">
+##INFO=<ID=FREQ_HEMIREF_asj_XY,Number=1,Type=Float,Description="Ashkenazi Jewish XY hemizygous reference genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HEMIALT_asj_XY,Number=1,Type=Float,Description="Ashkenazi Jewish XY hemizygous alternate genotype frequency (biallelic sites only).">
+##INFO=<ID=AN_asj_XX,Number=1,Type=Integer,Description="Total number of Ashkenazi Jewish XX alleles genotyped (biallelic sites only).">
+##INFO=<ID=AC_asj_XX,Number=A,Type=Integer,Description="Number of non-reference Ashkenazi Jewish XX alleles observed (biallelic sites only).">
+##INFO=<ID=AF_asj_XX,Number=A,Type=Float,Description="Ashkenazi Jewish XX allele frequency (biallelic sites only).">
+##INFO=<ID=N_BI_GENOS_asj_XX,Number=1,Type=Integer,Description="Total number of Ashkenazi Jewish XX samples with complete genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMREF_asj_XX,Number=1,Type=Integer,Description="Number of Ashkenazi Jewish XX samples with homozygous reference genotypes (biallelic sites only).">
+##INFO=<ID=N_HET_asj_XX,Number=1,Type=Integer,Description="Number of Ashkenazi Jewish XX samples with heterozygous genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMALT_asj_XX,Number=1,Type=Integer,Description="Number of Ashkenazi Jewish XX samples with homozygous alternate genotypes (biallelic sites only).">
+##INFO=<ID=FREQ_HOMREF_asj_XX,Number=1,Type=Float,Description="Ashkenazi Jewish XX homozygous reference genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HET_asj_XX,Number=1,Type=Float,Description="Ashkenazi Jewish XX heterozygous genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HOMALT_asj_XX,Number=1,Type=Float,Description="Ashkenazi Jewish XX homozygous alternate genotype frequency (biallelic sites only).">
+##INFO=<ID=CN_NUMBER_asj_XX,Number=1,Type=Integer,Description="Total number of Ashkenazi Jewish XX samples with estimated copy numbers (multiallelic CNVs only).">
+##INFO=<ID=CN_COUNT_asj_XX,Number=.,Type=Integer,Description="Number of Ashkenazi Jewish XX samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_STATUS_asj_XX,Number=.,Type=Integer,Description="Differnt copy states observed in Ashkenazi Jewish XX samples, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_FREQ_asj_XX,Number=.,Type=Float,Description="Frequency of Ashkenazi Jewish XX samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_COUNT_asj_XX,Number=1,Type=Integer,Description="Number of Ashkenazi Jewish XX samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_FREQ_asj_XX,Number=1,Type=Float,Description="Frequency of Ashkenazi Jewish XX samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=AN_eas_XY,Number=1,Type=Integer,Description="Total number of East Asian XY alleles genotyped (biallelic sites only).">
+##INFO=<ID=AC_eas_XY,Number=A,Type=Integer,Description="Number of non-reference East Asian XY alleles observed (biallelic sites only).">
+##INFO=<ID=AF_eas_XY,Number=A,Type=Float,Description="East Asian XY allele frequency (biallelic sites only).">
+##INFO=<ID=N_BI_GENOS_eas_XY,Number=1,Type=Integer,Description="Total number of East Asian XY samples with complete genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMREF_eas_XY,Number=1,Type=Integer,Description="Number of East Asian XY samples with homozygous reference genotypes (biallelic sites only).">
+##INFO=<ID=N_HET_eas_XY,Number=1,Type=Integer,Description="Number of East Asian XY samples with heterozygous genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMALT_eas_XY,Number=1,Type=Integer,Description="Number of East Asian XY samples with homozygous alternate genotypes (biallelic sites only).">
+##INFO=<ID=FREQ_HOMREF_eas_XY,Number=1,Type=Float,Description="East Asian XY homozygous reference genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HET_eas_XY,Number=1,Type=Float,Description="East Asian XY heterozygous genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HOMALT_eas_XY,Number=1,Type=Float,Description="East Asian XY homozygous alternate genotype frequency (biallelic sites only).">
+##INFO=<ID=CN_NUMBER_eas_XY,Number=1,Type=Integer,Description="Total number of East Asian XY samples with estimated copy numbers (multiallelic CNVs only).">
+##INFO=<ID=CN_COUNT_eas_XY,Number=.,Type=Integer,Description="Number of East Asian XY samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_STATUS_eas_XY,Number=.,Type=Integer,Description="Differnt copy states observed in East Asian XY samples, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_FREQ_eas_XY,Number=.,Type=Float,Description="Frequency of East Asian XY samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_COUNT_eas_XY,Number=1,Type=Integer,Description="Number of East Asian XY samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_FREQ_eas_XY,Number=1,Type=Float,Description="Frequency of East Asian XY samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=N_HEMIREF_eas_XY,Number=1,Type=Integer,Description="Number of East Asian XY samples with hemizygous reference genotypes (biallelic sites only).">
+##INFO=<ID=N_HEMIALT_eas_XY,Number=1,Type=Integer,Description="Number of East Asian XY samples with hemizygous alternate genotypes (biallelic sites only).">
+##INFO=<ID=FREQ_HEMIREF_eas_XY,Number=1,Type=Float,Description="East Asian XY hemizygous reference genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HEMIALT_eas_XY,Number=1,Type=Float,Description="East Asian XY hemizygous alternate genotype frequency (biallelic sites only).">
+##INFO=<ID=AN_eas_XX,Number=1,Type=Integer,Description="Total number of East Asian XX alleles genotyped (biallelic sites only).">
+##INFO=<ID=AC_eas_XX,Number=A,Type=Integer,Description="Number of non-reference East Asian XX alleles observed (biallelic sites only).">
+##INFO=<ID=AF_eas_XX,Number=A,Type=Float,Description="East Asian XX allele frequency (biallelic sites only).">
+##INFO=<ID=N_BI_GENOS_eas_XX,Number=1,Type=Integer,Description="Total number of East Asian XX samples with complete genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMREF_eas_XX,Number=1,Type=Integer,Description="Number of East Asian XX samples with homozygous reference genotypes (biallelic sites only).">
+##INFO=<ID=N_HET_eas_XX,Number=1,Type=Integer,Description="Number of East Asian XX samples with heterozygous genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMALT_eas_XX,Number=1,Type=Integer,Description="Number of East Asian XX samples with homozygous alternate genotypes (biallelic sites only).">
+##INFO=<ID=FREQ_HOMREF_eas_XX,Number=1,Type=Float,Description="East Asian XX homozygous reference genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HET_eas_XX,Number=1,Type=Float,Description="East Asian XX heterozygous genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HOMALT_eas_XX,Number=1,Type=Float,Description="East Asian XX homozygous alternate genotype frequency (biallelic sites only).">
+##INFO=<ID=CN_NUMBER_eas_XX,Number=1,Type=Integer,Description="Total number of East Asian XX samples with estimated copy numbers (multiallelic CNVs only).">
+##INFO=<ID=CN_COUNT_eas_XX,Number=.,Type=Integer,Description="Number of East Asian XX samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_STATUS_eas_XX,Number=.,Type=Integer,Description="Differnt copy states observed in East Asian XX samples, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_FREQ_eas_XX,Number=.,Type=Float,Description="Frequency of East Asian XX samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_COUNT_eas_XX,Number=1,Type=Integer,Description="Number of East Asian XX samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_FREQ_eas_XX,Number=1,Type=Float,Description="Frequency of East Asian XX samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=AN_fin_XY,Number=1,Type=Integer,Description="Total number of Finnish XY alleles genotyped (biallelic sites only).">
+##INFO=<ID=AC_fin_XY,Number=A,Type=Integer,Description="Number of non-reference Finnish XY alleles observed (biallelic sites only).">
+##INFO=<ID=AF_fin_XY,Number=A,Type=Float,Description="Finnish XY allele frequency (biallelic sites only).">
+##INFO=<ID=N_BI_GENOS_fin_XY,Number=1,Type=Integer,Description="Total number of Finnish XY samples with complete genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMREF_fin_XY,Number=1,Type=Integer,Description="Number of Finnish XY samples with homozygous reference genotypes (biallelic sites only).">
+##INFO=<ID=N_HET_fin_XY,Number=1,Type=Integer,Description="Number of Finnish XY samples with heterozygous genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMALT_fin_XY,Number=1,Type=Integer,Description="Number of Finnish XY samples with homozygous alternate genotypes (biallelic sites only).">
+##INFO=<ID=FREQ_HOMREF_fin_XY,Number=1,Type=Float,Description="Finnish XY homozygous reference genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HET_fin_XY,Number=1,Type=Float,Description="Finnish XY heterozygous genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HOMALT_fin_XY,Number=1,Type=Float,Description="Finnish XY homozygous alternate genotype frequency (biallelic sites only).">
+##INFO=<ID=CN_NUMBER_fin_XY,Number=1,Type=Integer,Description="Total number of Finnish XY samples with estimated copy numbers (multiallelic CNVs only).">
+##INFO=<ID=CN_COUNT_fin_XY,Number=.,Type=Integer,Description="Number of Finnish XY samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_STATUS_fin_XY,Number=.,Type=Integer,Description="Differnt copy states observed in Finnish XY samples, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_FREQ_fin_XY,Number=.,Type=Float,Description="Frequency of Finnish XY samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_COUNT_fin_XY,Number=1,Type=Integer,Description="Number of Finnish XY samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_FREQ_fin_XY,Number=1,Type=Float,Description="Frequency of Finnish XY samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=N_HEMIREF_fin_XY,Number=1,Type=Integer,Description="Number of Finnish XY samples with hemizygous reference genotypes (biallelic sites only).">
+##INFO=<ID=N_HEMIALT_fin_XY,Number=1,Type=Integer,Description="Number of Finnish XY samples with hemizygous alternate genotypes (biallelic sites only).">
+##INFO=<ID=FREQ_HEMIREF_fin_XY,Number=1,Type=Float,Description="Finnish XY hemizygous reference genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HEMIALT_fin_XY,Number=1,Type=Float,Description="Finnish XY hemizygous alternate genotype frequency (biallelic sites only).">
+##INFO=<ID=AN_fin_XX,Number=1,Type=Integer,Description="Total number of Finnish XX alleles genotyped (biallelic sites only).">
+##INFO=<ID=AC_fin_XX,Number=A,Type=Integer,Description="Number of non-reference Finnish XX alleles observed (biallelic sites only).">
+##INFO=<ID=AF_fin_XX,Number=A,Type=Float,Description="Finnish XX allele frequency (biallelic sites only).">
+##INFO=<ID=N_BI_GENOS_fin_XX,Number=1,Type=Integer,Description="Total number of Finnish XX samples with complete genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMREF_fin_XX,Number=1,Type=Integer,Description="Number of Finnish XX samples with homozygous reference genotypes (biallelic sites only).">
+##INFO=<ID=N_HET_fin_XX,Number=1,Type=Integer,Description="Number of Finnish XX samples with heterozygous genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMALT_fin_XX,Number=1,Type=Integer,Description="Number of Finnish XX samples with homozygous alternate genotypes (biallelic sites only).">
+##INFO=<ID=FREQ_HOMREF_fin_XX,Number=1,Type=Float,Description="Finnish XX homozygous reference genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HET_fin_XX,Number=1,Type=Float,Description="Finnish XX heterozygous genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HOMALT_fin_XX,Number=1,Type=Float,Description="Finnish XX homozygous alternate genotype frequency (biallelic sites only).">
+##INFO=<ID=CN_NUMBER_fin_XX,Number=1,Type=Integer,Description="Total number of Finnish XX samples with estimated copy numbers (multiallelic CNVs only).">
+##INFO=<ID=CN_COUNT_fin_XX,Number=.,Type=Integer,Description="Number of Finnish XX samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_STATUS_fin_XX,Number=.,Type=Integer,Description="Differnt copy states observed in Finnish XX samples, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_FREQ_fin_XX,Number=.,Type=Float,Description="Frequency of Finnish XX samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_COUNT_fin_XX,Number=1,Type=Integer,Description="Number of Finnish XX samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_FREQ_fin_XX,Number=1,Type=Float,Description="Frequency of Finnish XX samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=AN_mid_XY,Number=1,Type=Integer,Description="Total number of Middle Eastern XY alleles genotyped (biallelic sites only).">
+##INFO=<ID=AC_mid_XY,Number=A,Type=Integer,Description="Number of non-reference Middle Eastern XY alleles observed (biallelic sites only).">
+##INFO=<ID=AF_mid_XY,Number=A,Type=Float,Description="Middle Eastern XY allele frequency (biallelic sites only).">
+##INFO=<ID=N_BI_GENOS_mid_XY,Number=1,Type=Integer,Description="Total number of Middle Eastern XY samples with complete genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMREF_mid_XY,Number=1,Type=Integer,Description="Number of Middle Eastern XY samples with homozygous reference genotypes (biallelic sites only).">
+##INFO=<ID=N_HET_mid_XY,Number=1,Type=Integer,Description="Number of Middle Eastern XY samples with heterozygous genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMALT_mid_XY,Number=1,Type=Integer,Description="Number of Middle Eastern XY samples with homozygous alternate genotypes (biallelic sites only).">
+##INFO=<ID=FREQ_HOMREF_mid_XY,Number=1,Type=Float,Description="Middle Eastern XY homozygous reference genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HET_mid_XY,Number=1,Type=Float,Description="Middle Eastern XY heterozygous genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HOMALT_mid_XY,Number=1,Type=Float,Description="Middle Eastern XY homozygous alternate genotype frequency (biallelic sites only).">
+##INFO=<ID=CN_NUMBER_mid_XY,Number=1,Type=Integer,Description="Total number of Middle Eastern XY samples with estimated copy numbers (multiallelic CNVs only).">
+##INFO=<ID=CN_COUNT_mid_XY,Number=.,Type=Integer,Description="Number of Middle Eastern XY samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_STATUS_mid_XY,Number=.,Type=Integer,Description="Differnt copy states observed in Middle Eastern XY samples, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_FREQ_mid_XY,Number=.,Type=Float,Description="Frequency of Middle Eastern XY samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_COUNT_mid_XY,Number=1,Type=Integer,Description="Number of Middle Eastern XY samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_FREQ_mid_XY,Number=1,Type=Float,Description="Frequency of Middle Eastern XY samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=N_HEMIREF_mid_XY,Number=1,Type=Integer,Description="Number of Middle Eastern XY samples with hemizygous reference genotypes (biallelic sites only).">
+##INFO=<ID=N_HEMIALT_mid_XY,Number=1,Type=Integer,Description="Number of Middle Eastern XY samples with hemizygous alternate genotypes (biallelic sites only).">
+##INFO=<ID=FREQ_HEMIREF_mid_XY,Number=1,Type=Float,Description="Middle Eastern XY hemizygous reference genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HEMIALT_mid_XY,Number=1,Type=Float,Description="Middle Eastern XY hemizygous alternate genotype frequency (biallelic sites only).">
+##INFO=<ID=AN_mid_XX,Number=1,Type=Integer,Description="Total number of Middle Eastern XX alleles genotyped (biallelic sites only).">
+##INFO=<ID=AC_mid_XX,Number=A,Type=Integer,Description="Number of non-reference Middle Eastern XX alleles observed (biallelic sites only).">
+##INFO=<ID=AF_mid_XX,Number=A,Type=Float,Description="Middle Eastern XX allele frequency (biallelic sites only).">
+##INFO=<ID=N_BI_GENOS_mid_XX,Number=1,Type=Integer,Description="Total number of Middle Eastern XX samples with complete genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMREF_mid_XX,Number=1,Type=Integer,Description="Number of Middle Eastern XX samples with homozygous reference genotypes (biallelic sites only).">
+##INFO=<ID=N_HET_mid_XX,Number=1,Type=Integer,Description="Number of Middle Eastern XX samples with heterozygous genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMALT_mid_XX,Number=1,Type=Integer,Description="Number of Middle Eastern XX samples with homozygous alternate genotypes (biallelic sites only).">
+##INFO=<ID=FREQ_HOMREF_mid_XX,Number=1,Type=Float,Description="Middle Eastern XX homozygous reference genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HET_mid_XX,Number=1,Type=Float,Description="Middle Eastern XX heterozygous genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HOMALT_mid_XX,Number=1,Type=Float,Description="Middle Eastern XX homozygous alternate genotype frequency (biallelic sites only).">
+##INFO=<ID=CN_NUMBER_mid_XX,Number=1,Type=Integer,Description="Total number of Middle Eastern XX samples with estimated copy numbers (multiallelic CNVs only).">
+##INFO=<ID=CN_COUNT_mid_XX,Number=.,Type=Integer,Description="Number of Middle Eastern XX samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_STATUS_mid_XX,Number=.,Type=Integer,Description="Differnt copy states observed in Middle Eastern XX samples, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_FREQ_mid_XX,Number=.,Type=Float,Description="Frequency of Middle Eastern XX samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_COUNT_mid_XX,Number=1,Type=Integer,Description="Number of Middle Eastern XX samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_FREQ_mid_XX,Number=1,Type=Float,Description="Frequency of Middle Eastern XX samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=AN_nfe_XY,Number=1,Type=Integer,Description="Total number of Non-Finnish European XY alleles genotyped (biallelic sites only).">
+##INFO=<ID=AC_nfe_XY,Number=A,Type=Integer,Description="Number of non-reference Non-Finnish European XY alleles observed (biallelic sites only).">
+##INFO=<ID=AF_nfe_XY,Number=A,Type=Float,Description="Non-Finnish European XY allele frequency (biallelic sites only).">
+##INFO=<ID=N_BI_GENOS_nfe_XY,Number=1,Type=Integer,Description="Total number of Non-Finnish European XY samples with complete genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMREF_nfe_XY,Number=1,Type=Integer,Description="Number of Non-Finnish European XY samples with homozygous reference genotypes (biallelic sites only).">
+##INFO=<ID=N_HET_nfe_XY,Number=1,Type=Integer,Description="Number of Non-Finnish European XY samples with heterozygous genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMALT_nfe_XY,Number=1,Type=Integer,Description="Number of Non-Finnish European XY samples with homozygous alternate genotypes (biallelic sites only).">
+##INFO=<ID=FREQ_HOMREF_nfe_XY,Number=1,Type=Float,Description="Non-Finnish European XY homozygous reference genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HET_nfe_XY,Number=1,Type=Float,Description="Non-Finnish European XY heterozygous genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HOMALT_nfe_XY,Number=1,Type=Float,Description="Non-Finnish European XY homozygous alternate genotype frequency (biallelic sites only).">
+##INFO=<ID=CN_NUMBER_nfe_XY,Number=1,Type=Integer,Description="Total number of Non-Finnish European XY samples with estimated copy numbers (multiallelic CNVs only).">
+##INFO=<ID=CN_COUNT_nfe_XY,Number=.,Type=Integer,Description="Number of Non-Finnish European XY samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_STATUS_nfe_XY,Number=.,Type=Integer,Description="Differnt copy states observed in Non-Finnish European XY samples, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_FREQ_nfe_XY,Number=.,Type=Float,Description="Frequency of Non-Finnish European XY samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_COUNT_nfe_XY,Number=1,Type=Integer,Description="Number of Non-Finnish European XY samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_FREQ_nfe_XY,Number=1,Type=Float,Description="Frequency of Non-Finnish European XY samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=N_HEMIREF_nfe_XY,Number=1,Type=Integer,Description="Number of Non-Finnish European XY samples with hemizygous reference genotypes (biallelic sites only).">
+##INFO=<ID=N_HEMIALT_nfe_XY,Number=1,Type=Integer,Description="Number of Non-Finnish European XY samples with hemizygous alternate genotypes (biallelic sites only).">
+##INFO=<ID=FREQ_HEMIREF_nfe_XY,Number=1,Type=Float,Description="Non-Finnish European XY hemizygous reference genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HEMIALT_nfe_XY,Number=1,Type=Float,Description="Non-Finnish European XY hemizygous alternate genotype frequency (biallelic sites only).">
+##INFO=<ID=AN_nfe_XX,Number=1,Type=Integer,Description="Total number of Non-Finnish European XX alleles genotyped (biallelic sites only).">
+##INFO=<ID=AC_nfe_XX,Number=A,Type=Integer,Description="Number of non-reference Non-Finnish European XX alleles observed (biallelic sites only).">
+##INFO=<ID=AF_nfe_XX,Number=A,Type=Float,Description="Non-Finnish European XX allele frequency (biallelic sites only).">
+##INFO=<ID=N_BI_GENOS_nfe_XX,Number=1,Type=Integer,Description="Total number of Non-Finnish European XX samples with complete genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMREF_nfe_XX,Number=1,Type=Integer,Description="Number of Non-Finnish European XX samples with homozygous reference genotypes (biallelic sites only).">
+##INFO=<ID=N_HET_nfe_XX,Number=1,Type=Integer,Description="Number of Non-Finnish European XX samples with heterozygous genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMALT_nfe_XX,Number=1,Type=Integer,Description="Number of Non-Finnish European XX samples with homozygous alternate genotypes (biallelic sites only).">
+##INFO=<ID=FREQ_HOMREF_nfe_XX,Number=1,Type=Float,Description="Non-Finnish European XX homozygous reference genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HET_nfe_XX,Number=1,Type=Float,Description="Non-Finnish European XX heterozygous genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HOMALT_nfe_XX,Number=1,Type=Float,Description="Non-Finnish European XX homozygous alternate genotype frequency (biallelic sites only).">
+##INFO=<ID=CN_NUMBER_nfe_XX,Number=1,Type=Integer,Description="Total number of Non-Finnish European XX samples with estimated copy numbers (multiallelic CNVs only).">
+##INFO=<ID=CN_COUNT_nfe_XX,Number=.,Type=Integer,Description="Number of Non-Finnish European XX samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_STATUS_nfe_XX,Number=.,Type=Integer,Description="Differnt copy states observed in Non-Finnish European XX samples, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_FREQ_nfe_XX,Number=.,Type=Float,Description="Frequency of Non-Finnish European XX samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_COUNT_nfe_XX,Number=1,Type=Integer,Description="Number of Non-Finnish European XX samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_FREQ_nfe_XX,Number=1,Type=Float,Description="Frequency of Non-Finnish European XX samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=AN_rmi_XY,Number=1,Type=Integer,Description="Total number of Remaining individuals XY alleles genotyped (biallelic sites only).">
+##INFO=<ID=AC_rmi_XY,Number=A,Type=Integer,Description="Number of non-reference Remaining individuals XY alleles observed (biallelic sites only).">
+##INFO=<ID=AF_rmi_XY,Number=A,Type=Float,Description="Remaining individuals XY allele frequency (biallelic sites only).">
+##INFO=<ID=N_BI_GENOS_rmi_XY,Number=1,Type=Integer,Description="Total number of Remaining individuals XY samples with complete genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMREF_rmi_XY,Number=1,Type=Integer,Description="Number of Remaining individuals XY samples with homozygous reference genotypes (biallelic sites only).">
+##INFO=<ID=N_HET_rmi_XY,Number=1,Type=Integer,Description="Number of Remaining individuals XY samples with heterozygous genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMALT_rmi_XY,Number=1,Type=Integer,Description="Number of Remaining individuals XY samples with homozygous alternate genotypes (biallelic sites only).">
+##INFO=<ID=FREQ_HOMREF_rmi_XY,Number=1,Type=Float,Description="Remaining individuals XY homozygous reference genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HET_rmi_XY,Number=1,Type=Float,Description="Remaining individuals XY heterozygous genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HOMALT_rmi_XY,Number=1,Type=Float,Description="Remaining individuals XY homozygous alternate genotype frequency (biallelic sites only).">
+##INFO=<ID=CN_NUMBER_rmi_XY,Number=1,Type=Integer,Description="Total number of Remaining individuals XY samples with estimated copy numbers (multiallelic CNVs only).">
+##INFO=<ID=CN_COUNT_rmi_XY,Number=.,Type=Integer,Description="Number of Remaining individuals XY samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_STATUS_rmi_XY,Number=.,Type=Integer,Description="Differnt copy states observed in Remaining individuals XY samples, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_FREQ_rmi_XY,Number=.,Type=Float,Description="Frequency of Remaining individuals XY samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_COUNT_rmi_XY,Number=1,Type=Integer,Description="Number of Remaining individuals XY samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_FREQ_rmi_XY,Number=1,Type=Float,Description="Frequency of Remaining individuals XY samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=N_HEMIREF_rmi_XY,Number=1,Type=Integer,Description="Number of Remaining individuals XY samples with hemizygous reference genotypes (biallelic sites only).">
+##INFO=<ID=N_HEMIALT_rmi_XY,Number=1,Type=Integer,Description="Number of Remaining individuals XY samples with hemizygous alternate genotypes (biallelic sites only).">
+##INFO=<ID=FREQ_HEMIREF_rmi_XY,Number=1,Type=Float,Description="Remaining individuals XY hemizygous reference genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HEMIALT_rmi_XY,Number=1,Type=Float,Description="Remaining individuals XY hemizygous alternate genotype frequency (biallelic sites only).">
+##INFO=<ID=AN_rmi_XX,Number=1,Type=Integer,Description="Total number of Remaining individuals XX alleles genotyped (biallelic sites only).">
+##INFO=<ID=AC_rmi_XX,Number=A,Type=Integer,Description="Number of non-reference Remaining individuals XX alleles observed (biallelic sites only).">
+##INFO=<ID=AF_rmi_XX,Number=A,Type=Float,Description="Remaining individuals XX allele frequency (biallelic sites only).">
+##INFO=<ID=N_BI_GENOS_rmi_XX,Number=1,Type=Integer,Description="Total number of Remaining individuals XX samples with complete genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMREF_rmi_XX,Number=1,Type=Integer,Description="Number of Remaining individuals XX samples with homozygous reference genotypes (biallelic sites only).">
+##INFO=<ID=N_HET_rmi_XX,Number=1,Type=Integer,Description="Number of Remaining individuals XX samples with heterozygous genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMALT_rmi_XX,Number=1,Type=Integer,Description="Number of Remaining individuals XX samples with homozygous alternate genotypes (biallelic sites only).">
+##INFO=<ID=FREQ_HOMREF_rmi_XX,Number=1,Type=Float,Description="Remaining individuals XX homozygous reference genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HET_rmi_XX,Number=1,Type=Float,Description="Remaining individuals XX heterozygous genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HOMALT_rmi_XX,Number=1,Type=Float,Description="Remaining individuals XX homozygous alternate genotype frequency (biallelic sites only).">
+##INFO=<ID=CN_NUMBER_rmi_XX,Number=1,Type=Integer,Description="Total number of Remaining individuals XX samples with estimated copy numbers (multiallelic CNVs only).">
+##INFO=<ID=CN_COUNT_rmi_XX,Number=.,Type=Integer,Description="Number of Remaining individuals XX samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_STATUS_rmi_XX,Number=.,Type=Integer,Description="Differnt copy states observed in Remaining individuals XX samples, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_FREQ_rmi_XX,Number=.,Type=Float,Description="Frequency of Remaining individuals XX samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_COUNT_rmi_XX,Number=1,Type=Integer,Description="Number of Remaining individuals XX samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_FREQ_rmi_XX,Number=1,Type=Float,Description="Frequency of Remaining individuals XX samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=AN_sas_XY,Number=1,Type=Integer,Description="Total number of South Asian XY alleles genotyped (biallelic sites only).">
+##INFO=<ID=AC_sas_XY,Number=A,Type=Integer,Description="Number of non-reference South Asian XY alleles observed (biallelic sites only).">
+##INFO=<ID=AF_sas_XY,Number=A,Type=Float,Description="South Asian XY allele frequency (biallelic sites only).">
+##INFO=<ID=N_BI_GENOS_sas_XY,Number=1,Type=Integer,Description="Total number of South Asian XY samples with complete genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMREF_sas_XY,Number=1,Type=Integer,Description="Number of South Asian XY samples with homozygous reference genotypes (biallelic sites only).">
+##INFO=<ID=N_HET_sas_XY,Number=1,Type=Integer,Description="Number of South Asian XY samples with heterozygous genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMALT_sas_XY,Number=1,Type=Integer,Description="Number of South Asian XY samples with homozygous alternate genotypes (biallelic sites only).">
+##INFO=<ID=FREQ_HOMREF_sas_XY,Number=1,Type=Float,Description="South Asian XY homozygous reference genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HET_sas_XY,Number=1,Type=Float,Description="South Asian XY heterozygous genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HOMALT_sas_XY,Number=1,Type=Float,Description="South Asian XY homozygous alternate genotype frequency (biallelic sites only).">
+##INFO=<ID=CN_NUMBER_sas_XY,Number=1,Type=Integer,Description="Total number of South Asian XY samples with estimated copy numbers (multiallelic CNVs only).">
+##INFO=<ID=CN_COUNT_sas_XY,Number=.,Type=Integer,Description="Number of South Asian XY samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_STATUS_sas_XY,Number=.,Type=Integer,Description="Differnt copy states observed in South Asian XY samples, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_FREQ_sas_XY,Number=.,Type=Float,Description="Frequency of South Asian XY samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_COUNT_sas_XY,Number=1,Type=Integer,Description="Number of South Asian XY samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_FREQ_sas_XY,Number=1,Type=Float,Description="Frequency of South Asian XY samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=N_HEMIREF_sas_XY,Number=1,Type=Integer,Description="Number of South Asian XY samples with hemizygous reference genotypes (biallelic sites only).">
+##INFO=<ID=N_HEMIALT_sas_XY,Number=1,Type=Integer,Description="Number of South Asian XY samples with hemizygous alternate genotypes (biallelic sites only).">
+##INFO=<ID=FREQ_HEMIREF_sas_XY,Number=1,Type=Float,Description="South Asian XY hemizygous reference genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HEMIALT_sas_XY,Number=1,Type=Float,Description="South Asian XY hemizygous alternate genotype frequency (biallelic sites only).">
+##INFO=<ID=AN_sas_XX,Number=1,Type=Integer,Description="Total number of South Asian XX alleles genotyped (biallelic sites only).">
+##INFO=<ID=AC_sas_XX,Number=A,Type=Integer,Description="Number of non-reference South Asian XX alleles observed (biallelic sites only).">
+##INFO=<ID=AF_sas_XX,Number=A,Type=Float,Description="South Asian XX allele frequency (biallelic sites only).">
+##INFO=<ID=N_BI_GENOS_sas_XX,Number=1,Type=Integer,Description="Total number of South Asian XX samples with complete genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMREF_sas_XX,Number=1,Type=Integer,Description="Number of South Asian XX samples with homozygous reference genotypes (biallelic sites only).">
+##INFO=<ID=N_HET_sas_XX,Number=1,Type=Integer,Description="Number of South Asian XX samples with heterozygous genotypes (biallelic sites only).">
+##INFO=<ID=N_HOMALT_sas_XX,Number=1,Type=Integer,Description="Number of South Asian XX samples with homozygous alternate genotypes (biallelic sites only).">
+##INFO=<ID=FREQ_HOMREF_sas_XX,Number=1,Type=Float,Description="South Asian XX homozygous reference genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HET_sas_XX,Number=1,Type=Float,Description="South Asian XX heterozygous genotype frequency (biallelic sites only).">
+##INFO=<ID=FREQ_HOMALT_sas_XX,Number=1,Type=Float,Description="South Asian XX homozygous alternate genotype frequency (biallelic sites only).">
+##INFO=<ID=CN_NUMBER_sas_XX,Number=1,Type=Integer,Description="Total number of South Asian XX samples with estimated copy numbers (multiallelic CNVs only).">
+##INFO=<ID=CN_COUNT_sas_XX,Number=.,Type=Integer,Description="Number of South Asian XX samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_STATUS_sas_XX,Number=.,Type=Integer,Description="Differnt copy states observed in South Asian XX samples, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_FREQ_sas_XX,Number=.,Type=Float,Description="Frequency of South Asian XX samples observed at each copy state, starting from CN=0 (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_COUNT_sas_XX,Number=1,Type=Integer,Description="Number of South Asian XX samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=CN_NONREF_FREQ_sas_XX,Number=1,Type=Float,Description="Frequency of South Asian XX samples with non-reference copy states (multiallelic CNVs only).">
+##INFO=<ID=GRPMAX_AF,Number=1,Type=Float,Description="Maximum allele frequency across any genetic ancestry group (biallelic sites only).">
+##bcftools_viewVersion=1.3.1+htslib-1.3.1
+##bcftools_viewCommand=view -h gnomAD_SV_v3.release_4_1.chr1.sites.gz
+##bcftools_concatVersion=1.3.1+htslib-1.3.1
+##bcftools_concatCommand=concat --file-list list_of_vcfs.sites_only.vcf.tsv -O z -o gnomAD_SV_v3.release_4_1.sites_only.vcf.gz
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+chr22	10957963	gnomAD-SV_v3_CPX_chr22_da6f1b5c	N	<CPX>	198	UNRESOLVED	ALGORITHMS=manta;CHR2=chr22;CPX_INTERVALS=DEL_chr22:10957963-12548894,INV_chr22:12548894-12605840,DEL_chr22:12605840-34747224;CPX_TYPE=delINVdel;END=34747224;EVIDENCE=PE;NCR=0;PCRMINUS_NCR=0;PCRPLUS_NCR=0;PREDICTED_LOF=ADA2,ADORA2A,AIFM3,AP1B1,ARVCF,ASCC2,ASPHD2,ATP6V1E1,BCL2L13,BCR,BID,BPIFC,C22orf15,C22orf31,C22orf39,C22orf42,CABIN1,CABP7,CASTOR1,CCDC116,CCDC117,CCDC157,CCDC188,CCT8L2,CDC45,CECR2,CHCHD10,CHEK2,CLDN5,CLTCL1,COMT,CRKL,CRYBA4,CRYBB1,CRYBB2,CRYBB3,DDT,DDTL,DEPDC5,DERL3,DGCR2,DGCR6,DGCR6L,DGCR8,DRG1,DRICH1,DUSP18,EIF4ENIF1,EMID1,ENSG00000248751,ENSG00000249590,ENSG00000251357,ENSG00000277971,ENSG00000283809,ENSG00000284874,ENSG00000285404,ENSG00000285762,ENSG00000286070,ENSG00000288683,ESS2,EWSR1,FAM246A,FAM246B,FBXO7,GAB4,GAL3ST1,GAS2L1,GGT1,GGT2,GGT5,GGTLC2,GGTLC3,GNAZ,GNB1L,GP1BB,GRK3,GSC2,GSTT2B,GSTT4,GUCD1,HDHD5,HIC2,HIRA,HORMAD2,HPS4,HSCB,IGLL1,IGLL5,IL17RA,INPP5J,KIAA1671,KLHL22,KREMEN1,LARGE1,LIF,LIMK2,LRRC74B,LRRC75B,LZTR1,MAPK1,MED15,MICAL3,MIF,MMP11,MN1,MORC2,MRPL40,MTFP1,MTMR3,MYO18B,NEFH,NF2,NIPSNAP1,OR11H1,OSBP2,OSM,P2RX6,PATZ1,PES1,PEX26,PI4KA,PIK3IP1,PISD,PITPNB,PIWIL3,PLA2G3,POTEH,PPIL2,PPM1F,PRAME,PRODH,PRR14L,RAB36,RANBP1,RASL10A,RFPL1,RFPL2,RFPL3,RGL4,RHBDD3,RIMBP3,RIMBP3B,RIMBP3C,RNF185,RNF215,RSPH14,RTCB,RTL10,RTN4R,SCARF2,SDF2L1,SEC14L2,SEC14L3,SEC14L4,SEC14L6,SELENOM,SEPTIN5,SERPIND1,SEZ6L,SF3A1,SFI1,SGSM1,SLC25A1,SLC25A18,SLC2A11,SLC35E4,SLC5A1,SLC5A4,SLC7A4,SMARCB1,SMTN,SNAP29,SNRPD3,SPECC1L,SPECC1L-ADORA2A,SRRD,SUSD2,SYN3,TANGO2,TBC1D10A,TBX1,TCN2,TFIP11,THAP7,THOC5,TIMP3,TMEM121B,TMEM191B,TMEM191C,TMEM211,TOP3B,TPST2,TRMT2A,TSSK2,TTC28,TUBA8,TUG1,TXNRD2,UBE2L3,UFD1,UPB1,UQCR10,USP18,USP41,VPREB1,VPREB3,XBP1,XKR3,YDJC,YPEL1,YWHAH,ZDHHC8,ZMAT5,ZNF280A,ZNF280B,ZNF70,ZNF74,ZNRF3;SVLEN=23789261;SVTYPE=CPX;UNRESOLVED_TYPE=POSTHOC_RD_GT_REJECTION;AN=126092;AC=688;AF=0.005456;N_BI_GENOS=63046;N_HOMREF=62360;N_HET=684;N_HOMALT=2;FREQ_HOMREF=0.989119;FREQ_HET=0.0108492;FREQ_HOMALT=3.17229e-05;AN_afr=33816;AC_afr=635;AF_afr=0.018778;N_BI_GENOS_afr=16908;N_HOMREF_afr=16275;N_HET_afr=631;N_HOMALT_afr=2;FREQ_HOMREF_afr=0.962562;FREQ_HET_afr=0.0373196;FREQ_HOMALT_afr=0.000118287;AN_ami=842;AC_ami=0;AF_ami=0;N_BI_GENOS_ami=421;N_HOMREF_ami=421;N_HET_ami=0;N_HOMALT_ami=0;FREQ_HOMREF_ami=1;FREQ_HET_ami=0;FREQ_HOMALT_ami=0;AN_amr=12594;AC_amr=24;AF_amr=0.001906;N_BI_GENOS_amr=6297;N_HOMREF_amr=6273;N_HET_amr=24;N_HOMALT_amr=0;FREQ_HOMREF_amr=0.996189;FREQ_HET_amr=0.00381134;FREQ_HOMALT_amr=0;AN_asj=3180;AC_asj=0;AF_asj=0;N_BI_GENOS_asj=1590;N_HOMREF_asj=1590;N_HET_asj=0;N_HOMALT_asj=0;FREQ_HOMREF_asj=1;FREQ_HET_asj=0;FREQ_HOMALT_asj=0;AN_eas=4054;AC_eas=0;AF_eas=0;N_BI_GENOS_eas=2027;N_HOMREF_eas=2027;N_HET_eas=0;N_HOMALT_eas=0;FREQ_HOMREF_eas=1;FREQ_HET_eas=0;FREQ_HOMALT_eas=0;AN_fin=6476;AC_fin=8;AF_fin=0.001235;N_BI_GENOS_fin=3238;N_HOMREF_fin=3230;N_HET_fin=8;N_HOMALT_fin=0;FREQ_HOMREF_fin=0.997529;FREQ_HET_fin=0.00247066;FREQ_HOMALT_fin=0;AN_mid=64;AC_mid=0;AF_mid=0;N_BI_GENOS_mid=32;N_HOMREF_mid=32;N_HET_mid=0;N_HOMALT_mid=0;FREQ_HOMREF_mid=1;FREQ_HET_mid=0;FREQ_HOMALT_mid=0;AN_nfe=59088;AC_nfe=15;AF_nfe=0.000254;N_BI_GENOS_nfe=29544;N_HOMREF_nfe=29529;N_HET_nfe=15;N_HOMALT_nfe=0;FREQ_HOMREF_nfe=0.999492;FREQ_HET_nfe=0.000507717;FREQ_HOMALT_nfe=0;AN_rmi=1572;AC_rmi=3;AF_rmi=0.001908;N_BI_GENOS_rmi=786;N_HOMREF_rmi=783;N_HET_rmi=3;N_HOMALT_rmi=0;FREQ_HOMREF_rmi=0.996183;FREQ_HET_rmi=0.00381679;FREQ_HOMALT_rmi=0;AN_sas=4406;AC_sas=3;AF_sas=0.000681;N_BI_GENOS_sas=2203;N_HOMREF_sas=2200;N_HET_sas=3;N_HOMALT_sas=0;FREQ_HOMREF_sas=0.998638;FREQ_HET_sas=0.00136178;FREQ_HOMALT_sas=0;GRPMAX_AF=0.018778;AN_XY=60292;AC_XY=334;AF_XY=0.00554;N_BI_GENOS_XY=30146;N_HOMREF_XY=29814;N_HET_XY=330;N_HOMALT_XY=2;FREQ_HOMREF_XY=0.988987;FREQ_HET_XY=0.0109467;FREQ_HOMALT_XY=6.63438e-05;AN_XX=65800;AC_XX=354;AF_XX=0.00538;N_BI_GENOS_XX=32900;N_HOMREF_XX=32546;N_HET_XX=354;N_HOMALT_XX=0;FREQ_HOMREF_XX=0.98924;FREQ_HET_XX=0.0107599;FREQ_HOMALT_XX=0;AN_afr_XY=16228;AC_afr_XY=301;AF_afr_XY=0.018548;N_BI_GENOS_afr_XY=8114;N_HOMREF_afr_XY=7815;N_HET_afr_XY=297;N_HOMALT_afr_XY=2;FREQ_HOMREF_afr_XY=0.96315;FREQ_HET_afr_XY=0.0366034;FREQ_HOMALT_afr_XY=0.000246488;AN_afr_XX=17588;AC_afr_XX=334;AF_afr_XX=0.01899;N_BI_GENOS_afr_XX=8794;N_HOMREF_afr_XX=8460;N_HET_afr_XX=334;N_HOMALT_afr_XX=0;FREQ_HOMREF_afr_XX=0.96202;FREQ_HET_afr_XX=0.0379804;FREQ_HOMALT_afr_XX=0;AN_ami_XY=402;AC_ami_XY=0;AF_ami_XY=0;N_BI_GENOS_ami_XY=201;N_HOMREF_ami_XY=201;N_HET_ami_XY=0;N_HOMALT_ami_XY=0;FREQ_HOMREF_ami_XY=1;FREQ_HET_ami_XY=0;FREQ_HOMALT_ami_XY=0;AN_ami_XX=440;AC_ami_XX=0;AF_ami_XX=0;N_BI_GENOS_ami_XX=220;N_HOMREF_ami_XX=220;N_HET_ami_XX=0;N_HOMALT_ami_XX=0;FREQ_HOMREF_ami_XX=1;FREQ_HET_ami_XX=0;FREQ_HOMALT_ami_XX=0;AN_amr_XY=6984;AC_amr_XY=16;AF_amr_XY=0.002291;N_BI_GENOS_amr_XY=3492;N_HOMREF_amr_XY=3476;N_HET_amr_XY=16;N_HOMALT_amr_XY=0;FREQ_HOMREF_amr_XY=0.995418;FREQ_HET_amr_XY=0.0045819;FREQ_HOMALT_amr_XY=0;AN_amr_XX=5610;AC_amr_XX=8;AF_amr_XX=0.001426;N_BI_GENOS_amr_XX=2805;N_HOMREF_amr_XX=2797;N_HET_amr_XX=8;N_HOMALT_amr_XX=0;FREQ_HOMREF_amr_XX=0.997148;FREQ_HET_amr_XX=0.00285205;FREQ_HOMALT_amr_XX=0;AN_asj_XY=1458;AC_asj_XY=0;AF_asj_XY=0;N_BI_GENOS_asj_XY=729;N_HOMREF_asj_XY=729;N_HET_asj_XY=0;N_HOMALT_asj_XY=0;FREQ_HOMREF_asj_XY=1;FREQ_HET_asj_XY=0;FREQ_HOMALT_asj_XY=0;AN_asj_XX=1722;AC_asj_XX=0;AF_asj_XX=0;N_BI_GENOS_asj_XX=861;N_HOMREF_asj_XX=861;N_HET_asj_XX=0;N_HOMALT_asj_XX=0;FREQ_HOMREF_asj_XX=1;FREQ_HET_asj_XX=0;FREQ_HOMALT_asj_XX=0;AN_eas_XY=2104;AC_eas_XY=0;AF_eas_XY=0;N_BI_GENOS_eas_XY=1052;N_HOMREF_eas_XY=1052;N_HET_eas_XY=0;N_HOMALT_eas_XY=0;FREQ_HOMREF_eas_XY=1;FREQ_HET_eas_XY=0;FREQ_HOMALT_eas_XY=0;AN_eas_XX=1950;AC_eas_XX=0;AF_eas_XX=0;N_BI_GENOS_eas_XX=975;N_HOMREF_eas_XX=975;N_HET_eas_XX=0;N_HOMALT_eas_XX=0;FREQ_HOMREF_eas_XX=1;FREQ_HET_eas_XX=0;FREQ_HOMALT_eas_XX=0;AN_fin_XY=4918;AC_fin_XY=8;AF_fin_XY=0.001627;N_BI_GENOS_fin_XY=2459;N_HOMREF_fin_XY=2451;N_HET_fin_XY=8;N_HOMALT_fin_XY=0;FREQ_HOMREF_fin_XY=0.996747;FREQ_HET_fin_XY=0.00325335;FREQ_HOMALT_fin_XY=0;AN_fin_XX=1558;AC_fin_XX=0;AF_fin_XX=0;N_BI_GENOS_fin_XX=779;N_HOMREF_fin_XX=779;N_HET_fin_XX=0;N_HOMALT_fin_XX=0;FREQ_HOMREF_fin_XX=1;FREQ_HET_fin_XX=0;FREQ_HOMALT_fin_XX=0;AN_mid_XY=36;AC_mid_XY=0;AF_mid_XY=0;N_BI_GENOS_mid_XY=18;N_HOMREF_mid_XY=18;N_HET_mid_XY=0;N_HOMALT_mid_XY=0;FREQ_HOMREF_mid_XY=1;FREQ_HET_mid_XY=0;FREQ_HOMALT_mid_XY=0;AN_mid_XX=28;AC_mid_XX=0;AF_mid_XX=0;N_BI_GENOS_mid_XX=14;N_HOMREF_mid_XX=14;N_HET_mid_XX=0;N_HOMALT_mid_XX=0;FREQ_HOMREF_mid_XX=1;FREQ_HET_mid_XX=0;FREQ_HOMALT_mid_XX=0;AN_nfe_XY=24064;AC_nfe_XY=5;AF_nfe_XY=0.000208;N_BI_GENOS_nfe_XY=12032;N_HOMREF_nfe_XY=12027;N_HET_nfe_XY=5;N_HOMALT_nfe_XY=0;FREQ_HOMREF_nfe_XY=0.999584;FREQ_HET_nfe_XY=0.000415559;FREQ_HOMALT_nfe_XY=0;AN_nfe_XX=35024;AC_nfe_XX=10;AF_nfe_XX=0.000286;N_BI_GENOS_nfe_XX=17512;N_HOMREF_nfe_XX=17502;N_HET_nfe_XX=10;N_HOMALT_nfe_XX=0;FREQ_HOMREF_nfe_XX=0.999429;FREQ_HET_nfe_XX=0.000571037;FREQ_HOMALT_nfe_XX=0;AN_rmi_XY=788;AC_rmi_XY=2;AF_rmi_XY=0.002538;N_BI_GENOS_rmi_XY=394;N_HOMREF_rmi_XY=392;N_HET_rmi_XY=2;N_HOMALT_rmi_XY=0;FREQ_HOMREF_rmi_XY=0.994924;FREQ_HET_rmi_XY=0.00507614;FREQ_HOMALT_rmi_XY=0;AN_rmi_XX=784;AC_rmi_XX=1;AF_rmi_XX=0.001276;N_BI_GENOS_rmi_XX=392;N_HOMREF_rmi_XX=391;N_HET_rmi_XX=1;N_HOMALT_rmi_XX=0;FREQ_HOMREF_rmi_XX=0.997449;FREQ_HET_rmi_XX=0.00255102;FREQ_HOMALT_rmi_XX=0;AN_sas_XY=3310;AC_sas_XY=2;AF_sas_XY=0.000604;N_BI_GENOS_sas_XY=1655;N_HOMREF_sas_XY=1653;N_HET_sas_XY=2;N_HOMALT_sas_XY=0;FREQ_HOMREF_sas_XY=0.998792;FREQ_HET_sas_XY=0.00120846;FREQ_HOMALT_sas_XY=0;AN_sas_XX=1096;AC_sas_XX=1;AF_sas_XX=0.000912;N_BI_GENOS_sas_XX=548;N_HOMREF_sas_XX=547;N_HET_sas_XX=1;N_HOMALT_sas_XX=0;FREQ_HOMREF_sas_XX=0.998175;FREQ_HET_sas_XX=0.00182482;FREQ_HOMALT_sas_XX=0
