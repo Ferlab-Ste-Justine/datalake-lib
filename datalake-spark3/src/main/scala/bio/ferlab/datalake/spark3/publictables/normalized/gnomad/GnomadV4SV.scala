@@ -32,7 +32,7 @@ case class GnomadV4SV(rc: RuntimeETLContext) extends SimpleETLP(rc) {
 
     val df = data(gnomad_vcf.id)
       .drop("INFO_END")
-      .withColumnRenamed("filters", "INFO_FILTERS")
+      .withColumnRenamed("filters", "INFO_FILTERS") // to be taken into account in flattenInfo
 
     df.select(
         chromosome +:

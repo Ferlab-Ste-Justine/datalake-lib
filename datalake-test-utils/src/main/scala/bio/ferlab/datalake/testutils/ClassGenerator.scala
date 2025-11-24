@@ -72,6 +72,8 @@ object ClassGenerator {
       }
     } else {
       val values: Row = (
+        // may cause stackoverflow if the schema has to many fields
+        // little workaround by using the first row if there is only one row
         if (df.count() == 1) {
           df.head()
         } else {
