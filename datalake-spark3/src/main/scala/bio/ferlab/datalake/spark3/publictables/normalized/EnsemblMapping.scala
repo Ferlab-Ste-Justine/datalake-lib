@@ -17,7 +17,7 @@ case class EnsemblMapping(rc: RuntimeETLContext) extends SimpleETLP(rc)  {
   val raw_ensembl_refseq: DatasetConf = conf.getDataset("raw_ensembl_refseq")
   val raw_ensembl_uniprot: DatasetConf = conf.getDataset("raw_ensembl_uniprot")
   val raw_ensembl_ena: DatasetConf = conf.getDataset("raw_ensembl_ena")
-  val raw_ensembl_gff: DatasetConf = conf.getDataset("raw_ensembl_gtf")
+  val raw_ensembl_gff: DatasetConf = conf.getDataset("raw_ensembl_gff")
 
   override def extract(lastRunValue: LocalDateTime = minValue,
                        currentRunValue: LocalDateTime = LocalDateTime.now()): Map[String, DataFrame] = {
