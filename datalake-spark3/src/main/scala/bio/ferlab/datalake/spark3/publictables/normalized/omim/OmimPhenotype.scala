@@ -12,7 +12,7 @@ case class OmimPhenotype(name: String,
 
 object OmimPhenotype {
 
-  val pheno_regexp: Regex = "(.*),\\s(\\d*)\\s\\([1234]\\)(?:,\\s(.*))?".r
+  val pheno_regexp: Regex = "(.*)(?:,\\s(\\d*))?\\s\\([1234]\\)(?:,\\s(.*))?".r
 
   def mapInheritance(inheritance: String): Option[Seq[String]] = {
     if (inheritance == null) None
