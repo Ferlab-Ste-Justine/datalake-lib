@@ -51,12 +51,14 @@ object OmimPhenotype {
   val parse_pheno: UserDefinedFunction = udf { raw: String =>
     raw match {
       case pheno_regexp(name, omim_id, inheritance) =>
+        val omimIdValue: Option[String] = Option(omim_id)
+        val inheritanceValue: Option[String] = Option(inheritance)
         Some(
           OmimPhenotype(
             name.replace("{", "").replace("}", "").trim,
-            omim_id.trim,
-            mapInheritance(inheritance),
-            mapInheritanceCode(inheritance)
+            omimIdValue.map(_.trim).getOrElse(""),
+            mapInheritance(inheritanceValue.map(_.trim).orNull),
+            mapInheritanceCode(inheritanceValue.map(_.trim).orNull)
           )
         )
       case _ => None
