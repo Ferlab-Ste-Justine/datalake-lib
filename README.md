@@ -117,7 +117,11 @@ The following table lists the versions supported of the main dependencies
 | datalake-spark3 | `3.2.2`       | `1.2.0`       | `1.2.1`      | `2.12` `2.13` | `1.0.6`     |
 
 ## release
-
-```
+```shell
  sbt "publishSigned; sonatypeRelease"
+```
+
+## local release
+```shell
+ sbt VERSION=14.14.2-SNAPSHOT sbt publishLocal
 ```
