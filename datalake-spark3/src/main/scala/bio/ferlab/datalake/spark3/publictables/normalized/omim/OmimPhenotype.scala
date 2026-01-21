@@ -6,13 +6,14 @@ import org.apache.spark.sql.functions.udf
 import scala.util.matching.Regex
 
 case class OmimPhenotype(name: String,
-                         omim_id: String,
+                         omim_id: Option[String],
                          inheritance: Option[Seq[String]],
                          inheritance_code: Option[Seq[String]])
 
 object OmimPhenotype {
 
-  val pheno_regexp: Regex = "(.*)(?:,\\s(\\d*))?\\s\\([1234]\\)(?:,\\s(.*))?".r
+  val pheno_regexp: Regex = "(.*),\\s(\\d*)\\s\\([1234]\\)(?:,\\s(.*))?".r
+  val pheno_regexp_no_omim_id: Regex = "(.*)\\s\\([1234]\\)".r
 
   def mapInheritance(inheritance: String): Option[Seq[String]] = {
     if (inheritance == null) None
@@ -51,14 +52,21 @@ object OmimPhenotype {
   val parse_pheno: UserDefinedFunction = udf { raw: String =>
     raw match {
       case pheno_regexp(name, omim_id, inheritance) =>
-        val omimIdValue: Option[String] = Option(omim_id)
-        val inheritanceValue: Option[String] = Option(inheritance)
         Some(
           OmimPhenotype(
             name.replace("{", "").replace("}", "").trim,
-            omimIdValue.map(_.trim).getOrElse(""),
-            mapInheritance(inheritanceValue.map(_.trim).orNull),
-            mapInheritanceCode(inheritanceValue.map(_.trim).orNull)
+            Option(omim_id).map(_.trim).orElse(None),
+            mapInheritance(inheritance),
+            mapInheritanceCode(inheritance)
+          )
+        )
+      case pheno_regexp_no_omim_id(name) =>
+        Some(
+          OmimPhenotype(
+            name.replace("{", "").replace("}", "").trim,
+            None,
+            None,
+            None
           )
         )
       case _ => None
