@@ -6,13 +6,14 @@ import org.apache.spark.sql.functions.udf
 import scala.util.matching.Regex
 
 case class OmimPhenotype(name: String,
-                         omim_id: String,
+                         omim_id: Option[String],
                          inheritance: Option[Seq[String]],
                          inheritance_code: Option[Seq[String]])
 
 object OmimPhenotype {
 
-  val pheno_regexp: Regex = "(.*)(?:,\\s(\\d*))?\\s\\([1234]\\)(?:,\\s(.*))?".r
+  val pheno_regexp: Regex = "(.*),\\s(\\d*)\\s\\(\\d\\)(?:,\\s(.*))?".r
+  val short_pheno_regexp: Regex = "^(.*)\\(\\d\\)(?:|, (.*))$".r
 
   def mapInheritance(inheritance: String): Option[Seq[String]] = {
     if (inheritance == null) None
@@ -54,7 +55,16 @@ object OmimPhenotype {
         Some(
           OmimPhenotype(
             name.replace("{", "").replace("}", "").trim,
-            omim_id.trim,
+            Option(omim_id).map(_.trim).orElse(None),
+            mapInheritance(inheritance),
+            mapInheritanceCode(inheritance)
+          )
+        )
+      case short_pheno_regexp(name, inheritance) =>
+        Some(
+          OmimPhenotype(
+            name.replace("{", "").replace("}", "").trim,
+            None,
             mapInheritance(inheritance),
             mapInheritanceCode(inheritance)
           )
