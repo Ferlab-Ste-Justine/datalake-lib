@@ -12,8 +12,8 @@ case class OmimPhenotype(name: String,
 
 object OmimPhenotype {
 
-  val pheno_regexp: Regex = "(.*),\\s(\\d*)\\s\\([1234]\\)(?:,\\s(.*))?".r
-  val pheno_regexp_no_omim_id: Regex = "(.*)\\s\\([1234]\\)".r
+  val pheno_regexp: Regex = "(.*),\\s(\\d*)\\s\\(\\d\\)(?:,\\s(.*))?".r
+  val short_pheno_regexp: Regex = "^(.*)\\(\\d\\)(?:|, (.*))$".r
 
   def mapInheritance(inheritance: String): Option[Seq[String]] = {
     if (inheritance == null) None
@@ -60,13 +60,13 @@ object OmimPhenotype {
             mapInheritanceCode(inheritance)
           )
         )
-      case pheno_regexp_no_omim_id(name) =>
+      case short_pheno_regexp(name, inheritance) =>
         Some(
           OmimPhenotype(
             name.replace("{", "").replace("}", "").trim,
             None,
-            None,
-            None
+            mapInheritance(inheritance),
+            mapInheritanceCode(inheritance)
           )
         )
       case _ => None
