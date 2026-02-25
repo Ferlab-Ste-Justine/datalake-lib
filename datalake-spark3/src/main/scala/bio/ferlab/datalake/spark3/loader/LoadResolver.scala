@@ -50,6 +50,12 @@ object LoadResolver {
     case (ELASTICSEARCH, OverWrite) => (ds: DatasetConf, df: DataFrame) =>
       ElasticsearchLoader.writeOnce(ds.location, ds.table.map(_.database).getOrElse(""), ds.table.map(_.name).getOrElse(ds.location), df, ds.partitionby, ds.format.sparkFormat, ds.writeoptions)
 
+    case (EXCEL, OverWrite) => (ds: DatasetConf, df: DataFrame) =>
+      ExcelLoader.writeOnce(ds.location, ds.table.map(_.database).getOrElse(""), ds.table.map(_.name).getOrElse(ds.location), df, ds.partitionby, ds.format.sparkFormat, ds.writeoptions)
+
+    case (EXCEL, Insert) => (ds: DatasetConf, df: DataFrame) =>
+      ExcelLoader.insert(ds.location, ds.table.map(_.database).getOrElse(""), ds.table.map(_.name).getOrElse(ds.location), df, ds.partitionby, ds.format.sparkFormat, ds.writeoptions)
+
 
     //generic fallback behaviours
     case (f, OverWrite)   => (ds: DatasetConf, df: DataFrame) =>

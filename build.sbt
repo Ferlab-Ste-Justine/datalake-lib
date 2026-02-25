@@ -63,7 +63,7 @@ lazy val `datalake-spark3` = (project in file("datalake-spark3"))
       "com.microsoft.sqlserver" % "mssql-jdbc" % "8.4.1.jre11" % Provided,
       "com.microsoft.aad" % "adal4j" % "0.0.2" % Provided,
       "com.microsoft.azure" % "spark-mssql-connector_2.12" % "1.2.0" % Provided,
-      "com.crealytics" %% "spark-excel" % "3.5.0_0.20.3" % Provided,
+      "dev.mauch" %% "spark-excel" % "3.5.5_0.30.2", // % Provided,
       //Use by ElasticsearchClient
       "com.softwaremill.sttp.client3" %% "core" % "3.9.2",
       "com.softwaremill.sttp.client3" %% "json4s" % "3.9.2" exclude("org.json4s", "json4s-core_2.12"), //Exclusion because json4s is used in spark

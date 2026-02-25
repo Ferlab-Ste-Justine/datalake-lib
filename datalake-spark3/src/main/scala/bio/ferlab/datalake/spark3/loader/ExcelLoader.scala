@@ -1,6 +1,6 @@
 package bio.ferlab.datalake.spark3.loader
 
-import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 
 import java.time.LocalDate
 
@@ -20,6 +20,22 @@ object ExcelLoader extends Loader {
       .load(location)
   }
 
+  def write(df: DataFrame,
+            location: String,
+            databaseName: String,
+            tableName: String,
+            partitioning: List[String],
+            format: String,
+            options: Map[String, String],
+            mode: SaveMode): DataFrame = {
+    df.write
+      .options(options)
+      .format(format)
+      .mode(mode)
+      .save(location)
+    df
+  }
+
   override def overwritePartition(location: String,
                                   databaseName: String,
                                   tableName: String,
@@ -34,7 +50,9 @@ object ExcelLoader extends Loader {
                          df: DataFrame,
                          partitioning: List[String],
                          format: String,
-                         options: Map[String, String])(implicit spark: SparkSession): DataFrame = ???
+                         options: Map[String, String])(implicit spark: SparkSession): DataFrame = {
+    write(df, location, databaseName, tableName, partitioning, format, options, SaveMode.Overwrite)
+  }
 
   override def insert(location: String,
                       databaseName: String,
@@ -42,7 +60,9 @@ object ExcelLoader extends Loader {
                       updates: DataFrame,
                       partitioning: List[String],
                       format: String,
-                      options: Map[String, String])(implicit spark: SparkSession): DataFrame = ???
+                      options: Map[String, String])(implicit spark: SparkSession): DataFrame = {
+    write(updates, location, databaseName, tableName, partitioning, format, options, SaveMode.Append)
+  }
 
   override def upsert(location: String,
                       databaseName: String,
