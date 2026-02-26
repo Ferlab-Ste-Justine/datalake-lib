@@ -3,11 +3,12 @@ package bio.ferlab.datalake.spark3.loader
 import bio.ferlab.datalake.commons.config.Format.EXCEL
 import bio.ferlab.datalake.spark3.testutils.AirportInput
 import bio.ferlab.datalake.testutils.SparkSpec
-import org.scalatest.BeforeAndAfterAll
+import org.apache.spark.sql.DataFrame
+import org.scalatest.BeforeAndAfterEach
 
 import java.nio.file.{Files, Paths}
 
-class ExcelLoaderSpec extends SparkSpec with BeforeAndAfterAll{
+class ExcelLoaderSpec extends SparkSpec with BeforeAndAfterEach {
 
   import spark.implicits._
 
@@ -17,14 +18,39 @@ class ExcelLoaderSpec extends SparkSpec with BeforeAndAfterAll{
     AirportInput("1", "YYC", "Calgary Int airport"),
     AirportInput("2", "YUL", "Montreal Int airport")
   )
-  val initialDF = expected.toDF()
+  val simpleExpectedUpdate: Seq[AirportInput] = Seq(
+    AirportInput("3", "YVR", "Vancouver Int airport")
+  )
 
-  override def beforeAll(): Unit = {
-    super.beforeAll()
+  val initialDF: DataFrame = expected.toDF()
+
+  override def afterEach(): Unit = {
+    super.afterEach()
     val outputPath = Paths.get(outputLocation)
     if (Files.exists(outputPath)) {
-      Files.delete(outputPath)
+      cleanUpFilesRecursively(outputPath)
     }
+  }
+
+  /**
+   * Recursively deletes files and directories at the given path. Necessary because ExcelLoader API v2
+   * may create multiple excel partitions when writing to a folder.
+   * */
+  private def cleanUpFilesRecursively(path: java.nio.file.Path): Unit = {
+    if (Files.isDirectory(path)) {
+      Files.list(path).forEach(cleanUpFilesRecursively)
+    }
+    Files.deleteIfExists(path)
+  }
+
+  private def withInitialDfInFolder(testCode: => Any): Unit = {
+    ExcelLoader.writeOnce(outputLocation, "", "", initialDF, Nil, EXCEL.sparkFormat, Map("header" -> "true"))
+    testCode
+  }
+
+  private def withUpdatedDfInFolder(updates: DataFrame, testCode: String => Any): Unit = {
+    ExcelLoader.insert(outputLocation, "", "", updates, Nil, EXCEL.sparkFormat, Map("header" -> "true"))
+    testCode(outputLocation)
   }
 
   "read" should "read xlsx file as a DataFrame" in {
@@ -47,6 +73,25 @@ class ExcelLoaderSpec extends SparkSpec with BeforeAndAfterAll{
       .collect() should contain theSameElementsAs expected
   }
 
+  it should "throw an exception when the header option is missing" in {
+    val fileLocation: String = folderPath + "airports.xlsx"
+
+    an[IllegalArgumentException] should be thrownBy {
+      ExcelLoader.read(fileLocation, EXCEL.sparkFormat, Map.empty, None, None)
+    }
+  }
+
+  it should "read folder containing multiple Excel files as a DataFrame" in withInitialDfInFolder {
+    withUpdatedDfInFolder(simpleExpectedUpdate.toDF(), { folderLocation =>
+
+      val result = ExcelLoader.read(folderLocation, EXCEL.sparkFormat, Map("header" -> "true"), None, None)
+
+      result
+        .as[AirportInput]
+        .collect() should contain theSameElementsAs (expected ++ simpleExpectedUpdate)
+    })
+  }
+
   "writeOnce" should "write a dataframe to a file" in {
     ExcelLoader.writeOnce(outputLocation, "", "", initialDF, Nil, EXCEL.sparkFormat, Map("header" -> "true"))
 
@@ -55,7 +100,18 @@ class ExcelLoaderSpec extends SparkSpec with BeforeAndAfterAll{
     result.as[AirportInput].collect() should contain theSameElementsAs expected
   }
 
-  "insert" should "append a dataframe to an existing file" in {
+  "insert" should "append a dataframe to an existing file" in withInitialDfInFolder {
+    withUpdatedDfInFolder(simpleExpectedUpdate.toDF(), {
+      folderLocation =>
+        val result = ExcelLoader.read(folderLocation, EXCEL.sparkFormat, Map("header" -> "true"), None, None)
+
+        result
+          .as[AirportInput]
+          .collect() should contain theSameElementsAs (expected ++ simpleExpectedUpdate)
+    })
+  }
+
+  "insert2" should "append a dataframe to an existing file" in {
     // Overwrite with initial data first
     ExcelLoader.writeOnce(outputLocation, "", "", initialDF, Nil, EXCEL.sparkFormat, Map("header" -> "true"))
 
@@ -69,6 +125,5 @@ class ExcelLoaderSpec extends SparkSpec with BeforeAndAfterAll{
 
     result.as[AirportInput].collect() should contain theSameElementsAs expectedDfValues
   }
-
 
 }

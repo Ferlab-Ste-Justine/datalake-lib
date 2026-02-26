@@ -28,6 +28,9 @@ object ExcelLoader extends Loader {
             format: String,
             options: Map[String, String],
             mode: SaveMode): DataFrame = {
+    // Excel format requires the schema to be non-empty, does not support empty schema dataframe writes
+    require(df.schema.nonEmpty, "DataFrame must have a valid schema with at least one column.")
+
     df.write
       .options(options)
       .format(format)
@@ -72,7 +75,7 @@ object ExcelLoader extends Loader {
                       partitioning: List[String],
                       format: String,
                       options: Map[String, String])(implicit spark: SparkSession): DataFrame = ???
-  
+
   override def scd1(location: String,
                     databaseName: String,
                     tableName: String,
