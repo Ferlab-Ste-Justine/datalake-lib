@@ -33,7 +33,7 @@ class ExcelLoaderSpec extends SparkSpec with BeforeAndAfterEach {
   }
 
   /**
-   * Recursively deletes files and directories at the given path. Necessary because ExcelLoader API v2
+   * Recursively deletes files and directories at the given path. Necessary because spark-excel format API v2
    * may create multiple excel partitions when writing to a folder.
    * */
   private def cleanUpFilesRecursively(path: java.nio.file.Path): Unit = {
@@ -100,6 +100,17 @@ class ExcelLoaderSpec extends SparkSpec with BeforeAndAfterEach {
     result.as[AirportInput].collect() should contain theSameElementsAs expected
   }
 
+  it should "overwrite existing files when writing to the same folder" in withInitialDfInFolder {
+    //Overwriting the same location
+    ExcelLoader.writeOnce(outputLocation, "", "", simpleExpectedUpdate.toDF(), Nil, EXCEL.sparkFormat, Map("header" -> "true"))
+
+    val result = ExcelLoader.read(outputLocation, EXCEL.sparkFormat, Map("header" -> "true"), None, None)
+
+    result
+      .as[AirportInput]
+      .collect() should contain theSameElementsAs simpleExpectedUpdate
+  }
+
   "insert" should "append a dataframe to an existing file" in withInitialDfInFolder {
     withUpdatedDfInFolder(simpleExpectedUpdate.toDF(), {
       folderLocation =>
@@ -109,21 +120,6 @@ class ExcelLoaderSpec extends SparkSpec with BeforeAndAfterEach {
           .as[AirportInput]
           .collect() should contain theSameElementsAs (expected ++ simpleExpectedUpdate)
     })
-  }
-
-  "insert2" should "append a dataframe to an existing file" in {
-    // Overwrite with initial data first
-    ExcelLoader.writeOnce(outputLocation, "", "", initialDF, Nil, EXCEL.sparkFormat, Map("header" -> "true"))
-
-    // Prepare new data and append it
-    val updates = Seq(AirportInput("3", "YVR", "Vancouver Int airport")).toDF()
-    val expectedDfValues = expected ++ Seq(AirportInput("3", "YVR", "Vancouver Int airport"))
-
-    ExcelLoader.insert(outputLocation, "", "", updates, Nil, EXCEL.sparkFormat, Map("header" -> "true"))
-
-    val result = ExcelLoader.read(outputLocation, EXCEL.sparkFormat, Map("header" -> "true"))
-
-    result.as[AirportInput].collect() should contain theSameElementsAs expectedDfValues
   }
 
 }
