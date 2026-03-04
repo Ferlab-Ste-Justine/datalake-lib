@@ -21,10 +21,10 @@ object ExcelLoader extends Loader {
   }
 
   private def write(df: DataFrame,
-            location: String,
-            format: String,
-            options: Map[String, String],
-            mode: SaveMode): DataFrame = {
+                    location: String,
+                    format: String,
+                    options: Map[String, String],
+                    mode: SaveMode): DataFrame = {
     // Excel format requires the schema to be non-empty, does not support empty schema dataframe writes
     require(df.schema.nonEmpty, "DataFrame must have a valid schema with at least one column.")
     require(options.isDefinedAt("header"), "Expecting [header] to be defined in readOptions.")

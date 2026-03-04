@@ -4,9 +4,6 @@ import bio.ferlab.datalake.commons.config.Format.EXCEL
 import bio.ferlab.datalake.spark3.testutils.AirportInput
 import bio.ferlab.datalake.testutils.SparkSpec
 import org.apache.spark.sql.DataFrame
-import org.scalatest.BeforeAndAfterEach
-
-import java.nio.file.{Files, Paths}
 
 class ExcelLoaderSpec extends SparkSpec {
 
@@ -58,11 +55,8 @@ class ExcelLoaderSpec extends SparkSpec {
   it should "throw an exception when the header option is missing" in {
     val fileLocation: String = folderPath + "airports.xlsx"
 
-    val options = Map.empty[String, String]
-    val databaseName, tableName : Option[String] = None
-
     an[IllegalArgumentException] should be thrownBy {
-      ExcelLoader.read(fileLocation, EXCEL.sparkFormat, options, databaseName, tableName)
+      ExcelLoader.read(fileLocation, EXCEL.sparkFormat, readOptions = Map.empty, databaseName = None, tableName = None)
     }
   }
 
