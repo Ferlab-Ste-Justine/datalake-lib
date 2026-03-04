@@ -20,11 +20,8 @@ object ExcelLoader extends Loader {
       .load(location)
   }
 
-  def write(df: DataFrame,
+  private def write(df: DataFrame,
             location: String,
-            databaseName: String,
-            tableName: String,
-            partitioning: List[String],
             format: String,
             options: Map[String, String],
             mode: SaveMode): DataFrame = {
@@ -55,7 +52,7 @@ object ExcelLoader extends Loader {
                          partitioning: List[String],
                          format: String,
                          options: Map[String, String])(implicit spark: SparkSession): DataFrame = {
-    write(df, location, databaseName, tableName, partitioning, format, options, SaveMode.Overwrite)
+    write(df, location, format, options, SaveMode.Overwrite)
   }
 
   override def insert(location: String,
@@ -65,7 +62,7 @@ object ExcelLoader extends Loader {
                       partitioning: List[String],
                       format: String,
                       options: Map[String, String])(implicit spark: SparkSession): DataFrame = {
-    write(updates, location, databaseName, tableName, partitioning, format, options, SaveMode.Append)
+    write(updates, location, format, options, SaveMode.Append)
   }
 
   override def upsert(location: String,
