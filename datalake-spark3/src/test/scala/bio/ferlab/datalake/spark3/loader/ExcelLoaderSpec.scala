@@ -93,7 +93,7 @@ class ExcelLoaderSpec extends SparkSpec {
     withInitialDfInFolder(root) { folderLocation =>
 
       //Overwriting the same location
-      ExcelLoader.writeOnce(outputLocation, "", "", expectedUpdate.toDF(), Nil, EXCEL.sparkFormat, Map("header" -> "true"))
+      ExcelLoader.writeOnce(folderLocation, "", "", expectedUpdate.toDF(), Nil, EXCEL.sparkFormat, Map("header" -> "true"))
 
       val result = ExcelLoader.read(folderLocation, EXCEL.sparkFormat, Map("header" -> "true"), None, None)
 
