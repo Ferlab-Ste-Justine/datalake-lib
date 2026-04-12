@@ -142,6 +142,80 @@ class ElasticSearchClient(url: String, username: Option[String] = None, password
     }
   }
 
+  /**
+   * Create an empty index. If an index template matches, the index will inherit its settings and mappings.
+   *
+   * @param indexName name of the index to create
+   * @throws IllegalStateException if the server could not create the index
+   */
+  def createIndex(indexName: String): Unit = {
+    val request = esRequest
+      .put(indexUri(indexName))
+      .contentType(MediaType.ApplicationJson)
+      .body("{}")
+    client.send(request).body match {
+      case Left(e) => throw new IllegalStateException(s"Server could not create index $indexName, replied: $e")
+      case _ => ()
+    }
+  }
+
+  /**
+   * Get the current number_of_replicas setting for an index.
+   *
+   * @param indexName name of the index
+   * @return the replica count as a string, or "1" if it cannot be determined
+   */
+  def getNumberOfReplicas(indexName: String): String = {
+    val request = esRequest
+      .get(uri"$url/$indexName/_settings/index.number_of_replicas".addParam("flat_settings", "true"))
+      .response(asJson[Map[String, Any]])
+    client.send(request).body match {
+      case Right(r) =>
+        // Response: {"index_name": {"settings": {"index.number_of_replicas": "1"}}}
+        r.values.headOption.flatMap {
+          case m: Map[String, Any] @unchecked =>
+            m.get("settings").flatMap {
+              case s: Map[String, Any] @unchecked => s.get("index.number_of_replicas").map(_.toString)
+              case _ => None
+            }
+          case _ => None
+        }.getOrElse("1")
+      case Left(_) => "1"
+    }
+  }
+
+  /**
+   * Update settings on an existing index.
+   *
+   * @param indexName name of the index
+   * @param settings  JSON string of settings to apply, e.g. {"index": {"number_of_replicas": "0"}}
+   * @throws IllegalStateException if the server could not update settings
+   */
+  def setIndexSettings(indexName: String, settings: String): Unit = {
+    val request = esRequest
+      .put(uri"$url/$indexName/_settings")
+      .contentType(MediaType.ApplicationJson)
+      .body(settings)
+    client.send(request).body match {
+      case Left(e) => throw new IllegalStateException(s"Server could not update settings for index $indexName, replied: $e")
+      case _ => ()
+    }
+  }
+
+  /**
+   * Refresh an index, making all recent writes searchable.
+   *
+   * @param indexName name of the index to refresh
+   * @throws IllegalStateException if the server could not refresh the index
+   */
+  def refreshIndex(indexName: String): Unit = {
+    val request = esRequest
+      .post(uri"$url/$indexName/_refresh")
+    client.send(request).body match {
+      case Left(e) => throw new IllegalStateException(s"Server could not refresh index $indexName, replied: $e")
+      case _ => ()
+    }
+  }
 
 }
 

@@ -30,19 +30,48 @@ import org.slf4j
 @deprecated
 class Indexer(jobType: String,
               templateFilePath: String,
-              currentIndex: String)
+              currentIndex: String,
+              disableReplicas: Boolean = false)
              (implicit val spark: SparkSession) {
 
   Logger.getLogger("org").setLevel(Level.OFF)
   Logger.getLogger("akka").setLevel(Level.OFF)
   val log: slf4j.Logger = slf4j.LoggerFactory.getLogger(getClass.getCanonicalName)
 
-  def run(df: DataFrame)(implicit esClient: ElasticSearchClient): Unit = {
-    val ES_config = Map("es.write.operation" -> jobType)
+  /**
+   * @param df            DataFrame to index
+   * @param esWriteConfig optional ES write settings to override defaults (e.g. es.batch.size.bytes, es.batch.size.entries).
+   *                      The only default override applied by the library is es.batch.write.refresh=false (paired with
+   *                      a single manual refresh after write). Callers should tune batch sizes for their ES cluster.
+   */
+  def run(df: DataFrame, esWriteConfig: Map[String, String] = Map.empty)(implicit esClient: ElasticSearchClient): Unit = {
+    val defaultConfig = Map(
+      "es.write.operation" -> jobType,
+      "es.batch.write.refresh" -> "false"
+    )
+    val ES_config = defaultConfig ++ esWriteConfig
 
     if (jobType == "index") setupIndex(currentIndex, templateFilePath)
 
+    // When disabling replicas, create the empty index first so we can modify its settings before writing data.
+    // Without this, the index only exists after saveToEs writes the first document (via es.index.auto.create).
+    val originalReplicas = if (disableReplicas) {
+      esClient.createIndex(currentIndex)
+      val current = esClient.getNumberOfReplicas(currentIndex)
+      log.info(s"Disabling replicas for index [$currentIndex] during write (was: $current)")
+      esClient.setIndexSettings(currentIndex, """{"index": {"number_of_replicas": "0"}}""")
+      Some(current)
+    } else None
+
     df.saveToEs(s"$currentIndex/_doc", ES_config)
+
+    log.info(s"Refreshing index [$currentIndex]")
+    esClient.refreshIndex(currentIndex)
+
+    originalReplicas.foreach { replicas =>
+      log.info(s"Restoring replicas for index [$currentIndex] to $replicas")
+      esClient.setIndexSettings(currentIndex, s"""{"index": {"number_of_replicas": "$replicas"}}""")
+    }
   }
 
   def publish(alias: String,
