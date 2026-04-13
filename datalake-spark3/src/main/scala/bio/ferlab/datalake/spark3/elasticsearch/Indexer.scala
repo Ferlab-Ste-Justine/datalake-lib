@@ -31,7 +31,8 @@ import org.slf4j
 class Indexer(jobType: String,
               templateFilePath: String,
               currentIndex: String,
-              disableReplicas: Boolean = false)
+              disableReplicas: Boolean = false,
+              forceMerge: Boolean = false)
              (implicit val spark: SparkSession) {
 
   Logger.getLogger("org").setLevel(Level.OFF)
@@ -55,22 +56,52 @@ class Indexer(jobType: String,
 
     // When disabling replicas, create the empty index first so we can modify its settings before writing data.
     // Without this, the index only exists after saveToEs writes the first document (via es.index.auto.create).
-    val originalReplicas = if (disableReplicas) {
+    // Only capture originalReplicas if we successfully disabled them — otherwise we have nothing to restore.
+    val originalReplicas: Option[String] = if (disableReplicas) {
       esClient.createIndex(currentIndex)
-      val current = esClient.getNumberOfReplicas(currentIndex)
-      log.info(s"Disabling replicas for index [$currentIndex] during write (was: $current)")
-      esClient.setIndexSettings(currentIndex, """{"index": {"number_of_replicas": "0"}}""")
-      Some(current)
+      esClient.getNumberOfReplicas(currentIndex) match {
+        case Some(current) =>
+          log.info(s"Disabling replicas for index [$currentIndex] during write (was: $current)")
+          try {
+            esClient.setIndexSettings(currentIndex, """{"index": {"number_of_replicas": "0"}}""")
+            Some(current)
+          } catch {
+            case e: Throwable =>
+              log.warn(s"Failed to disable replicas for index [$currentIndex], proceeding without replica optimization: ${e.getMessage}")
+              None
+          }
+        case None =>
+          log.warn(s"Could not read current replica count for index [$currentIndex], skipping replica optimization to avoid incorrect restore")
+          None
+      }
     } else None
 
-    df.saveToEs(s"$currentIndex/_doc", ES_config)
+    // Wrap write + refresh in try/finally so replicas are restored even if saveToEs or refreshIndex throws.
+    // Leaving the index at number_of_replicas=0 would compromise availability.
+    try {
+      df.saveToEs(s"$currentIndex/_doc", ES_config)
 
-    log.info(s"Refreshing index [$currentIndex]")
-    esClient.refreshIndex(currentIndex)
+      log.info(s"Refreshing index [$currentIndex]")
+      esClient.refreshIndex(currentIndex)
 
-    originalReplicas.foreach { replicas =>
-      log.info(s"Restoring replicas for index [$currentIndex] to $replicas")
-      esClient.setIndexSettings(currentIndex, s"""{"index": {"number_of_replicas": "$replicas"}}""")
+      if (forceMerge) {
+        // Fire-and-forget: ES merges in background (wait_for_completion=false by default).
+        // The index is already fully searchable, so alias swap can happen immediately.
+        // Failures here are swallowed and logged — merge is best-effort optimization.
+        log.info(s"Triggering async force merge for index [$currentIndex] (runs in background on ES)")
+        esClient.forceMergeIndex(currentIndex, maxNumSegments = 1)
+      }
+    } finally {
+      originalReplicas.foreach { replicas =>
+        try {
+          log.info(s"Restoring replicas for index [$currentIndex] to $replicas")
+          esClient.setIndexSettings(currentIndex, s"""{"index": {"number_of_replicas": "$replicas"}}""")
+        } catch {
+          case e: Throwable =>
+            log.error(s"Failed to restore replicas for index [$currentIndex] to $replicas — index left at number_of_replicas=0, manual intervention required", e)
+            throw e
+        }
+      }
     }
   }
 

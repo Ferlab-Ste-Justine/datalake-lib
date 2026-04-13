@@ -12,6 +12,8 @@ import sttp.model.{MediaType, StatusCode, Uri}
 
 class ElasticSearchClient(url: String, username: Option[String] = None, password: Option[String] = None) {
 
+  private val log = org.slf4j.LoggerFactory.getLogger(getClass.getCanonicalName)
+
   private val indexUri: String => Uri = indexName => uri"$url/$indexName"
   private val templateUri: String => Uri = templateName => uri"$url/_index_template/$templateName"
   private val aliasesUri: Uri = uri"$url/_aliases"
@@ -144,16 +146,19 @@ class ElasticSearchClient(url: String, username: Option[String] = None, password
 
   /**
    * Create an empty index. If an index template matches, the index will inherit its settings and mappings.
+   * Idempotent: if the index already exists, this is a no-op (resource_already_exists_exception is treated as success).
    *
    * @param indexName name of the index to create
-   * @throws IllegalStateException if the server could not create the index
+   * @throws IllegalStateException if the server could not create the index for any other reason
    */
   def createIndex(indexName: String): Unit = {
     val request = esRequest
       .put(indexUri(indexName))
       .contentType(MediaType.ApplicationJson)
       .body("{}")
-    client.send(request).body match {
+    val response = client.send(request)
+    response.body match {
+      case Left(e) if e.contains("resource_already_exists_exception") => ()
       case Left(e) => throw new IllegalStateException(s"Server could not create index $indexName, replied: $e")
       case _ => ()
     }
@@ -163,9 +168,11 @@ class ElasticSearchClient(url: String, username: Option[String] = None, password
    * Get the current number_of_replicas setting for an index.
    *
    * @param indexName name of the index
-   * @return the replica count as a string, or "1" if it cannot be determined
+   * @return Some(replica count as string) if the setting could be read, None otherwise.
+   *         Callers should not assume a default — if None, the replica count is unknown
+   *         and no restore attempt should be made.
    */
-  def getNumberOfReplicas(indexName: String): String = {
+  def getNumberOfReplicas(indexName: String): Option[String] = {
     val request = esRequest
       .get(uri"$url/$indexName/_settings/index.number_of_replicas".addParam("flat_settings", "true"))
       .response(asJson[Map[String, Any]])
@@ -179,8 +186,8 @@ class ElasticSearchClient(url: String, username: Option[String] = None, password
               case _ => None
             }
           case _ => None
-        }.getOrElse("1")
-      case Left(_) => "1"
+        }
+      case Left(_) => None
     }
   }
 
@@ -214,6 +221,46 @@ class ElasticSearchClient(url: String, username: Option[String] = None, password
     client.send(request).body match {
       case Left(e) => throw new IllegalStateException(s"Server could not refresh index $indexName, replied: $e")
       case _ => ()
+    }
+  }
+
+  /**
+   * Trigger a force merge on an index. Intended for read-only indexes after bulk indexation —
+   * it reduces segment count, reclaims disk from tombstones, and significantly improves query latency.
+   *
+   * ES's `_forcemerge` endpoint is synchronous at the HTTP level and can take 10+ minutes on
+   * large indexes, which causes ingress/proxy timeouts. However, ES does NOT abort the merge
+   * when the HTTP client disconnects — the operation continues on the server regardless.
+   *
+   * This method uses a short read timeout so the HTTP call returns quickly, and swallows any
+   * timeout/error exception. The merge continues in the background on ES. Callers can inspect
+   * progress via `GET /_tasks?actions=*forcemerge*&detailed=true`.
+   *
+   * This method is best-effort: failures are logged as warnings and never throw. Force merge
+   * is a pure optimization — a failure should not break the indexation pipeline.
+   *
+   * @param indexName       name of the index to force merge
+   * @param maxNumSegments  target segment count per shard (default: 1, ideal for read-only indexes)
+   * @param readTimeout     HTTP read timeout — short by design, since we don't want to wait (default: 10 seconds)
+   */
+  def forceMergeIndex(indexName: String,
+                      maxNumSegments: Int = 1,
+                      readTimeout: scala.concurrent.duration.Duration = scala.concurrent.duration.Duration(10, "seconds")): Unit = {
+    val request = esRequest
+      .post(uri"$url/$indexName/_forcemerge".addParam("max_num_segments", maxNumSegments.toString))
+      .readTimeout(readTimeout)
+    try {
+      client.send(request).body match {
+        case Left(e) =>
+          // Log but don't throw — force merge is best-effort optimization.
+          log.warn(s"Force merge for index $indexName returned an error (merge may still be running on ES): $e")
+        case _ =>
+          log.info(s"Force merge for index $indexName completed synchronously")
+      }
+    } catch {
+      case e: Throwable =>
+        // Expected path for large indexes: read timeout. ES continues the merge in background.
+        log.info(s"Force merge request for index $indexName returned or timed out (${e.getClass.getSimpleName}: ${e.getMessage}) — merge continues in background on ES")
     }
   }
 
