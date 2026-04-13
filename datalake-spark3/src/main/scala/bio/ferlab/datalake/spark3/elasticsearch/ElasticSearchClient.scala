@@ -10,6 +10,8 @@ import sttp.client3.logging.slf4j.Slf4jLoggingBackend
 import sttp.client3.{SimpleHttpClient, SttpClientException, UriContext, basicRequest}
 import sttp.model.{MediaType, StatusCode, Uri}
 
+import scala.concurrent.duration.Duration
+
 class ElasticSearchClient(url: String, username: Option[String] = None, password: Option[String] = None) {
 
   private val log = org.slf4j.LoggerFactory.getLogger(getClass.getCanonicalName)
@@ -216,6 +218,36 @@ class ElasticSearchClient(url: String, username: Option[String] = None, password
   }
 
   /**
+   * Wait for an index to reach green cluster health — all primary and replica shards active,
+   * no relocating shards. Intended to be called before force merge so that newly-restored
+   * replicas are STARTED (not still recovering) when the merge request arrives. Without this,
+   * force merge races with replica recovery and only merges primaries.
+   *
+   * @param indexName name of the index
+   * @param timeout   max time to wait for green status (default: 30 minutes — covers large indexes
+   *                  like variant_centric at prod scale; returns early when green is reached)
+   * @return true if green, false on timeout / non-green / network failure (best-effort)
+   */
+  def waitForGreen(indexName: String, timeout: Duration = Duration(30, "minutes")): Boolean = {
+    val timeoutStr = s"${timeout.toSeconds}s"
+    val request = esRequest
+      .get(uri"$url/_cluster/health/$indexName"
+        .addParam("wait_for_status", "green")
+        .addParam("wait_for_no_relocating_shards", "true")
+        .addParam("timeout", timeoutStr))
+      .readTimeout(timeout + Duration(10, "seconds"))
+      .response(asJson[ClusterHealthResponse])
+    try {
+      // client.send(request) will throw SttpClientException on timeout or other failures (DNS, connection refused, etc.) catch bellow
+      client.send(request).body.toOption.exists(r => r.status == "green" && !r.timed_out)
+    } catch {
+      case e: SttpClientException =>
+        log.warn(s"waitForGreen for index $indexName failed (${e.getClass.getSimpleName}: ${e.getMessage})")
+        false
+    }
+  }
+
+  /**
    * Trigger a force merge on an index. Intended for read-only indexes after bulk indexation —
    * it reduces segment count, reclaims disk from tombstones, and significantly improves query latency.
    *
@@ -236,11 +268,12 @@ class ElasticSearchClient(url: String, username: Option[String] = None, password
    */
   def forceMergeIndex(indexName: String,
                       maxNumSegments: Int = 1,
-                      readTimeout: scala.concurrent.duration.Duration = scala.concurrent.duration.Duration(10, "seconds")): Unit = {
+                      readTimeout: Duration = Duration(10, "seconds")): Unit = {
     val request = esRequest
       .post(uri"$url/$indexName/_forcemerge".addParam("max_num_segments", maxNumSegments.toString))
       .readTimeout(readTimeout)
     try {
+      // quietClient.send(request) will throw SttpClientException on timeout or other failures (DNS, connection refused, etc.) catch bellow
       quietClient.send(request).body.left.foreach(e =>
         log.warn(s"Force merge for index $indexName returned an error (merge may still be running on ES): $e"))
     } catch {
