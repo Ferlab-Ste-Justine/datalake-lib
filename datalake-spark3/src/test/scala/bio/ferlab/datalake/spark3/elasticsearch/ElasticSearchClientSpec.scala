@@ -143,4 +143,163 @@ class ElasticSearchClientSpec extends SparkSpec with TestContainerForEach with B
 
     }
   }
+
+  "createIndex" should "create a new index" in {
+    withESContainer { url =>
+      val client = new ElasticSearchClient(url)
+      noException should be thrownBy client.createIndex("new_index")
+      httpClient.send(basicRequest.get(uri"$url/new_index")).isSuccess shouldBe true
+    }
+  }
+
+  it should "be idempotent when the index already exists" in {
+    withESContainer { url =>
+      val client = new ElasticSearchClient(url)
+      client.createIndex("existing_index")
+      // Second call should not throw
+      noException should be thrownBy client.createIndex("existing_index")
+    }
+  }
+
+  it should "throw an IllegalStateException on unexpected errors" in {
+    withESContainer { url =>
+      val client = new ElasticSearchClient(s"$url/fake_url")
+      val ex = the[IllegalStateException] thrownBy client.createIndex("some_index")
+      ex.getMessage should include("Server could not create index some_index")
+    }
+  }
+
+  "getNumberOfReplicas" should "return the current replica count of an existing index" in {
+    withESContainer { url =>
+      val client = new ElasticSearchClient(url)
+      // Create index with explicit replica count
+      httpClient.send(
+        basicRequest.put(uri"$url/idx_replicas")
+          .body("""{"settings": {"index": {"number_of_replicas": "2"}}}""")
+          .contentType("application/json")
+      ).isSuccess shouldBe true
+
+      client.getNumberOfReplicas("idx_replicas") shouldBe Some("2")
+    }
+  }
+
+  it should "return None when the index does not exist" in {
+    withESContainer { url =>
+      val client = new ElasticSearchClient(url)
+      client.getNumberOfReplicas("does_not_exist") shouldBe None
+    }
+  }
+
+  it should "return None when the request fails (bad url)" in {
+    withESContainer { url =>
+      val client = new ElasticSearchClient(s"$url/fake_url")
+      client.getNumberOfReplicas("any_index") shouldBe None
+    }
+  }
+
+  "setIndexSettings" should "update settings on an existing index" in {
+    withESContainer { url =>
+      val client = new ElasticSearchClient(url)
+      client.createIndex("idx_settings")
+
+      noException should be thrownBy client.setIndexSettings(
+        "idx_settings",
+        """{"index": {"number_of_replicas": "0"}}"""
+      )
+      client.getNumberOfReplicas("idx_settings") shouldBe Some("0")
+    }
+  }
+
+  it should "throw an IllegalStateException when the index does not exist" in {
+    withESContainer { url =>
+      val client = new ElasticSearchClient(url)
+      val ex = the[IllegalStateException] thrownBy client.setIndexSettings(
+        "missing_index",
+        """{"index": {"number_of_replicas": "0"}}"""
+      )
+      ex.getMessage should include("Server could not update settings for index missing_index")
+    }
+  }
+
+  "replicas read/restore roundtrip" should "preserve the original replica count" in {
+    withESContainer { url =>
+      val client = new ElasticSearchClient(url)
+      // Create index with replica count 2
+      httpClient.send(
+        basicRequest.put(uri"$url/idx_roundtrip")
+          .body("""{"settings": {"index": {"number_of_replicas": "2"}}}""")
+          .contentType("application/json")
+      ).isSuccess shouldBe true
+
+      val original = client.getNumberOfReplicas("idx_roundtrip")
+      original shouldBe Some("2")
+
+      // Disable replicas
+      client.setIndexSettings("idx_roundtrip", """{"index": {"number_of_replicas": "0"}}""")
+      client.getNumberOfReplicas("idx_roundtrip") shouldBe Some("0")
+
+      // Restore
+      original.foreach(r => client.setIndexSettings("idx_roundtrip", s"""{"index": {"number_of_replicas": "$r"}}"""))
+      client.getNumberOfReplicas("idx_roundtrip") shouldBe Some("2")
+    }
+  }
+
+  "refreshIndex" should "refresh an existing index" in {
+    withESContainer { url =>
+      val client = new ElasticSearchClient(url)
+      client.createIndex("idx_refresh")
+      noException should be thrownBy client.refreshIndex("idx_refresh")
+    }
+  }
+
+  it should "throw an IllegalStateException when the index does not exist" in {
+    withESContainer { url =>
+      val client = new ElasticSearchClient(url)
+      val ex = the[IllegalStateException] thrownBy client.refreshIndex("missing_index")
+      ex.getMessage should include("Server could not refresh index missing_index")
+    }
+  }
+
+  "forceMergeIndex" should "force merge an existing index" in {
+    withESContainer { url =>
+      val client = new ElasticSearchClient(url)
+      client.createIndex("idx_merge")
+      noException should be thrownBy client.forceMergeIndex("idx_merge")
+    }
+  }
+
+  it should "accept a custom max_num_segments" in {
+    withESContainer { url =>
+      val client = new ElasticSearchClient(url)
+      client.createIndex("idx_merge_custom")
+      noException should be thrownBy client.forceMergeIndex("idx_merge_custom", maxNumSegments = 2)
+    }
+  }
+
+  it should "not throw when the index does not exist (best-effort)" in {
+    withESContainer { url =>
+      val client = new ElasticSearchClient(url)
+      // Force merge is optimization-only — a missing index should log a warning, not crash the pipeline.
+      noException should be thrownBy client.forceMergeIndex("missing_index")
+    }
+  }
+
+  it should "not throw on read timeout (merge continues on ES in background)" in {
+    withESContainer { url =>
+      val client = new ElasticSearchClient(url)
+      client.createIndex("idx_merge_timeout")
+      // 1ms timeout guarantees the HTTP call will not complete in time
+      noException should be thrownBy client.forceMergeIndex(
+        "idx_merge_timeout",
+        readTimeout = scala.concurrent.duration.Duration(1, "millisecond")
+      )
+    }
+  }
+
+  it should "not throw when the server is unreachable (best-effort)" in {
+    withESContainer { url =>
+      val client = new ElasticSearchClient(s"$url/fake_url")
+      noException should be thrownBy client.forceMergeIndex("any_index")
+    }
+  }
 }

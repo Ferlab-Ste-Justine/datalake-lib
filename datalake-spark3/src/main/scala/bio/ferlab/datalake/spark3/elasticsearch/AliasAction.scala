@@ -8,3 +8,7 @@ case class AddAction(add: Map[String, String]) extends AliasAction
 case class RemoveAction(remove: Map[String, String]) extends AliasAction
 
 case class AliasActionsRequest(actions: Seq[AliasAction])
+
+case class IndexSettingsBlock(settings: Map[String, String])
+
+case class ClusterHealthResponse(status: String, timed_out: Boolean)
