@@ -235,7 +235,7 @@ class ElasticSearchClient(url: String, username: Option[String] = None, password
         .addParam("wait_for_status", "green")
         .addParam("wait_for_no_relocating_shards", "true")
         .addParam("timeout", timeoutStr))
-      .readTimeout(timeout + Duration(10, "seconds"))
+      .readTimeout(timeout)
       .response(asJson[ClusterHealthResponse])
     try {
       // client.send(request) will throw SttpClientException on timeout or other failures (DNS, connection refused, etc.) catch bellow
