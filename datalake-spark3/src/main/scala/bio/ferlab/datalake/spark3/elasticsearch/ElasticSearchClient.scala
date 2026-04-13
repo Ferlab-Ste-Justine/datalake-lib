@@ -7,7 +7,7 @@ import org.json4s.DefaultFormats
 import org.json4s.jackson.Serialization
 import sttp.client3.json4s._
 import sttp.client3.logging.slf4j.Slf4jLoggingBackend
-import sttp.client3.{SimpleHttpClient, UriContext, basicRequest}
+import sttp.client3.{SimpleHttpClient, SttpClientException, UriContext, basicRequest}
 import sttp.model.{MediaType, StatusCode, Uri}
 
 class ElasticSearchClient(url: String, username: Option[String] = None, password: Option[String] = None) {
@@ -18,6 +18,8 @@ class ElasticSearchClient(url: String, username: Option[String] = None, password
   private val templateUri: String => Uri = templateName => uri"$url/_index_template/$templateName"
   private val aliasesUri: Uri = uri"$url/_aliases"
   private val client = SimpleHttpClient().wrapBackend(Slf4jLoggingBackend(_))
+  // for quiet none-blocking operations (no logging)
+  private val quietClient = SimpleHttpClient()
   private val esUri: Uri = uri"$url"
   private implicit val serialization: Serialization.type = org.json4s.jackson.Serialization
   private implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
@@ -156,11 +158,9 @@ class ElasticSearchClient(url: String, username: Option[String] = None, password
       .put(indexUri(indexName))
       .contentType(MediaType.ApplicationJson)
       .body("{}")
-    val response = client.send(request)
-    response.body match {
-      case Left(e) if e.contains("resource_already_exists_exception") => ()
-      case Left(e) => throw new IllegalStateException(s"Server could not create index $indexName, replied: $e")
-      case _ => ()
+    client.send(request).body.left.foreach {
+      case e if e.contains("resource_already_exists_exception") => ()
+      case e => throw new IllegalStateException(s"Server could not create index $indexName, replied: $e")
     }
   }
 
@@ -173,22 +173,13 @@ class ElasticSearchClient(url: String, username: Option[String] = None, password
    *         and no restore attempt should be made.
    */
   def getNumberOfReplicas(indexName: String): Option[String] = {
+    // Response with flat_settings=true: {"index_name": {"settings": {"index.number_of_replicas": "1"}}}
     val request = esRequest
       .get(uri"$url/$indexName/_settings/index.number_of_replicas".addParam("flat_settings", "true"))
-      .response(asJson[Map[String, Any]])
-    client.send(request).body match {
-      case Right(r) =>
-        // Response: {"index_name": {"settings": {"index.number_of_replicas": "1"}}}
-        r.values.headOption.flatMap {
-          case m: Map[String, Any] @unchecked =>
-            m.get("settings").flatMap {
-              case s: Map[String, Any] @unchecked => s.get("index.number_of_replicas").map(_.toString)
-              case _ => None
-            }
-          case _ => None
-        }
-      case Left(_) => None
-    }
+      .response(asJson[Map[String, IndexSettingsBlock]])
+    client.send(request).body.toOption
+      .flatMap(_.values.headOption)
+      .flatMap(_.settings.get("index.number_of_replicas"))
   }
 
   /**
@@ -203,10 +194,8 @@ class ElasticSearchClient(url: String, username: Option[String] = None, password
       .put(uri"$url/$indexName/_settings")
       .contentType(MediaType.ApplicationJson)
       .body(settings)
-    client.send(request).body match {
-      case Left(e) => throw new IllegalStateException(s"Server could not update settings for index $indexName, replied: $e")
-      case _ => ()
-    }
+    client.send(request).body.left.foreach(e =>
+      throw new IllegalStateException(s"Server could not update settings for index $indexName, replied: $e"))
   }
 
   /**
@@ -216,12 +205,9 @@ class ElasticSearchClient(url: String, username: Option[String] = None, password
    * @throws IllegalStateException if the server could not refresh the index
    */
   def refreshIndex(indexName: String): Unit = {
-    val request = esRequest
-      .post(uri"$url/$indexName/_refresh")
-    client.send(request).body match {
-      case Left(e) => throw new IllegalStateException(s"Server could not refresh index $indexName, replied: $e")
-      case _ => ()
-    }
+    val request = esRequest.post(uri"$url/$indexName/_refresh")
+    client.send(request).body.left.foreach(e =>
+      throw new IllegalStateException(s"Server could not refresh index $indexName, replied: $e"))
   }
 
   /**
@@ -250,17 +236,14 @@ class ElasticSearchClient(url: String, username: Option[String] = None, password
       .post(uri"$url/$indexName/_forcemerge".addParam("max_num_segments", maxNumSegments.toString))
       .readTimeout(readTimeout)
     try {
-      client.send(request).body match {
-        case Left(e) =>
-          // Log but don't throw — force merge is best-effort optimization.
-          log.warn(s"Force merge for index $indexName returned an error (merge may still be running on ES): $e")
-        case _ =>
-          log.info(s"Force merge for index $indexName completed synchronously")
-      }
+      quietClient.send(request).body.left.foreach(e =>
+        log.warn(s"Force merge for index $indexName returned an error (merge may still be running on ES): $e"))
     } catch {
-      case e: Throwable =>
-        // Expected path for large indexes: read timeout. ES continues the merge in background.
-        log.info(s"Force merge request for index $indexName returned or timed out (${e.getClass.getSimpleName}: ${e.getMessage}) — merge continues in background on ES")
+      // Read timeout is the expected path for large indexes — ES continues the merge in background
+      // when the client disconnects. Other sttp failures (connect refused, DNS, etc.) are also swallowed:
+      // force merge is best-effort optimization, never break the pipeline.
+      case e: SttpClientException =>
+        log.warn(s"Force merge for index $indexName failed (${e.getClass.getSimpleName}: ${e.getMessage}) — best-effort, ignoring")
     }
   }
 

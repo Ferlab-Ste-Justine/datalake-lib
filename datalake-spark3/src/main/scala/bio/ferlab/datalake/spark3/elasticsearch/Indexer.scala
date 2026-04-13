@@ -46,62 +46,70 @@ class Indexer(jobType: String,
    *                      a single manual refresh after write). Callers should tune batch sizes for their ES cluster.
    */
   def run(df: DataFrame, esWriteConfig: Map[String, String] = Map.empty)(implicit esClient: ElasticSearchClient): Unit = {
-    val defaultConfig = Map(
+    val esConfig = Map(
       "es.write.operation" -> jobType,
       "es.batch.write.refresh" -> "false"
-    )
-    val ES_config = defaultConfig ++ esWriteConfig
+    ) ++ esWriteConfig
 
     if (jobType == "index") setupIndex(currentIndex, templateFilePath)
 
-    // When disabling replicas, create the empty index first so we can modify its settings before writing data.
-    // Without this, the index only exists after saveToEs writes the first document (via es.index.auto.create).
-    // Only capture originalReplicas if we successfully disabled them — otherwise we have nothing to restore.
-    val originalReplicas: Option[String] = if (disableReplicas) {
-      esClient.createIndex(currentIndex)
-      esClient.getNumberOfReplicas(currentIndex) match {
-        case Some(current) =>
-          log.info(s"Disabling replicas for index [$currentIndex] during write (was: $current)")
-          try {
-            esClient.setIndexSettings(currentIndex, """{"index": {"number_of_replicas": "0"}}""")
-            Some(current)
-          } catch {
-            case e: Throwable =>
-              log.warn(s"Failed to disable replicas for index [$currentIndex], proceeding without replica optimization: ${e.getMessage}")
-              None
-          }
-        case None =>
-          log.warn(s"Could not read current replica count for index [$currentIndex], skipping replica optimization to avoid incorrect restore")
-          None
-      }
-    } else None
-
-    // Wrap write + refresh in try/finally so replicas are restored even if saveToEs or refreshIndex throws.
-    // Leaving the index at number_of_replicas=0 would compromise availability.
-    try {
-      df.saveToEs(s"$currentIndex/_doc", ES_config)
-
+    withReplicasDisabled(currentIndex, disableReplicas) {
+      df.saveToEs(s"$currentIndex/_doc", esConfig)
       log.info(s"Refreshing index [$currentIndex]")
       esClient.refreshIndex(currentIndex)
+    }
 
-      if (forceMerge) {
-        // Fire-and-forget: ES merges in background (wait_for_completion=false by default).
-        // The index is already fully searchable, so alias swap can happen immediately.
-        // Failures here are swallowed and logged — merge is best-effort optimization.
-        log.info(s"Triggering async force merge for index [$currentIndex] (runs in background on ES)")
-        esClient.forceMergeIndex(currentIndex, maxNumSegments = 1)
-      }
-    } finally {
-      originalReplicas.foreach { replicas =>
+    // Force merge runs AFTER replicas are restored so it operates on every shard copy.
+    // If write failed above, the exception propagates and we never reach this line — correct, no point merging a failed index.
+    if (forceMerge) {
+      log.info(s"Triggering async force merge for index [$currentIndex] (runs in background on ES)")
+      esClient.forceMergeIndex(currentIndex, maxNumSegments = 1)
+    }
+  }
+
+  /**
+   * Runs `block` with the index's replicas temporarily set to 0 (when `enabled`),
+   * then restores the original replica count — even if `block` throws.
+   *
+   * If the original replica count cannot be read or the disable call fails, the optimization
+   * is skipped and `block` runs normally with no restore attempt (avoids leaving the index
+   * at number_of_replicas=0).
+   */
+  private def withReplicasDisabled(indexName: String, enabled: Boolean)(block: => Unit)
+                                  (implicit esClient: ElasticSearchClient): Unit = {
+    val originalReplicas: Option[String] = if (enabled) disableReplicas(indexName) else None
+    try block
+    finally originalReplicas.foreach(restoreReplicas(indexName, _))
+  }
+
+  private def disableReplicas(indexName: String)(implicit esClient: ElasticSearchClient): Option[String] = {
+    // Create the empty index first so we can modify its settings before writing data.
+    // Without this, the index only exists after saveToEs writes the first document (via es.index.auto.create).
+    esClient.createIndex(indexName)
+    esClient.getNumberOfReplicas(indexName) match {
+      case None =>
+        log.warn(s"Could not read current replica count for index [$indexName], skipping replica optimization to avoid incorrect restore")
+        None
+      case Some(current) =>
+        log.info(s"Disabling replicas for index [$indexName] during write (was: $current)")
         try {
-          log.info(s"Restoring replicas for index [$currentIndex] to $replicas")
-          esClient.setIndexSettings(currentIndex, s"""{"index": {"number_of_replicas": "$replicas"}}""")
+          esClient.setIndexSettings(indexName, """{"index": {"number_of_replicas": "0"}}""")
+          Some(current)
         } catch {
           case e: Throwable =>
-            log.error(s"Failed to restore replicas for index [$currentIndex] to $replicas — index left at number_of_replicas=0, manual intervention required", e)
-            throw e
+            log.warn(s"Failed to disable replicas for index [$indexName], proceeding without replica optimization: ${e.getMessage}")
+            None
         }
-      }
+    }
+  }
+
+  private def restoreReplicas(indexName: String, replicas: String)(implicit esClient: ElasticSearchClient): Unit = {
+    log.info(s"Restoring replicas for index [$indexName] to $replicas")
+    try esClient.setIndexSettings(indexName, s"""{"index": {"number_of_replicas": "$replicas"}}""")
+    catch {
+      case e: Throwable =>
+        log.error(s"Failed to restore replicas for index [$indexName] to $replicas — index left at number_of_replicas=0, manual intervention required", e)
+        throw e
     }
   }
 
