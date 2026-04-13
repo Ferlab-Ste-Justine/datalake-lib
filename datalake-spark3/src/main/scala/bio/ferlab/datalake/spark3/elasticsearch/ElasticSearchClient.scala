@@ -177,9 +177,14 @@ class ElasticSearchClient(url: String, username: Option[String] = None, password
     val request = esRequest
       .get(uri"$url/$indexName/_settings/index.number_of_replicas".addParam("flat_settings", "true"))
       .response(asJson[Map[String, IndexSettingsBlock]])
-    client.send(request).body.toOption
-      .flatMap(_.values.headOption)
-      .flatMap(_.settings.get("index.number_of_replicas"))
+    try {
+      client.send(request).body.toOption
+        .flatMap(_.get(indexName)) // select by key — defensive against wildcards/multi-match
+        .flatMap(_.settings.get("index.number_of_replicas"))
+    } catch {
+      // Honor the None contract on connection/timeout failures so callers don't crash.
+      case _: SttpClientException => None
+    }
   }
 
   /**

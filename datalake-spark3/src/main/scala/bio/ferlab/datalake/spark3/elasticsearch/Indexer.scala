@@ -68,12 +68,13 @@ class Indexer(jobType: String,
   }
 
   /**
-   * Runs `block` with the index's replicas temporarily set to 0 (when `enabled`),
-   * then restores the original replica count — even if `block` throws.
+   * Runs `block` with the index's replicas temporarily set to 0 (when `enabled`).
+   * Replicas are always restored if they were disabled — on success and on failure.
+   * If `block` throws, the replica count is restored first, then the original exception
+   * propagates to the caller.
    *
-   * If the original replica count cannot be read or the disable call fails, the optimization
-   * is skipped and `block` runs normally with no restore attempt (avoids leaving the index
-   * at number_of_replicas=0).
+   * If disabling replicas failed upfront (original count unreadable or setting update failed),
+   * no changes were made to the index, so there is nothing to restore — `block` runs normally.
    */
   private def withReplicasDisabled(indexName: String, enabled: Boolean)(block: => Unit)
                                   (implicit esClient: ElasticSearchClient): Unit = {
