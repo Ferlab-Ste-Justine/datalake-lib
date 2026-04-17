@@ -41,11 +41,11 @@ object DatasetConfImplicits {
     def readCurrent(implicit config: Configuration, spark: SparkSession): DataFrame = {
       val df = ds.read
       ds.loadtype match {
-        case OverWritePartition =>
-          val maxPartition = df.select(max(col(ds.partitionby.head))).collect().head.get(0)
-          df.filter(col(ds.partitionby.head) === maxPartition)
         case Scd2 =>
           df.filter(col(ds.writeoptions(IS_CURRENT_COLUMN_NAME)))
+        case _ if ds.partitionby.nonEmpty =>
+          val maxPartition = df.select(max(col(ds.partitionby.head))).collect().head.get(0)
+          df.filter(col(ds.partitionby.head) === maxPartition)
         case _ => df
       }
     }
