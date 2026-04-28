@@ -53,23 +53,30 @@ class Indexer(jobType: String,
 
     if (jobType == "index") setupIndex(currentIndex, templateFilePath)
 
-    withReplicasDisabled(currentIndex, disableReplicas) {
-      df.saveToEs(s"$currentIndex/_doc", esConfig)
-      log.info(s"Refreshing index [$currentIndex]")
-      esClient.refreshIndex(currentIndex)
-    }
+    // Empty df is a no-op on ES: skip write, replica toggling, refresh, and force merge.
+    // Without this guard, refreshIndex (and createIndex inside disableReplicas) would target
+    // an index that saveToEs never created via es.index.auto.create.
+    if (df.isEmpty) {
+      log.info(s"DataFrame is empty for index [$currentIndex] — skipping ES write, refresh, and force merge")
+    } else {
+      withReplicasDisabled(currentIndex, disableReplicas) {
+        df.saveToEs(s"$currentIndex/_doc", esConfig)
+        log.info(s"Refreshing index [$currentIndex]")
+        esClient.refreshIndex(currentIndex)
+      }
 
-    // Force merge runs AFTER replicas are restored AND STARTED so it operates on every shard copy.
-    // waitForGreen blocks until all replicas finish peer-recovery — otherwise force merge races with
-    // recovery and only merges primaries, leaving replicas fragmented (10+ segments each).
-    // If write failed above, the exception propagates and we never reach this line — correct, no point merging a failed index.
-    if (forceMerge) {
-      log.info(s"Waiting for index [$currentIndex] to reach green status before force merge")
-      if (esClient.waitForGreen(currentIndex)) {
-        log.info(s"Triggering async force merge for index [$currentIndex] (runs in background on ES)")
-        esClient.forceMergeIndex(currentIndex, maxNumSegments = 1)
-      } else {
-        log.warn(s"Index [$currentIndex] did not reach green status — skipping force merge to avoid merging only primaries")
+      // Force merge runs AFTER replicas are restored AND STARTED so it operates on every shard copy.
+      // waitForGreen blocks until all replicas finish peer-recovery — otherwise force merge races with
+      // recovery and only merges primaries, leaving replicas fragmented (10+ segments each).
+      // If write failed above, the exception propagates and we never reach this line — correct, no point merging a failed index.
+      if (forceMerge) {
+        log.info(s"Waiting for index [$currentIndex] to reach green status before force merge")
+        if (esClient.waitForGreen(currentIndex)) {
+          log.info(s"Triggering async force merge for index [$currentIndex] (runs in background on ES)")
+          esClient.forceMergeIndex(currentIndex, maxNumSegments = 1)
+        } else {
+          log.warn(s"Index [$currentIndex] did not reach green status — skipping force merge to avoid merging only primaries")
+        }
       }
     }
   }
