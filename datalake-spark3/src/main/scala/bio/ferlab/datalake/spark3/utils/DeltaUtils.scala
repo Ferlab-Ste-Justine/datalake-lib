@@ -47,7 +47,7 @@ object DeltaUtils {
    * }}}
    */
   def compact(datasetConf: DatasetConf, partitionFilter: Option[String] = None)(implicit spark: SparkSession, conf: Configuration): Unit = {
-    val deltaTable = DeltaTable.forPath(datasetConf.location)
+    val deltaTable = DeltaTable.forPath(spark, datasetConf.location)
     partitionFilter match {
       case Some(pf) => deltaTable.optimize().where(pf).executeCompaction()
       case None => deltaTable.optimize().executeCompaction()
@@ -67,13 +67,13 @@ object DeltaUtils {
   def vacuum(datasetConf: DatasetConf, numberOfVersions: Int)(implicit spark: SparkSession, conf: Configuration): Unit = {
     import spark.implicits._
     val timestamps: Seq[Timestamp] = DeltaTable
-      .forPath(datasetConf.location)
+      .forPath(spark, datasetConf.location)
       .history(numberOfVersions)
       .select("timestamp")
       .as[Timestamp].collect().toSeq
     if (timestamps.size == numberOfVersions) {
       val retentionHours = Seq(336, getRetentionHours(timestamps)).max // 336 hours = 2 weeks
-      DeltaTable.forPath(datasetConf.location).vacuum(retentionHours)
+      DeltaTable.forPath(spark, datasetConf.location).vacuum(retentionHours)
     }
 
   }
