@@ -13,9 +13,9 @@ object DeltaLoader extends Loader {
 
   private def readTableAsDelta(location: String,
                                databaseName: String,
-                               tableName: String): Try[DeltaTable] = {
-    Try(DeltaTable.forName(s"$databaseName.$tableName"))
-      .orElse(Try(DeltaTable.forPath(location)))
+                               tableName: String)(implicit spark: SparkSession): Try[DeltaTable] = {
+    Try(DeltaTable.forName(spark, s"$databaseName.$tableName"))
+      .orElse(Try(DeltaTable.forPath(spark, location)))
   }
 
   override def upsert(location: String,
@@ -164,7 +164,7 @@ object DeltaLoader extends Loader {
                     databaseName: Option[String],
                     tableName: Option[String])(implicit spark: SparkSession): DataFrame = {
     Try(GenericLoader.read(location, format, readOptions, databaseName, tableName))
-      .getOrElse(DeltaTable.forPath(location).toDF)
+      .getOrElse(DeltaTable.forPath(spark, location).toDF)
   }
 
   def scd2(location: String,
