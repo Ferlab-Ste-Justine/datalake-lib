@@ -30,7 +30,7 @@ object DeltaLoader extends Loader {
 
     require(primaryKeys.forall(updates.columns.contains), s"requires column [${primaryKeys.mkString(", ")}]")
 
-    readTableAsDelta(location, databaseName, tableName)(spark) match {
+    readTableAsDelta(location, databaseName, tableName) match {
       case Failure(_) =>
         writeOnce(location, databaseName, tableName, updates, partitioning, format, options)
       case Success(existing) =>
@@ -85,7 +85,7 @@ object DeltaLoader extends Loader {
     require(updates.columns.exists(_.equals(createdOnName)), s"requires column [$createdOnName]")
     require(updates.columns.exists(_.equals(updatedOnName)), s"requires column [$updatedOnName]")
 
-    readTableAsDelta(location, databaseName, tableName)(spark) match {
+    readTableAsDelta(location, databaseName, tableName) match {
       case Failure(_) => writeOnce(location, databaseName, tableName, updates, partitioning, format, options)
       case Success(existing) =>
         val existingDf = existing.toDF
@@ -199,7 +199,7 @@ object DeltaLoader extends Loader {
       else
         newData
 
-    readTableAsDelta(location, databaseName, tableName)(spark) match {
+    readTableAsDelta(location, databaseName, tableName) match {
       case Failure(_) => writeOnce(location, databaseName, tableName, deduplicatedData, partitioning, format, options)
       case Success(existing) =>
         val existingDf = existing.toDF
