@@ -22,12 +22,23 @@ case class Scd2Table(id: String,
                      valid_to: Date,
                      is_current: Boolean)
 
+case class Scd2MisalignTable(id: String,
+                             code: String,
+                             ts_key: Timestamp,
+                             oid: String,
+                             ingested_on: Date,
+                             valid_from: Date,
+                             buid: String,
+                             valid_to: Date,
+                             is_current: Boolean)
+
 class DeltaLoaderSpec extends SparkSpec with BeforeAndAfterAll {
 
   val testtableoverwite: String = getClass.getClassLoader.getResource("normalized/").getFile + "testtableoverwite"
   val output: String = getClass.getClassLoader.getResource("normalized/").getFile + "testtable"
   val scd1Output: String = getClass.getClassLoader.getResource("normalized/").getFile + "scd1table"
   val scd2Output: String = getClass.getClassLoader.getResource("normalized/").getFile + "scd2table"
+  val scd2MisalignOutput: String = getClass.getClassLoader.getResource("normalized/").getFile + "scd2misaligntable"
   val upsertPartitionOutput: String = getClass.getClassLoader.getResource("normalized/").getFile + "upsertpartitiontable"
 
   override def beforeAll(): Unit = {
@@ -37,6 +48,8 @@ class DeltaLoaderSpec extends SparkSpec with BeforeAndAfterAll {
     HadoopFileSystem.remove(scd1Output)
     spark.sql("DROP TABLE IF EXISTS default.scd2table")
     HadoopFileSystem.remove(scd2Output)
+    spark.sql("DROP TABLE IF EXISTS default.scd2misaligntable")
+    HadoopFileSystem.remove(scd2MisalignOutput)
     spark.sql("DROP TABLE IF EXISTS default.upsertpartitiontable")
     HadoopFileSystem.remove(upsertPartitionOutput)
   }
@@ -174,6 +187,56 @@ class DeltaLoaderSpec extends SparkSpec with BeforeAndAfterAll {
       Scd2Table("4", "1b6453892473a467d07372d45eb05abc2031647a", "d", "dd", Date.valueOf("2020-01-02"), Date.valueOf("2020-01-02"), Date.valueOf("9999-12-31"), true ),
     )
 
+  }
+
+  it should "not misalign columns when primary keys are not the leading columns" in {
+    import spark.implicits._
+
+    val tableName = "scd2misaligntable"
+    val ingestedOnName = "ingested_on"
+    val validFromName = WriteOptions.DEFAULT_VALID_FROM
+    val validToName = WriteOptions.DEFAULT_VALID_TO
+    val buidName = "buid"
+    val oidName = "oid"
+    val isCurrentName = "is_current"
+
+    val day1 = LocalDate.of(2020, 1, 1)
+    val day2 = day1.plusDays(1)
+    val maxDate = LocalDate.of(9999, 12, 31)
+    val ts = Timestamp.valueOf("2011-02-15 01:01:01")
+
+    // ts_key is a timestamp primary key and code is a non-key string column
+    // The using-columns join of newRowsToInsert moves the keys to the front, so an incorrect
+    // positional union would align 'ts_key' against 'code' and force cast ("P" as timestamp), which
+    // aborts the merge
+    val keys = Seq("id", "ts_key")
+
+    val existing: DataFrame = Seq(
+      ("1", "P", ts, "o1", Date.valueOf(day1), Date.valueOf(day1))
+    ).toDF("id", "code", "ts_key", oidName, ingestedOnName, validFromName)
+
+    DeltaLoader
+      .scd2(scd2MisalignOutput, "default", tableName, existing, keys,
+        buidName, oidName, isCurrentName, List(), DELTA.sparkFormat, validFromName, validToName, Map(), maxDate)
+
+    val updates: DataFrame = Seq(
+      ("1", "P", ts, "o2", Date.valueOf(day2), Date.valueOf(day2)), // oid changed
+      ("2", "P", ts, "o3", Date.valueOf(day2), Date.valueOf(day2)) // new row
+    ).toDF("id", "code", "ts_key", oidName, ingestedOnName, validFromName)
+
+    // With just a positional `union` this throws SparkDateTimeException.
+    DeltaLoader
+      .scd2(scd2MisalignOutput, "default", tableName, updates, keys,
+        buidName, oidName, isCurrentName, List(), DELTA.sparkFormat, validFromName, validToName, Map(), maxDate)
+
+    val finalDf = DeltaLoader.read(scd2MisalignOutput, DELTA.sparkFormat, Map(), Some("default"), Some(tableName)).as[Scd2MisalignTable]
+
+    finalDf.count() shouldBe 3
+    finalDf.filter(_.is_current).count() shouldBe 2
+    finalDf.collect().foreach { row =>
+      row.code shouldBe "P"
+      row.ts_key shouldBe ts
+    }
   }
 
   "overwrite" should "replace all data" in {
