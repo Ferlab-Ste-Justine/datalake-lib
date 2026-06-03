@@ -211,7 +211,9 @@ object DeltaLoader extends Loader {
 
         val stagedUpdates = newRowsToInsert
           .selectExpr("NULL as mergeKey", "updates.*")
-          .union(
+          // The join above moves primary keys to the front, so a
+          // unionByName is necessary, otherwise we have misaligned columns in the merge.
+          .unionByName(
             deduplicatedData.selectExpr(s"${buidName} as mergeKey", "*")
           )
 
