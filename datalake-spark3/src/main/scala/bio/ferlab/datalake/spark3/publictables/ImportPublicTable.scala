@@ -19,6 +19,9 @@ object ImportPublicTable {
   def clinvar(rc: RuntimeETLContext): Unit = Clinvar.run(rc)
 
   @main
+  def clinvar_vep(rc: RuntimeETLContext): Unit = ClinvarVep.run(rc)
+
+  @main
   def cosmic_gene_set(rc: RuntimeETLContext): Unit = CosmicGeneSet.run(rc)
 
   @main
